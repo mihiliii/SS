@@ -1,3 +1,4 @@
+
 %{
   #include <cstdio>
   #include <iostream>
@@ -59,10 +60,10 @@ snazzle:
 
 int main(int, char**) {
   // Open a file handle to a particular file:
-  FILE *myfile = fopen("a.snazzle.file", "r");
+  FILE *myfile = fopen("input.txt", "r");
   // Make sure it is valid:
   if (!myfile) {
-    cout << "I can't open a.snazzle.file!" << endl;
+    cout << "I can't open input.txt!" << endl;
     return -1;
   }
   // Set Flex to read from it instead of defaulting to STDIN:
