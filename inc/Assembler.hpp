@@ -8,9 +8,6 @@ class Assembler {
 private:
 public:
 
-    Assembler(/* args */);
-
-    ~Assembler();
 };
 
 #endif

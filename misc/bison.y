@@ -22,40 +22,33 @@
 // mechanism with the %union directive:
 %union {
   int ival;
-  float fval;
-  char *sval;
+  char* sval;
 }
 
 // Define the "terminal symbol" token types I'm going to use (in CAPS
 // by convention), and associate each with a field of the %union:
-%token <ival> INT
-%token <fval> FLOAT
+%token <ival> NUMBER
 %token <sval> STRING
+
+%token <sval> INSTRUCTION
+%token <sval> REGISTER
+
+%token EOL
+%token COMMA
 
 %%
 // This is the actual grammar that bison will parse, but for right now it's just
-// something silly to echo to the screen what bison gets from flex.  We'll
+// something silly to echo to the screen what bison gets from flex. We'll
 // make a real one shortly:
-snazzle:
-  INT snazzle      {
-      cout << "bison found an int: " << $1 << endl;
-    }
-  | FLOAT snazzle  {
-      cout << "bison found a float: " << $1 << endl;
-    }
-  | STRING snazzle {
-      cout << "bison found a string: " << $1 << endl; free($1);
-    }
-  | INT            {
-      cout << "bison found an int: " << $1 << endl;
-    }
-  | FLOAT          {
-      cout << "bison found a float: " << $1 << endl;
-    }
-  | STRING         {
-      cout << "bison found a string: " << $1 << endl; free($1);
-    }
-  ;
+input:
+    | line input ;
+
+line:
+    INSTRUCTION REGISTER COMMA REGISTER EOL
+    {
+        cout << $1 << " " << $2 << " " << $4 << endl;
+    };
+
 %%
 
 int main(int, char**) {
@@ -75,7 +68,7 @@ int main(int, char**) {
 }
 
 void yyerror(const char *s) {
-  cout << "EEK, parse error!  Message: " << s << endl;
+  cout << "Parse error! Message: " << s << endl;
   // might as well halt now:
   exit(-1);
 }
