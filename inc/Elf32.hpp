@@ -14,7 +14,7 @@ typedef int32_t  Elf32_SWord;
 // *                                ELF HEADER                                *
 // ****************************************************************************
 
-// Makros used e_ident array in Elf32_Ehdr (ELF header)
+// Makros used in e_ident array in Elf32_Ehdr (ELF header)
 #define EI_NIDENT   8 /* ELF identification size */
 #define EI_MAG0     0 /* File identification byte 0 index */
 #define EI_MAG1     1 /* File identification byte 1 index */
@@ -76,19 +76,43 @@ struct Elf32_Ehdr {
 #define SHN_HIRESERVE 0xffff /* End of reserved indices */
 
 
+#define SHT_SYMTAB    0x7    /* Symbol table */
+
+
 // Struct that represents the symbol table entry
-typedef struct {
-    Elf32_Word sh_name;   // Section name (string table index)
-    Elf32_Word sh_type;   // Section type, not used
-    Elf32_Word sh_flags;  // Section attributes, not used
-    Elf32_Addr sh_addr;   // Virtual address in memory
-    Elf32_Off  sh_offset; // Offset from start of file in bytes 
-    Elf32_Word sh_size;
-    Elf32_Word sh_link;
-    Elf32_Word sh_info;
-    Elf32_Word sh_addralign;
-    Elf32_Word sh_entsize;
-} Elf32_Shdr;
+struct Elf32_Shdr {
+    Elf32_Word sh_name;       // Section name (string table index)
+    Elf32_Word sh_type;       // Section type, not used
+    Elf32_Word sh_flags;      // Section attributes, not used
+    Elf32_Addr sh_addr;       // Virtual address in memory
+    Elf32_Off  sh_offset;     // Offset of the section from start of ELF file
+    Elf32_Word sh_size;       // Size of the section in bytes
+    Elf32_Word sh_link;       // Index of a related section (if any)
+    Elf32_Word sh_info;       // Extra information about the section
+    Elf32_Word sh_addralign;  // Required alignment of the section
+    Elf32_Word sh_entsize;    // Size of each entry in the section
+};
+
+
+// ****************************************************************************
+// *                               SYMBOL TABLE                               *
+// ****************************************************************************
+
+
+// Type attributes used in st_info
+#define STB_LOCAL  0 /* Local symbol */
+#define STB_GLOBAL 1 /* Global symbol */
+#define STB_WEAK   2 /* Weak symbol */
+
+
+// Struct that represents the symbol table entry
+struct Elf32_Sym {
+    Elf32_Word    st_name;   // Offset in the symbol string name table that matches that symbol name
+    unsigned char st_info;   // Type attributes
+    Elf32_Half    st_shndx;  // Section index which the symbol is defined
+    Elf32_Addr    st_value;  // Symbol value
+    Elf32_Word    st_size;   // Size of the symbol
+};
 
 
 #endif
