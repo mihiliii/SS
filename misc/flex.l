@@ -1,8 +1,8 @@
 %{  
     #include "bison.tab.h"
+    #include "../inc/Assembler.hpp"
     
     extern int yyerror(const char* s);
-    int line_number = 0;
 %}
 %option noyywrap
 
@@ -42,7 +42,7 @@ HASHTAG "#"
 %r[0-9]+                 { yylval.sval = strdup(yytext); return REGISTER; }
 0[xX][0-9a-fA-F]+|[0-9]+ { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
 [a-zA-Z0-9]+             { yylval.sval = strdup(yytext); return STRING; }
-\n                       { line_number++; return EOL; }
+\n                       { Assembler::increaseLocationCounter(); return EOL; }
 [ \t]+                   ;
 .                        { printf("Unknown character: %s\n", yytext); }
 

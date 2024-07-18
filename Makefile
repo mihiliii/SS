@@ -1,9 +1,5 @@
-MISC_DIR = misc 
 BUILD_DIR = build
-INC_DIR = inc
-SRC_DIR = src
-
-PROGRAM = executable
+PROGRAM_NAME = executable
 
 BISON_FILE = misc/bison.y
 FLEX_FILE = misc/flex.l
@@ -18,15 +14,10 @@ src/main.cpp \
 src/SectionContent.cpp
 
 run: all
-	./executable
+	./$(PROGRAM_NAME)
 
-all: parse_only cpp_only
-
-cpp_only: $(CPP_FILES)
-	g++ -o executable $(^)
-
-parse_only: $(C_FILES)
-	g++ -o $(@) $(^) -lfl
+all: $(CPP_FILES) $(C_FILES) 
+	g++ -o $(PROGRAM_NAME) $(^) -lfl
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)
 	bison -o $(@) -d $(<)
@@ -38,4 +29,4 @@ $(BUILD_DIR):
 	mkdir $(@)
 
 clean:
-	rm -rf $(BUILD_DIR) parse_only $(PROGRAM)
+	rm -rf $(BUILD_DIR) $(PROGRAM_NAME)

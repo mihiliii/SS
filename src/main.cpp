@@ -5,7 +5,10 @@
 
 int main() {
     std::cout << "\n\nProgram start: \n\n";
+
     Assembler::startAssembler();
+    Assembler::printLocationCounter();
+
     std::cout << "\n\nProgram end: \n\n";
     return 0;
 }

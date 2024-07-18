@@ -19,8 +19,6 @@ public:
 
     void printSectionTableEntry();
 
-
-
 private:
 
     Elf32_Shdr   section_table_entry;

@@ -3,13 +3,16 @@
 
 #include <iostream>
 #include <map>
+#include "SectionContent.hpp"
 
 class Assembler {
 public:
 
     void readInstruction() {}
 
-    static void increaseLocationCounter();
+    static void printLocationCounter() { std::cout << location_counter; }
+
+    static void increaseLocationCounter() { location_counter++; }
 
     static int startAssembler();
 
@@ -20,6 +23,7 @@ public:
 private:
 
     static int location_counter;
+    static SectionContent* text_section;
 };
 
 #endif

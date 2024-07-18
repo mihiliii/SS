@@ -51,22 +51,6 @@ line:
 
 %%
 
-int main(int, char**) {
-    // Open a file handle to a particular file:
-    FILE *myfile = fopen("input.txt", "r");
-    // Make sure it is valid:
-    if (!myfile) {
-        cout << "I can't open input.txt!" << endl;
-        return -1;
-    }
-    // Set Flex to read from it instead of defaulting to STDIN:
-    yyin = myfile;
-  
-    // Parse through the input:
-    yyparse();
-  
-}
-
 void yyerror(const char *s) {
     cout << "Parse error! Message: " << s << endl;
     // might as well halt now:
