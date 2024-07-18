@@ -1,15 +1,15 @@
 
 %{
-  #include <cstdio>
-  #include <iostream>
-  using namespace std;
+    #include <cstdio>
+    #include <iostream>
+    using namespace std;
 
-  // Declare stuff from Flex that Bison needs to know about:
-  extern int yylex();
-  extern int yyparse();
-  extern FILE *yyin;
+    // Declare stuff from Flex that Bison needs to know about:
+    extern int yylex();
+    extern int yyparse();
+    extern FILE *yyin;
  
-  void yyerror(const char *s);
+    void yyerror(const char *s);
 %}
 
 // Bison fundamentally works by asking flex to get the next token, which it
@@ -21,8 +21,8 @@
 // we can return ints or floats or strings cleanly.  Bison implements this
 // mechanism with the %union directive:
 %union {
-  int ival;
-  char* sval;
+    int ival;
+    char* sval;
 }
 
 // Define the "terminal symbol" token types I'm going to use (in CAPS
@@ -52,23 +52,23 @@ line:
 %%
 
 int main(int, char**) {
-  // Open a file handle to a particular file:
-  FILE *myfile = fopen("input.txt", "r");
-  // Make sure it is valid:
-  if (!myfile) {
-    cout << "I can't open input.txt!" << endl;
-    return -1;
-  }
-  // Set Flex to read from it instead of defaulting to STDIN:
-  yyin = myfile;
+    // Open a file handle to a particular file:
+    FILE *myfile = fopen("input.txt", "r");
+    // Make sure it is valid:
+    if (!myfile) {
+        cout << "I can't open input.txt!" << endl;
+        return -1;
+    }
+    // Set Flex to read from it instead of defaulting to STDIN:
+    yyin = myfile;
   
-  // Parse through the input:
-  yyparse();
+    // Parse through the input:
+    yyparse();
   
 }
 
 void yyerror(const char *s) {
-  cout << "Parse error! Message: " << s << endl;
-  // might as well halt now:
-  exit(-1);
+    cout << "Parse error! Message: " << s << endl;
+    // might as well halt now:
+    exit(-1);
 }

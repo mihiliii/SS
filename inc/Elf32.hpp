@@ -1,7 +1,7 @@
 #ifndef Elf32_hpp_
 #define Elf32_hpp_
 
-#include "Types.hpp"
+#include <cstdint>
 
 typedef uint32_t Elf32_Addr;
 typedef uint32_t Elf32_Off;
