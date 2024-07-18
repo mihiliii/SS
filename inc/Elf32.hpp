@@ -79,7 +79,7 @@ struct Elf32_Ehdr {
 #define SHT_SYMTAB    0x7    /* Symbol table */
 
 
-// Struct that represents the symbol table entry
+// Struct that represents the section table entry
 struct Elf32_Shdr {
     Elf32_Word sh_name;       // Section name (string table index)
     Elf32_Word sh_type;       // Section type, not used

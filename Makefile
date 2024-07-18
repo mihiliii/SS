@@ -14,7 +14,8 @@ $(BUILD_DIR)/lex.yy.c
 
 CPP_FILES = \
 src/Assembler.cpp \
-src/main.cpp
+src/main.cpp \
+src/SectionContent.cpp
 
 run: all
 	./executable
