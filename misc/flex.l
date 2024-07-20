@@ -6,6 +6,15 @@
 %}
 %option noyywrap
 
+/* directives: */
+GLOBAL ".global"
+EXTERN ".extern"
+SECTION ".section"
+WORD ".word"
+SKIP ".skip"
+END ".end"
+
+/* instructions: */
 HALT "halt"
 INT "int"
 IRET "iret"
@@ -32,12 +41,13 @@ ST "st"
 CSSRD "cssrd"
 CSRWR "csrwr"
 
-
 %%
 
 "#"[^\n]*\n                 { printf("%s\n", yytext); };
 ","                         { return COMMA; }
-{HALT}|{INT}|{IRET}|{RET}   { yylval.sval = strdup(yytext); return OPCODE0; }
+{HALT}                      { yylval.sval = strdup(yytext); return HALT; }
+{INT}                       { yylval.sval = strdup(yytext); return INT; 
+{JMP}
 {ADD}|{SUB}|{MUL}|{DIV}     { yylval.sval = strdup(yytext); return OPCODE2; }
 %r[0-9]+                    { yylval.sval = strdup(yytext); return REGISTER; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
