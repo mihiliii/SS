@@ -32,18 +32,18 @@ ST "st"
 CSSRD "cssrd"
 CSRWR "csrwr"
 
-COMMA ","
-HASHTAG "#"
 
 %%
 
-{COMMA}                  { return COMMA; }
-{ADD}|{SUB}|{MUL}|{DIV}  { yylval.sval = strdup(yytext); return INSTRUCTION; }
-%r[0-9]+                 { yylval.sval = strdup(yytext); return REGISTER; }
-0[xX][0-9a-fA-F]+|[0-9]+ { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
-[a-zA-Z0-9]+             { yylval.sval = strdup(yytext); return STRING; }
-\n                       { Assembler::increaseLocationCounter(); return EOL; }
-[ \t]+                   ;
-.                        { printf("Unknown character: %s\n", yytext); }
+"#"[^\n]*\n                 { printf("%s\n", yytext); };
+","                         { return COMMA; }
+{HALT}|{INT}|{IRET}|{RET}   { yylval.sval = strdup(yytext); return OPCODE0; }
+{ADD}|{SUB}|{MUL}|{DIV}     { yylval.sval = strdup(yytext); return OPCODE2; }
+%r[0-9]+                    { yylval.sval = strdup(yytext); return REGISTER; }
+0[xX][0-9a-fA-F]+|[0-9]+    { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
+[a-zA-Z0-9]+                { yylval.sval = strdup(yytext); return STRING; }
+\n                          { Assembler::increaseLocationCounter(); }
+[ \t]+                      ;
+.                           { printf("Unknown character: %s\n", yytext); }
 
 %%

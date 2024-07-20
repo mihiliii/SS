@@ -1,2 +1,4 @@
 add %r4, %r5
 sub %r4, %r5
+# i love snickers
+halt

@@ -2,19 +2,24 @@
 #define Assembler_hpp_
 
 #include <iostream>
-#include <map>
 #include "SectionContent.hpp"
 
 class Assembler {
 public:
 
-    void readInstruction() {}
+    friend class Instructions;
+
+    static void decodeInstruction(const std::string& string);
+
+    static void decodeInstruction(char* string);
 
     static void printLocationCounter() { std::cout << location_counter; }
 
     static void increaseLocationCounter() { location_counter++; }
 
     static int startAssembler();
+    
+    static int writeToFile();
 
     Assembler() = delete;
 

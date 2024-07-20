@@ -4,11 +4,18 @@
 #include <iostream>
 
 int main() {
-    std::cout << "\n\nProgram start: \n\n";
+    std::cout << "\nProgram start: \n\n";
 
-    Assembler::startAssembler();
-    Assembler::printLocationCounter();
+    if (Assembler::startAssembler() == -1) {
+        std::cout << "Assembler failed to start. \n";
+        return -1;
+    }
 
-    std::cout << "\n\nProgram end: \n\n";
+    if (Assembler::writeToFile() == -1) {
+        std::cout << "Assembler failed to write to file. \n";
+        return -1;
+    }
+
+    std::cout << "\nProgram end. \n";
     return 0;
 }

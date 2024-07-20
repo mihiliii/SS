@@ -1,10 +1,15 @@
 #include "../inc/SectionContent.hpp"
 
+#include "SectionContent.hpp"
 
-void SectionContent::writeContent(const std::string& _content) {
-    content->append(_content);
-    section_table_entry.sh_size += _content.length();
+
+void SectionContent::writeContent(uint8_t* _content, size_t _size) {
+    for (int i = 0; i < _size; i++) {
+        this->content->push_back(_content[i]);
+    }
+    this->section_table_entry.sh_size += _size;
 }
+
 
 void SectionContent::printSectionTableEntry() {
     std::cout << "Section table entry:\n";
@@ -20,4 +25,9 @@ void SectionContent::printSectionTableEntry() {
     std::cout << "Entry size: " << section_table_entry.sh_entsize << std::endl;
 }
 
-void SectionContent::printContent() { std::cout << "Content: " << *content << std::endl; }
+void SectionContent::printContent() { 
+    std::cout << "Content: " << std::endl;
+    for (uint8_t byte : *content) {
+        std::cout << std::hex << (int) byte << " ";
+    }
+}

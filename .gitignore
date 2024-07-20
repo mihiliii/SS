@@ -1,1 +1,4 @@
 /build
+executable
+output.o
+/.vscode

@@ -1,0 +1,29 @@
+#include "../inc/Instructions.hpp"
+
+#include <unordered_map>
+#include <string>
+
+#include "../inc/Assembler.hpp"
+#include "../inc/SectionContent.hpp"
+
+std::unordered_map<std::string, uint8_t> OC_MOD = {{"halt", 0x00}};
+
+// std::unordered_map<std::string, uint8_t> REGA_REGB = {
+// {"halt", 0x00}
+// };
+
+// std::unordered_map<std::string, uint8_t> REGC_DISP = {
+// {"halt", 0x00}
+// };
+
+// std::unordered_map<std::string, uint8_t> DISP_DISP = {
+// {"halt", 0x00}
+// };
+
+std::unordered_map<std::string, std::function<void()>> Instructions::instruction_map = {
+    {"halt", Instructions::halt}
+};
+
+void Instructions::halt() {
+    Assembler::text_section->writeContent(&OC_MOD["halt"], sizeof(uint8_t));
+}

@@ -2,6 +2,8 @@
 %{
     #include <cstdio>
     #include <iostream>
+    #include "../inc/Assembler.hpp"
+
     using namespace std;
 
     // Declare stuff from Flex that Bison needs to know about:
@@ -28,12 +30,13 @@
 // Define the "terminal symbol" token types I'm going to use (in CAPS
 // by convention), and associate each with a field of the %union:
 %token <ival> NUMBER
-%token <sval> STRING
+%token <sval> STRING 
 
-%token <sval> INSTRUCTION
 %token <sval> REGISTER
 
-%token EOL
+%token <sval> OPCODE0
+%token <sval> OPCODE2
+
 %token COMMA
 
 %%
@@ -44,10 +47,22 @@ input:
     | line input ;
 
 line:
-    INSTRUCTION REGISTER COMMA REGISTER EOL
-    {
+    instruction;
+
+instruction:
+    OPCODE0 {
+        Assembler::decodeInstruction($1);
+        cout << $1 << endl;
+        free($1);
+    }
+    | OPCODE2 REGISTER COMMA REGISTER {
         cout << $1 << " " << $2 << " " << $4 << endl;
-    };
+        free($1);
+        free($2);
+        free($4);
+    }
+    
+
 
 %%
 
