@@ -9,10 +9,6 @@ public:
 
     friend class Instructions;
 
-    static void decodeInstruction(const std::string& string);
-
-    static void decodeInstruction(char* string);
-
     static void printLocationCounter() { std::cout << location_counter; }
 
     static void increaseLocationCounter() { location_counter++; }

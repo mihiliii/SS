@@ -3,6 +3,7 @@
     #include <cstdio>
     #include <iostream>
     #include "../inc/Assembler.hpp"
+    #include "../inc/Instructions.hpp"
 
     using namespace std;
 
@@ -33,9 +34,32 @@
 %token <sval> STRING 
 
 %token <sval> REGISTER
-
-%token <sval> OPCODE0
-%token <sval> OPCODE2
+%token <sval> HALT
+%token <sval> INT
+%token <sval> IRET
+%token <sval> CALL
+%token <sval> RET
+%token <sval> JMP
+%token <sval> BEQ
+%token <sval> BNE
+%token <sval> BGT
+%token <sval> PUSH
+%token <sval> POP
+%token <sval> XCHG 
+%token <sval> ADD
+%token <sval> SUB
+%token <sval> MUL
+%token <sval> DIV
+%token <sval> NOT
+%token <sval> AND
+%token <sval> OR
+%token <sval> XOR
+%token <sval> SHL
+%token <sval> SHR
+%token <sval> LD
+%token <sval> ST
+%token <sval> CSSRD
+%token <sval> CSRWR
 
 %token COMMA
 
@@ -43,25 +67,41 @@
 
 // This is the actual grammar that bison will parse.
 input:
-    | line input ;
+    | line input
+;
 
 line:
-    instruction;
+    instruction
+;
 
 instruction:
-    OPCODE0 {
-        Assembler::decodeInstruction($1);
-        cout << $1 << endl;
-        free($1);
-    }
-    | OPCODE2 REGISTER COMMA REGISTER {
-        cout << $1 << " " << $2 << " " << $4 << endl;
-        free($1);
-        free($2);
-        free($4);
-    }
-    
-
+      HALT { Instructions::iHALT(); cout << $1 << endl; free($1); }
+    | INT  { cout << "INT " << endl; free($1); }
+    | IRET { cout << "IRET " << endl; free($1); }
+    | CALL REGISTER { cout << "CALL " << $2 << endl; free($1); }
+    | CALL NUMBER { cout << "CALL " << $2 << endl; }
+    | RET { cout << "RET " << endl; free($1); }
+    | JMP REGISTER { cout << "JMP " << $2 << endl; free($2); }
+    | JMP NUMBER { cout << "JMP " << $2 << endl; }
+    // missing jump instructions...
+    | PUSH REGISTER { cout << "PUSH " << $2 << endl; free($2); }
+    | POP REGISTER { cout << "POP " << $2 << endl; free($2); }
+    | XCHG REGISTER COMMA REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | ADD REGISTER COMMA REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | SUB REGISTER COMMA REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | MUL REGISTER COMMA REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | DIV REGISTER COMMA REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | NOT REGISTER { cout << "NOT " << $2 << endl; free($2); }
+    | AND REGISTER COMMA REGISTER { cout << "AND " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | OR REGISTER COMMA REGISTER { cout << "OR " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | XOR REGISTER COMMA REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | SHL REGISTER COMMA REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | SHR REGISTER COMMA REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | LD REGISTER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | LD NUMBER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; free($4); }
+    | ST REGISTER COMMA REGISTER { cout << "ST " << $2 << ", " << $4 << endl; free($2); free($4); }
+    | ST REGISTER COMMA NUMBER { cout << "ST " << $2 << ", " << $4 << endl; free($2); }
+;
 
 %%
 

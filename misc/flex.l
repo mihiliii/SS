@@ -26,6 +26,7 @@ BNE "bne"
 BGT "bgt"
 PUSH "push"
 POP "pop"
+XCHG "xchg"
 ADD "add"
 SUB "sub"
 MUL "mul"
@@ -46,10 +47,33 @@ CSRWR "csrwr"
 "#"[^\n]*\n                 { printf("%s\n", yytext); };
 ","                         { return COMMA; }
 {HALT}                      { yylval.sval = strdup(yytext); return HALT; }
-{INT}                       { yylval.sval = strdup(yytext); return INT; 
-{JMP}
-{ADD}|{SUB}|{MUL}|{DIV}     { yylval.sval = strdup(yytext); return OPCODE2; }
-%r[0-9]+                    { yylval.sval = strdup(yytext); return REGISTER; }
+{INT}                       { yylval.sval = strdup(yytext); return INT; }
+{IRET}                      { yylval.sval = strdup(yytext); return IRET; }
+{CALL}                      { yylval.sval = strdup(yytext); return CALL; }
+{RET}                       { yylval.sval = strdup(yytext); return RET; }
+{JMP}                       { yylval.sval = strdup(yytext); return JMP; }
+{BEQ}                       { yylval.sval = strdup(yytext); return BEQ; }
+{BNE}                       { yylval.sval = strdup(yytext); return BNE; }
+{BGT}                       { yylval.sval = strdup(yytext); return BGT; }
+{PUSH}                      { yylval.sval = strdup(yytext); return PUSH; }
+{POP}                       { yylval.sval = strdup(yytext); return POP; }
+{XCHG}                      { yylval.sval = strdup(yytext); return XCHG; }
+{ADD}                       { yylval.sval = strdup(yytext); return ADD; }
+{SUB}                       { yylval.sval = strdup(yytext); return SUB; }
+{MUL}                       { yylval.sval = strdup(yytext); return MUL; }
+{DIV}                       { yylval.sval = strdup(yytext); return DIV; }      
+{NOT}                       { yylval.sval = strdup(yytext); return NOT; }
+{AND}                       { yylval.sval = strdup(yytext); return AND; }
+{OR}                        { yylval.sval = strdup(yytext); return OR; }
+{XOR}                       { yylval.sval = strdup(yytext); return XOR; }
+{SHL}                       { yylval.sval = strdup(yytext); return SHL; }
+{SHR}                       { yylval.sval = strdup(yytext); return SHR; }
+{LD}                        { yylval.sval = strdup(yytext); return LD; }
+{ST}                        { yylval.sval = strdup(yytext); return ST; }
+{CSSRD}                     { yylval.sval = strdup(yytext); return CSSRD; }
+{CSRWR}                     { yylval.sval = strdup(yytext); return CSRWR; }
+
+%r[0-9]|%r1[0-5]            { yylval.sval = strdup(yytext); return REGISTER; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
 [a-zA-Z0-9]+                { yylval.sval = strdup(yytext); return STRING; }
 \n                          { Assembler::increaseLocationCounter(); }

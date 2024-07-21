@@ -28,9 +28,9 @@ std::unordered_map<std::string, uint8_t> OC_MOD = {
 // };
 
 std::unordered_map<std::string, std::function<void()>> Instructions::instruction_map = {
-    {"halt", Instructions::halt}
+    {"halt", Instructions::iHALT}
 };
 
-void Instructions::halt() {
+void Instructions::iHALT() {
     Assembler::text_section->writeContent(&OC_MOD["halt"], sizeof(uint8_t));
 }

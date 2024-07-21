@@ -9,7 +9,9 @@ public:
 
     friend class Assembler;
 
-    static void halt();
+    static void iHALT();
+
+    static void iINT();
 
 private:
 

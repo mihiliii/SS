@@ -43,7 +43,7 @@ int Assembler::writeToFile() {
         return -1;
     }
 
-    for (uint8_t i: *text_section->getContent()) {
+    for (uint8_t i : *text_section->getContent()) {
         f_output << i;
     }
 
@@ -51,9 +51,3 @@ int Assembler::writeToFile() {
 
     return 0;
 }
-
-void Assembler::decodeInstruction(const std::string& string) {
-    Instructions::instruction_map[string]();
-}
-
-void Assembler::decodeInstruction(char* string) { Instructions::instruction_map[string](); }
