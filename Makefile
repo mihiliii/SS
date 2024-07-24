@@ -11,14 +11,17 @@ $(BUILD_DIR)/lex.yy.c
 CPP_FILES = \
 src/Assembler.cpp \
 src/main.cpp \
-src/SectionContent.cpp \
-src/Instructions.cpp
+src/Instructions.cpp \
+src/Section.cpp \
+src/SectionHeaderStringTable.cpp
+
+CXXFLAGS = -Wall -Iinc -g
 
 run: all
 	./$(PROGRAM_NAME)
 
 all: $(CPP_FILES) $(C_FILES) 
-	g++ -Iinc -o $(PROGRAM_NAME) $(^) -lfl
+	g++ $(CXXFLAGS) -o $(PROGRAM_NAME) $(^) -lfl
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)
 	bison -o $(@) -d $(<)

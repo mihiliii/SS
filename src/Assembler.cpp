@@ -5,6 +5,7 @@
 
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
+#include "../inc/SectionHeaderStringTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -22,7 +23,7 @@ SectionHeaderStringTable* Assembler::section_header_string_table = nullptr;
 void Assembler::initAssembler() {
     Assembler::elf_header = new Elf32_Ehdr();
     Assembler::section_header_table = new SectionHeaderTable();
-    Assembler::section_header_string_table = new SectionHeaderStringTable();
+    Assembler::section_header_string_table = &SectionHeaderStringTable::getInstance();
 }
 
 int Assembler::startAssembler() {

@@ -13,6 +13,7 @@ public:
 
     friend class Instructions;
 
+    template <typename T>
     friend class Section;
 
     static void printLocationCounter() { std::cout << location_counter; }
