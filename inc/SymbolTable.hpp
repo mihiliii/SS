@@ -3,16 +3,12 @@
 
 #include <iostream>
 
+#include "Section.hpp"
 #include "Elf32.hpp"
 
-class SymbolTable {
+class SymbolTable: public Section<Elf32_Sym> {
 public:
 
-    SymbolTable() : symbol_table_header_() {}
-
-private:
-
-    Elf32_Shdr symbol_table_header_;
 };
 
 

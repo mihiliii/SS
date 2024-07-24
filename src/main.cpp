@@ -1,5 +1,5 @@
 #include "../inc/SymbolTable.hpp"
-#include "../inc/SectionContent.hpp"
+#include "../inc/Section.hpp"
 #include "../inc/Assembler.hpp"
 #include <iostream>
 

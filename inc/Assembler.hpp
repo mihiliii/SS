@@ -2,19 +2,27 @@
 #define Assembler_hpp_
 
 #include <iostream>
-#include "SectionContent.hpp"
+
+#include "Section.hpp"
+#include "SectionHeaderTable.hpp"
+#include "SectionHeaderStringTable.hpp"
+#include "SymbolTable.hpp"
 
 class Assembler {
 public:
 
     friend class Instructions;
 
+    friend class Section;
+
     static void printLocationCounter() { std::cout << location_counter; }
 
     static void increaseLocationCounter() { location_counter++; }
 
-    static int startAssembler();
+    static SectionHeaderTable* getSectionHeaderTable() { return section_header_table; }
     
+    static int startAssembler();
+
     static int writeToFile();
 
     Assembler() = delete;
@@ -23,8 +31,14 @@ public:
 
 private:
 
+    static void initAssembler();
+
     static int location_counter;
-    static SectionContent* text_section;
+    static Elf32_Ehdr* elf_header;
+    static SectionHeaderTable* section_header_table;
+
+    static SectionHeaderStringTable* section_header_string_table;
+    static SymbolTable* symbol_table;
 };
 
 #endif

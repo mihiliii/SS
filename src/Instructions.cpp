@@ -1,18 +1,13 @@
 #include "../inc/Instructions.hpp"
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 #include "../inc/Assembler.hpp"
 #include "../inc/SectionContent.hpp"
 
 std::unordered_map<std::string, uint8_t> OC_MOD = {
-    {"halt", 0x00},
-    {"int", 0x01},
-    {"add", 0x50},
-    {"sub", 0x51},
-    {"mul", 0x52},
-    {"div", 0x53}
+    {"halt", 0x00}, {"int", 0x01}, {"add", 0x50}, {"sub", 0x51}, {"mul", 0x52}, {"div", 0x53}
 };
 
 // std::unordered_map<std::string, uint8_t> REGA_REGB = {
@@ -32,5 +27,5 @@ std::unordered_map<std::string, std::function<void()>> Instructions::instruction
 };
 
 void Instructions::iHALT() {
-    Assembler::text_section->writeContent(&OC_MOD["halt"], sizeof(uint8_t));
+    Assembler::textsection->writeContent(&OC_MOD["halt"], sizeof(uint8_t));
 }

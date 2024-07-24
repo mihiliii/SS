@@ -4,18 +4,29 @@
 #include <iostream>
 
 #include "../inc/Instructions.hpp"
-#include "../inc/SectionContent.hpp"
+#include "../inc/Section.hpp"
 
 // Include the Flex and Bison headers to use their functions:
-extern int   yylex();
-extern int   yyparse();
+extern int yylex();
+extern int yyparse();
 extern FILE* yyin;
 
 int Assembler::location_counter = 0;
+Elf32_Ehdr* Assembler::elf_header = nullptr;
+SectionHeaderTable* Assembler::section_header_table = nullptr;
+SectionHeaderStringTable* Assembler::section_header_string_table = nullptr;
 
-SectionContent* Assembler::text_section = new SectionContent();
+/** Function initAssembler should only be called once, at the beginning of the startAssembler,
+ *  that's why it is private. It initializes the static variables of the Assembler class.
+ */
+void Assembler::initAssembler() {
+    Assembler::elf_header = new Elf32_Ehdr();
+    Assembler::section_header_table = new SectionHeaderTable();
+    Assembler::section_header_string_table = new SectionHeaderStringTable();
+}
 
 int Assembler::startAssembler() {
+    Assembler::initAssembler();
     // Open a file handle to a particular file:
     FILE* f_input = fopen("input.txt", "r");
     // Make sure it is valid:
@@ -41,10 +52,6 @@ int Assembler::writeToFile() {
     if (!f_output.is_open()) {
         std::cout << "I can't open output.o!" << std::endl;
         return -1;
-    }
-
-    for (uint8_t i : *text_section->getContent()) {
-        f_output << i;
     }
 
     f_output.close();
