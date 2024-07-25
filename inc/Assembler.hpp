@@ -16,8 +16,6 @@ public:
     template <typename T>
     friend class Section;
 
-    static void printLocationCounter() { std::cout << location_counter; }
-
     static void increaseLocationCounter() { location_counter++; }
 
     static SectionHeaderTable* getSectionHeaderTable() { return section_header_table; }

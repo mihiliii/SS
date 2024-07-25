@@ -13,21 +13,17 @@ public:
 
     Elf32_Word setSectionName(const std::string& _content); 
 
-    static SectionHeaderStringTable& getInstance() {
-        static SectionHeaderStringTable instance;
-        return instance;
-    }
-
+    static SectionHeaderStringTable& getInstance(); 
 private:
 
-    SectionHeaderStringTable() : Section(".shstrtab") {
+    SectionHeaderStringTable() : Section() {
+        section_header.sh_name = setSectionName(".shstrtab");
         section_header.sh_type = SHT_SHSTRTAB;
     }
 
     SectionHeaderStringTable(const SectionHeaderStringTable&) = delete;
 
     SectionHeaderStringTable& operator=(const SectionHeaderStringTable&) = delete;
-
 
 };
 

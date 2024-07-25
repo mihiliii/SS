@@ -25,14 +25,17 @@ public:
 
     void printContent();
 
-    std::vector<T>* getContent() const { return &content; }
-
 protected:
+
+    Section() = default;
 
     std::vector<T> content;
     Elf32_Shdr section_header;
 
+private:
+
     static SectionHeaderStringTable* section_header_string_table;
+
 };
 
 #endif

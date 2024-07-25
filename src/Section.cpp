@@ -1,27 +1,15 @@
 #include "Section.hpp"
 
-#include "SectionHeaderStringTable.hpp"
 #include "Assembler.hpp"
+#include "SectionHeaderStringTable.hpp"
 
 template <typename T>
 SectionHeaderStringTable* Section<T>::section_header_string_table =
     &SectionHeaderStringTable::getInstance();
 
 template <typename T>
-Section<T>::Section(const std::string& _name)
-    : content({}),
-      section_header(
-          {.sh_name = section_header_string_table->setSectionName(_name),
-           .sh_type = 0,
-           .sh_flags = 0,
-           .sh_addr = 0,
-           .sh_offset = 0,
-           .sh_size = 0,
-           .sh_link = 0,
-           .sh_info = 0,
-           .sh_addralign = 0,
-           .sh_entsize = 0}
-      ) {
+Section<T>::Section(const std::string& _name) : content({}), section_header({}) {
+    section_header.sh_name = section_header_string_table->setSectionName(_name);
     Assembler::section_header_table->insertSectionEntry(section_header);
 }
 
@@ -49,5 +37,3 @@ inline void Section<T>::printContent() {
         std::cout << t << std::endl;
     }
 }
-
-
