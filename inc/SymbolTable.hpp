@@ -9,6 +9,17 @@
 class SymbolTable: public Section<Elf32_Sym> {
 public:
 
+    SymbolTable(const SymbolTable&) = delete;
+    SymbolTable& operator=(const SymbolTable&) = delete;
+
+    ~SymbolTable() = default; 
+
+    static SymbolTable& getInstance();
+
+private:
+
+    SymbolTable(); 
+
 };
 
 

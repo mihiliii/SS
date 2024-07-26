@@ -14,16 +14,16 @@ extern FILE* yyin;
 
 int Assembler::location_counter = 0;
 Elf32_Ehdr* Assembler::elf_header = nullptr;
-SectionHeaderTable* Assembler::section_header_table = nullptr;
-SectionHeaderStringTable* Assembler::section_header_string_table = &SectionHeaderStringTable::getInstance();
+
+SectionHeaderTable* Assembler::section_header_table = &SectionHeaderTable::getInstance();
+SectionHeaderStringTable* Assembler::section_header_string_table =
+    &SectionHeaderStringTable::getInstance();
+SymbolTable* Assembler::symbol_table = &SymbolTable::getInstance();
 
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,
  *  that's why it is private. It initializes the static variables of the Assembler class.
  */
-void Assembler::initAssembler() {
-    Assembler::elf_header = new Elf32_Ehdr();
-    Assembler::section_header_table = new SectionHeaderTable();
-}
+void Assembler::initAssembler() { Assembler::elf_header = new Elf32_Ehdr(); }
 
 int Assembler::startAssembler() {
     Assembler::initAssembler();
@@ -42,6 +42,9 @@ int Assembler::startAssembler() {
 
     // Close the file handle:
     fclose(f_input);
+
+    symbol_table->printContent();
+    Assembler::section_header_string_table->printContent();
 
     return 0;
 }

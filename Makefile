@@ -13,9 +13,11 @@ src/Assembler.cpp \
 src/main.cpp \
 src/Instructions.cpp \
 src/Section.cpp \
-src/SectionHeaderStringTable.cpp
+src/SectionHeaderStringTable.cpp \
+src/SectionHeaderTable.cpp \
+src/SymbolTable.cpp 
 
-CXXFLAGS = -Wall -Iinc -g
+CXXFLAGS = -Wall -Iinc -g -std=c++2a
 
 run: all
 	./$(PROGRAM_NAME)
