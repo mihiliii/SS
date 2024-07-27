@@ -44,8 +44,8 @@ int Assembler::startAssembler() {
     fclose(f_input);
 
     symbol_table->printContent();
-    Assembler::section_header_string_table->printContent();
 
+    Assembler::section_header_table->printSectionTable();
     return 0;
 }
 

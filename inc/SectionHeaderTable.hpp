@@ -8,17 +8,16 @@
 class SectionHeaderTable {
 public:
 
-    SectionHeaderTable(const SectionHeaderTable&) = delete;
+    static SectionHeaderTable& getInstance(); 
 
+    void insertSectionEntry(Elf32_Shdr** section_entry);
+
+    void printSectionTable();
+
+    SectionHeaderTable(const SectionHeaderTable&) = delete;
     SectionHeaderTable& operator=(const SectionHeaderTable&) = delete;
 
     ~SectionHeaderTable() = default;
-
-    static SectionHeaderTable& getInstance(); 
-
-    void insertSectionEntry(Elf32_Shdr section_entry);
-
-    void printSectionTable();
 
 private:
 

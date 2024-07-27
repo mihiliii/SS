@@ -19,10 +19,6 @@ public:
 
     void appendContent(T* _content, size_t _size);
 
-    void setName(const std::string& _name);
-
-    void setType(Elf32_Word _type);
-
     void printContent();
 
 protected:
@@ -30,9 +26,10 @@ protected:
     Section() = default;
 
     std::vector<T> content;
-    Elf32_Shdr section_header;
+    Elf32_Shdr* section_header;
 
 };
+
 
 #endif
 

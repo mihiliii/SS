@@ -2,32 +2,22 @@
 
 #include "../inc/Assembler.hpp"
 #include "../inc/SectionHeaderStringTable.hpp"
+#include "../inc/SectionHeaderTable.hpp"
 
 template class Section<char>;
 template class Section<Elf32_Sym>;
 
 template <typename T>
-Section<T>::Section(const std::string& _name) : content({}), section_header({}) {
-    section_header.sh_name = Assembler::section_header_string_table->setSectionName(_name);
-    Assembler::section_header_table->insertSectionEntry(section_header);
+Section<T>::Section(const std::string& _name) : content({}), section_header(nullptr) {
+    SectionHeaderTable::getInstance().insertSectionEntry(&section_header);
 }
 
 template <typename T>
 inline void Section<T>::appendContent(T* _content, size_t _size) {
     for (size_t i = 0; i < _size; i++) {
-        content.push_back(_content[i]);
+        content.emplace_back(_content[i]);
     }
-    section_header.sh_size += _size;
-}
-
-template <typename T>
-inline void Section<T>::setName(const std::string& _name) {
-    section_header.sh_name = Assembler::section_header_string_table->setSectionName(_name);
-}
-
-template <typename T>
-inline void Section<T>::setType(Elf32_Word _type) {
-    section_header.sh_type = _type;
+    section_header->sh_size += _size;
 }
 
 template <typename T>

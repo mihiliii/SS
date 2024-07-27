@@ -59,7 +59,7 @@ struct Elf32_Ehdr {
 //#define SHN_HIRESERVE 0xffff /* End of reserved indices */
 
 
-//#define SHT_SYMTAB    0x7    /* Symbol table */
+#define SHT_SYMTAB    0x7    /* Symbol table */
 #define SHT_SHSTRTAB  0x3    /* Section header string table */
 
 

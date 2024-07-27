@@ -7,21 +7,18 @@
 class SectionHeaderStringTable : public Section<char> {
 public:
 
-    ~SectionHeaderStringTable() = default;
-
-    void appendContent(char* _content, size_t _size);
-
     Elf32_Word setSectionName(const std::string& _content);
 
     static SectionHeaderStringTable& getInstance();
 
+    SectionHeaderStringTable(const SectionHeaderStringTable&) = delete;
+    SectionHeaderStringTable& operator=(const SectionHeaderStringTable&) = delete;
+
+    ~SectionHeaderStringTable() = default;
+
 private:
 
     SectionHeaderStringTable();
-
-    SectionHeaderStringTable(const SectionHeaderStringTable&) = delete;
-
-    SectionHeaderStringTable& operator=(const SectionHeaderStringTable&) = delete;
 };
 
 #endif

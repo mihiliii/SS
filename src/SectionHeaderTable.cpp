@@ -9,8 +9,8 @@ SectionHeaderTable& SectionHeaderTable::getInstance() {
     return instance;
 }
 
-void SectionHeaderTable::insertSectionEntry(Elf32_Shdr section_entry) {
-    section_header_table.push_back(section_entry);
+void SectionHeaderTable::insertSectionEntry(Elf32_Shdr** _handle) {
+    *_handle = &section_header_table.emplace_back(Elf32_Shdr());
 }
 
 void SectionHeaderTable::printSectionTable() {
