@@ -4,6 +4,7 @@
     #include <iostream>
     #include "../inc/Assembler.hpp"
     #include "../inc/Instructions.hpp"
+    #include "../inc/Directives.hpp"
 
     using namespace std;
 
@@ -61,6 +62,8 @@
 %token <sval> CSSRD
 %token <sval> CSRWR
 
+%token <sval> SECTION
+
 %token COMMA
 
 %%
@@ -71,8 +74,11 @@ input:
 ;
 
 line:
-    instruction
+    instruction | directive
 ;
+
+directive:
+    SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2); free($2); }
 
 instruction:
       HALT { Instructions::iHALT(); cout << $1 << endl; free($1); }

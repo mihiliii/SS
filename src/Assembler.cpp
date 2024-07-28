@@ -14,6 +14,7 @@ extern FILE* yyin;
 
 int Assembler::location_counter = 0;
 Elf32_Ehdr* Assembler::elf_header = nullptr;
+std::vector<Section<char>> Assembler::sections = {};
 
 SectionHeaderTable* Assembler::section_header_table = &SectionHeaderTable::getInstance();
 SectionHeaderStringTable* Assembler::section_header_string_table =
@@ -43,9 +44,8 @@ int Assembler::startAssembler() {
     // Close the file handle:
     fclose(f_input);
 
-    symbol_table->printContent();
-
-    Assembler::section_header_table->printSectionTable();
+    Assembler::section_header_table->printSectionHeaderTable();
+    Assembler::section_header_string_table->printContent();
     return 0;
 }
 

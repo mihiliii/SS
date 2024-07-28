@@ -12,7 +12,7 @@ public:
 
     void insertSectionEntry(Elf32_Shdr** section_entry);
 
-    void printSectionTable();
+    void printSectionHeaderTable();
 
     SectionHeaderTable(const SectionHeaderTable&) = delete;
     SectionHeaderTable& operator=(const SectionHeaderTable&) = delete;

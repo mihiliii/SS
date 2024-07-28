@@ -19,11 +19,13 @@ public:
 
     void appendContent(T* _content, size_t _size);
 
+    void appendContent(T* _content);
+
     void printContent();
 
 protected:
 
-    Section() = default;
+    Section();
 
     std::vector<T> content;
     Elf32_Shdr* section_header;

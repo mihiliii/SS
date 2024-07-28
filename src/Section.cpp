@@ -3,6 +3,7 @@
 #include "../inc/Assembler.hpp"
 #include "../inc/SectionHeaderStringTable.hpp"
 #include "../inc/SectionHeaderTable.hpp"
+#include "Section.hpp"
 
 template class Section<char>;
 template class Section<Elf32_Sym>;
@@ -10,6 +11,7 @@ template class Section<Elf32_Sym>;
 template <typename T>
 Section<T>::Section(const std::string& _name) : content({}), section_header(nullptr) {
     SectionHeaderTable::getInstance().insertSectionEntry(&section_header);
+    section_header->sh_name = SectionHeaderStringTable::getInstance().setSectionName(_name);
 }
 
 template <typename T>
@@ -21,10 +23,21 @@ inline void Section<T>::appendContent(T* _content, size_t _size) {
 }
 
 template <typename T>
+void Section<T>::appendContent(T* _content) {
+    content.emplace_back(*_content);
+    section_header->sh_size++;
+}
+
+template <typename T>
 inline void Section<T>::printContent() {
     for (T t : content) {
         std::cout << t;
     }
+}
+
+template <typename T>
+Section<T>::Section() {
+    SectionHeaderTable::getInstance().insertSectionEntry(&section_header);
 }
 
 template <>

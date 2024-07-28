@@ -13,7 +13,7 @@ void SectionHeaderTable::insertSectionEntry(Elf32_Shdr** _handle) {
     *_handle = &section_header_table.emplace_back(Elf32_Shdr());
 }
 
-void SectionHeaderTable::printSectionTable() {
+void SectionHeaderTable::printSectionHeaderTable() {
     for (Elf32_Shdr section : section_header_table) {
         std::cout << "Section name: " << section.sh_name << std::endl;
         std::cout << "Section type: " << section.sh_type << std::endl;
@@ -27,5 +27,4 @@ void SectionHeaderTable::printSectionTable() {
         std::cout << "Section entsize: " << section.sh_entsize << std::endl;
         std::cout << std::endl;
     }
-};
-
+}

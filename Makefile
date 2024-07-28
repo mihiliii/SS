@@ -15,7 +15,10 @@ src/Instructions.cpp \
 src/Section.cpp \
 src/SectionHeaderStringTable.cpp \
 src/SectionHeaderTable.cpp \
-src/SymbolTable.cpp 
+src/SymbolTable.cpp \
+src/SymbolStringTable.cpp \
+src/Directives.cpp \
+
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a
 

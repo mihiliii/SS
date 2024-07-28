@@ -73,6 +73,8 @@ CSRWR "csrwr"
 {CSSRD}                     { yylval.sval = strdup(yytext); return CSSRD; }
 {CSRWR}                     { yylval.sval = strdup(yytext); return CSRWR; }
 
+{SECTION}                   { yylval.sval = strdup(yytext); return SECTION; }
+
 %r[0-9]|%r1[0-5]            { yylval.sval = strdup(yytext); return REGISTER; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
 [a-zA-Z0-9]+                { yylval.sval = strdup(yytext); return STRING; }

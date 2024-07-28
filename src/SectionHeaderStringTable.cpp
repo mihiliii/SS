@@ -15,7 +15,7 @@ Elf32_Word SectionHeaderStringTable::setSectionName(const std::string& _content)
     return offset;
 }
 
-SectionHeaderStringTable::SectionHeaderStringTable() : Section(".shstrtab") {
+SectionHeaderStringTable::SectionHeaderStringTable() : Section() {
     section_header->sh_name = setSectionName(".shstrtab");
     section_header->sh_type = SHT_SHSTRTAB;
 }

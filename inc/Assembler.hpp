@@ -2,6 +2,7 @@
 #define Assembler_hpp_
 
 #include <iostream>
+#include <vector>
 
 #include "Section.hpp"
 #include "SectionHeaderTable.hpp"
@@ -18,6 +19,8 @@ public:
 
     static void increaseLocationCounter() { location_counter++; }
 
+    static void resetLocationCounter() { location_counter = 0; }
+
     static SectionHeaderTable* getSectionHeaderTable() { return section_header_table; }
     
     static int startAssembler();
@@ -27,6 +30,8 @@ public:
     Assembler() = delete;
 
     ~Assembler() = delete;
+
+    static std::vector<Section<char>> sections;
 
 private:
 
