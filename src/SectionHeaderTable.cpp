@@ -2,15 +2,15 @@
 
 #include <iostream>
 
-#include "SectionHeaderTable.hpp"
 
 SectionHeaderTable& SectionHeaderTable::getInstance() {
     static SectionHeaderTable instance;
     return instance;
 }
 
-void SectionHeaderTable::insertSectionEntry(Elf32_Shdr** _handle) {
-    *_handle = &section_header_table.emplace_back(Elf32_Shdr());
+void SectionHeaderTable::insert(Elf32_Shdr** section_entry) {
+    section_header_table.emplace_back(Elf32_Shdr());
+    *section_entry = &section_header_table.back();
 }
 
 void SectionHeaderTable::printSectionHeaderTable() {

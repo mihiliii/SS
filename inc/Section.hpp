@@ -15,13 +15,9 @@ public:
 
     Section(const std::string& _name);
 
-    ~Section() {}
+    Elf32_Shdr* getSectionHeader() const { return section_header; }
 
-    void appendContent(T* _content, size_t _size);
-
-    void appendContent(T* _content);
-
-    void printContent();
+    ~Section() = default;
 
 protected:
 

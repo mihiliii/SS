@@ -1,6 +1,6 @@
-#include "SymbolStringTable.hpp"
+#include "../inc/SymbolStringTable.hpp"
 
-#include "SectionHeaderStringTable.hpp"
+#include "../inc/SectionHeaderStringTable.hpp"
 
 
 Elf32_Half SymbolStringTable::addSymbol(const std::string& _symbol) {
@@ -14,6 +14,5 @@ Elf32_Half SymbolStringTable::addSymbol(const std::string& _symbol) {
 }
 
 SymbolStringTable::SymbolStringTable() : Section() {
-    section_header->sh_name = SectionHeaderStringTable::getInstance().setSectionName(".strtab");
-    section_header->sh_type = 0;
+    SectionHeaderStringTable::getInstance().setSectionName(this, ".strtab");
 }
