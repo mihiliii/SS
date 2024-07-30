@@ -10,7 +10,7 @@ public:
 
     static SectionHeaderTable& getInstance(); 
 
-    void insert(Elf32_Shdr** section_entry);
+    void insert(Elf32_Shdr* _section_entry);
 
     void printSectionHeaderTable();
 
@@ -23,7 +23,7 @@ private:
 
     SectionHeaderTable() = default;
 
-    std::vector<Elf32_Shdr> section_header_table;
+    std::vector<Elf32_Shdr*> section_header_table;
 };
 
 #endif

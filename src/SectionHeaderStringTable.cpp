@@ -5,8 +5,6 @@ SectionHeaderStringTable& SectionHeaderStringTable::getInstance() {
     return instance;
 }
 
-
-
 void SectionHeaderStringTable::printContent() const {
     for (char c : content) {
         std::cout << c;
@@ -16,5 +14,5 @@ void SectionHeaderStringTable::printContent() const {
 
 SectionHeaderStringTable::SectionHeaderStringTable() : Section() {
     setSectionName(this, ".shstrtab");
-    section_header->sh_type = SHT_SHSTRTAB;
+    section_header.sh_type = SHT_SHSTRTAB;
 }

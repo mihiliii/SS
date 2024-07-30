@@ -31,7 +31,7 @@ public:
 
     ~Assembler() = delete;
 
-    static std::vector<Section<char>> sections;
+    static std::vector<Section<char>*> sections;
 
 private:
 

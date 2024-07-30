@@ -14,7 +14,7 @@ extern FILE* yyin;
 
 int Assembler::location_counter = 0;
 Elf32_Ehdr* Assembler::elf_header = nullptr;
-std::vector<Section<char>> Assembler::sections = {};
+std::vector<Section<char>*> Assembler::sections = {};
 
 
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,

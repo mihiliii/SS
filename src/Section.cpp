@@ -8,12 +8,12 @@ template class Section<char>;
 template class Section<Elf32_Sym>;
 
 template <typename T>
-Section<T>::Section(const std::string& _name) : content({}), section_header(nullptr) {
+Section<T>::Section(const std::string& _name) : content({}), section_header({}) {
     SectionHeaderTable::getInstance().insert(&section_header);
     SectionHeaderStringTable::getInstance().setSectionName(this, _name);
 }
 
 template <typename T>
-Section<T>::Section() {
+Section<T>::Section() : content(), section_header() {
     SectionHeaderTable::getInstance().insert(&section_header);
 }

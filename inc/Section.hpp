@@ -15,16 +15,18 @@ public:
 
     Section(const std::string& _name);
 
-    Elf32_Shdr* getSectionHeader() const { return section_header; }
-
     ~Section() = default;
+
+    Elf32_Shdr& getSectionHeader() {
+        return section_header;
+    }
 
 protected:
 
     Section();
 
     std::vector<T> content;
-    Elf32_Shdr* section_header;
+    Elf32_Shdr section_header;
 
 };
 
