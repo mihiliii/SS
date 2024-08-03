@@ -16,3 +16,4 @@ SectionHeaderStringTable::SectionHeaderStringTable() : Section() {
     setSectionName(this, ".shstrtab");
     section_header.sh_type = SHT_SHSTRTAB;
 }
+

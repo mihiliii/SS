@@ -44,7 +44,7 @@ CSRWR "csrwr"
 
 %%
 
-"#"[^\n]*\n                 { printf("%s\n", yytext); };
+"#"[^\n]*\n                 { printf("%s", yytext); };
 ","                         { return COMMA; }
 {HALT}                      { yylval.sval = strdup(yytext); return HALT; }
 {INT}                       { yylval.sval = strdup(yytext); return INT; }

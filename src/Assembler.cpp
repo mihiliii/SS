@@ -24,6 +24,7 @@ void Assembler::initAssembler() { Assembler::elf_header = new Elf32_Ehdr(); }
 
 int Assembler::startAssembler() {
     Assembler::initAssembler();
+    SymbolTable::getInstance();
     // Open a file handle to a particular file:
     FILE* f_input = fopen("input.txt", "r");
     // Make sure it is valid:

@@ -1,5 +1,5 @@
-#ifndef SymbolTable_hpp_
-#define SymbolTable_hpp_
+#pragma once
+
 
 #include <iostream>
 
@@ -25,6 +25,3 @@ private:
     SymbolTable(); 
 
 };
-
-
-#endif

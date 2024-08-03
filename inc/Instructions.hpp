@@ -1,5 +1,5 @@
-#ifndef Instructions_hpp_
-#define Instructions_hpp_
+#pragma once
+
 
 #include <functional>
 #include <unordered_map>
@@ -26,5 +26,3 @@ private:
 
     static std::unordered_map<std::string, std::function<void()>> instruction_map;
 };
-
-#endif

@@ -1,5 +1,5 @@
-#ifndef SectionHeaderTable_hpp_
-#define SectionHeaderTable_hpp_
+#pragma once
+
 
 #include <vector>
 
@@ -26,4 +26,3 @@ private:
     std::vector<Elf32_Shdr*> section_header_table;
 };
 
-#endif

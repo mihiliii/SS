@@ -1,6 +1,5 @@
+#pragma once
 
-#ifndef SymbolStringTable_hpp_
-#define SymbolStringTable_hpp_
 
 #include "Elf32.hpp"
 #include "Section.hpp"
@@ -22,5 +21,3 @@ private:
     SymbolStringTable(); 
 
 };
-
-#endif

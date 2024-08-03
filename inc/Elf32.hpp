@@ -1,5 +1,4 @@
-#ifndef Elf32_hpp_
-#define Elf32_hpp_
+#pragma once
 
 #include <cstdint>
 
@@ -98,5 +97,3 @@ struct Elf32_Sym {
     Elf32_Word st_size;     // Size of the symbol
 };
 
-
-#endif

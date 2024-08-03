@@ -1,5 +1,4 @@
-#ifndef Assembler_hpp_
-#define Assembler_hpp_
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -44,5 +43,3 @@ private:
     static SectionHeaderStringTable* section_header_string_table;
     static SymbolTable* symbol_table;
 };
-
-#endif

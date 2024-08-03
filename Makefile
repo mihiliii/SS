@@ -12,7 +12,6 @@ CPP_FILES = \
 src/Assembler.cpp \
 src/main.cpp \
 src/Instructions.cpp \
-src/Section.cpp \
 src/SectionHeaderStringTable.cpp \
 src/SectionHeaderTable.cpp \
 src/SymbolTable.cpp \

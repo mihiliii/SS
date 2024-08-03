@@ -1,5 +1,5 @@
-#ifndef Directives_hpp_
-#define Directives_hpp_
+#pragma once
+
 
 #include <iostream>
 #include <string>
@@ -12,5 +12,3 @@ public:
     static void dSection(const std::string& _section_name);
 
 };
-
-#endif
