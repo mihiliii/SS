@@ -14,7 +14,9 @@ extern FILE* yyin;
 
 int Assembler::location_counter = 0;
 Elf32_Ehdr* Assembler::elf_header = nullptr;
-std::vector<Section<char>*> Assembler::sections = {};
+Section* Assembler::current_section;
+
+std::ofstream Assembler::f_output;
 
 
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,
@@ -47,7 +49,7 @@ int Assembler::startAssembler() {
 }
 
 int Assembler::writeToFile() {
-    std::ofstream f_output("output.o");
+    f_output.open("output.o", std::ios::out | std::ios::binary);
 
     if (!f_output.is_open()) {
         std::cout << "I can't open output.o!" << std::endl;

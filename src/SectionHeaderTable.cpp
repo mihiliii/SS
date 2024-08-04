@@ -2,14 +2,14 @@
 
 #include <iostream>
 
-
 SectionHeaderTable& SectionHeaderTable::getInstance() {
     static SectionHeaderTable instance;
     return instance;
 }
 
-void SectionHeaderTable::insert(Elf32_Shdr* _section_entry) {
+uint32_t SectionHeaderTable::insert(Elf32_Shdr* _section_entry) {
     section_header_table.emplace_back(_section_entry);
+    return section_header_table_index++;
 }
 
 void SectionHeaderTable::printSectionHeaderTable() {
@@ -27,3 +27,5 @@ void SectionHeaderTable::printSectionHeaderTable() {
         std::cout << std::endl;
     }
 }
+
+SectionHeaderTable::SectionHeaderTable() : section_header_table(), section_header_table_index(0) {}

@@ -63,6 +63,8 @@
 %token <sval> CSRWR
 
 %token <sval> SECTION
+%token <sval> END
+%token <sval> SKIP
 
 %token COMMA
 
@@ -78,7 +80,9 @@ line:
 ;
 
 directive:
-    SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2); free($2); }
+      SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2); free($2); }
+    | END { cout << "END " << endl; Directives::dEnd(); }
+    | SKIP NUMBER { cout << "SKIP " << $2 << endl; Directives::dSkip($2); }
 
 instruction:
       HALT { Instructions::iHALT(); cout << $1 << endl; free($1); }

@@ -13,9 +13,6 @@ public:
 
     friend class Instructions;
 
-    template <typename T>
-    friend class Section;
-
     static void increaseLocationCounter() { location_counter++; }
 
     static void resetLocationCounter() { location_counter = 0; }
@@ -30,7 +27,9 @@ public:
 
     ~Assembler() = delete;
 
-    static std::vector<Section<char>*> sections;
+    static Section* current_section;
+
+    static std::ofstream f_output;
 
 private:
 

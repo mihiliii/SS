@@ -7,7 +7,7 @@
 #include "SectionHeaderTable.hpp"
 
 template <typename T>
-class InputSection : public Section<T> {
+class InputSection : public Section {
 public:
 
     InputSection(const std::string& _name);
@@ -18,10 +18,14 @@ public:
 
     ~InputSection() = default;
 
+private:
+
+    std::vector<T> content;
+
 };
 
 template <typename T>
-inline InputSection<T>::InputSection(const std::string& _name) : Section<T>() {
+inline InputSection<T>::InputSection(const std::string& _name) : Section() {
     SectionHeaderStringTable::getInstance().setSectionName(this, _name);
     this->name = _name;
 }
@@ -39,3 +43,5 @@ inline void InputSection<T>::appendContent(T* _content, size_t _size) {
     }
     this->section_header.sh_size += _size * sizeof(T);
 }
+
+

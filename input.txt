@@ -1,5 +1,5 @@
 .section swag
-.section swag2
+.skip 8
 add %r4, %r5
 sub %r4, %r5
 # i love snickers

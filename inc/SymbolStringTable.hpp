@@ -1,15 +1,14 @@
 #pragma once
 
-
 #include "Elf32.hpp"
 #include "Section.hpp"
 
-class SymbolStringTable : Section<char> {
+class SymbolStringTable : public Section {
 public:
 
     Elf32_Half addSymbol(const std::string& _symbol);
 
-    static SymbolStringTable& getInstance(); 
+    static SymbolStringTable& getInstance();
 
     SymbolStringTable(const SymbolStringTable&) = delete;
     SymbolStringTable& operator=(const SymbolStringTable&) = delete;
@@ -18,6 +17,7 @@ public:
 
 private:
 
-    SymbolStringTable(); 
+    SymbolStringTable();
 
+    std::vector<char> content;
 };

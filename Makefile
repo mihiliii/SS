@@ -11,6 +11,7 @@ $(BUILD_DIR)/lex.yy.c
 CPP_FILES = \
 src/Assembler.cpp \
 src/main.cpp \
+src/Section.cpp \
 src/Instructions.cpp \
 src/SectionHeaderStringTable.cpp \
 src/SectionHeaderTable.cpp \
