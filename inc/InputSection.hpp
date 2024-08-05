@@ -6,42 +6,20 @@
 #include "SectionHeaderStringTable.hpp"
 #include "SectionHeaderTable.hpp"
 
-template <typename T>
 class InputSection : public Section {
 public:
 
     InputSection(const std::string& _name);
 
-    void appendContent(const T& _content);
+    void appendContent(const char* _content, size_t _size);
 
-    void appendContent(T* _content, size_t _size);
+    void appendContent(char _content, size_t _number_of_repetitions);
+
+    void printContent() const;
 
     ~InputSection() = default;
 
 private:
 
-    std::vector<T> content;
-
+    std::vector<char> content;
 };
-
-template <typename T>
-inline InputSection<T>::InputSection(const std::string& _name) : Section() {
-    SectionHeaderStringTable::getInstance().setSectionName(this, _name);
-    this->name = _name;
-}
-
-template <typename T>
-inline void InputSection<T>::appendContent(const T& _content) {
-    this->content.push_back(_content);
-    this->section_header.sh_size += sizeof(T);
-}
-
-template <typename T>
-inline void InputSection<T>::appendContent(T* _content, size_t _size) {
-    for (size_t i = 0; i < _size; i++) {
-        this->content.push_back(_content[i]);
-    }
-    this->section_header.sh_size += _size * sizeof(T);
-}
-
-

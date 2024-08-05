@@ -18,6 +18,7 @@ src/SectionHeaderTable.cpp \
 src/SymbolTable.cpp \
 src/SymbolStringTable.cpp \
 src/Directives.cpp \
+src/InputSection.cpp \
 
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a

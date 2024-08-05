@@ -19,6 +19,7 @@ public:
 
     uint32_t getSectionHeaderTableIndex() const;
 
+
 protected:
 
     Section();

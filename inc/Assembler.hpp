@@ -23,6 +23,8 @@ public:
 
     static int writeToFile();
 
+    static void readElfFile();
+
     Assembler() = delete;
 
     ~Assembler() = delete;
@@ -33,10 +35,10 @@ public:
 
 private:
 
-    static void initAssembler();
+    static void initAssembler() {};
 
     static int location_counter;
-    static Elf32_Ehdr* elf_header;
+    static Elf32_Ehdr elf_header;
     static SectionHeaderTable* section_header_table;
 
     static SectionHeaderStringTable* section_header_string_table;
