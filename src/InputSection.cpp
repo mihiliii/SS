@@ -2,24 +2,18 @@
 
 #include <iomanip>
 #include <iostream>
+#include "InputSection.hpp"
 
 InputSection::InputSection(const std::string& _name) : Section() {
-    SectionHeaderStringTable::getInstance().setSectionName(this, _name);
     this->name = _name;
+    SectionHeaderStringTable::getInstance().setSectionName(this);
 }
 
-void InputSection::appendContent(const char* _content, size_t _size) {
-    for (size_t i = 0; i < _size; i++) {
+void InputSection::appendContent(const char* _content, size_t _content_size) {
+    for (size_t i = 0; i < _content_size; i++) {
         this->content.push_back(_content[i]);
     }
-    this->section_header.sh_size += sizeof(char) * _size;
-}
-
-void InputSection::appendContent(char _content, size_t _number_of_repetitions) {
-    for (size_t i = 0; i < _number_of_repetitions; i++) {
-        this->content.push_back(_content);
-    }
-    this->section_header.sh_size += sizeof(char) * _number_of_repetitions;
+    this->section_header.sh_size += sizeof(char) * _content_size;
 }
 
 void InputSection::printContent() const {
@@ -35,4 +29,8 @@ void InputSection::printContent() const {
         }
     }
     std::cout << std::dec << "\n";
+}
+
+void InputSection::setSize(size_t _length) {
+    this->section_header.sh_size = _length;
 }

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Section.hpp"
+#include "InputSection.hpp"
 #include "SectionHeaderTable.hpp"
 #include "SectionHeaderStringTable.hpp"
 #include "SymbolTable.hpp"
@@ -13,7 +14,9 @@ public:
 
     friend class Instructions;
 
-    static void increaseLocationCounter() { location_counter++; }
+    static void increaseLocationCounter(size_t _increment) { location_counter += _increment; }
+
+    static size_t getLocationCounter() { return location_counter; }
 
     static void resetLocationCounter() { location_counter = 0; }
 
@@ -29,7 +32,7 @@ public:
 
     ~Assembler() = delete;
 
-    static Section* current_section;
+    static InputSection* current_section;
 
     static std::ofstream f_output;
 
@@ -37,7 +40,7 @@ private:
 
     static void initAssembler() {};
 
-    static int location_counter;
+    static size_t location_counter;
     static Elf32_Ehdr elf_header;
     static SectionHeaderTable* section_header_table;
 

@@ -9,7 +9,8 @@ SymbolTable& SymbolTable::getInstance() {
 }
 
 SymbolTable::SymbolTable() : Section() {
-    SectionHeaderStringTable::getInstance().setSectionName(this, ".symtab");
+    name = ".symtab";
+    SectionHeaderStringTable::getInstance().setSectionName(this);
     section_header.sh_type = SHT_SYMTAB;
     section_header.sh_entsize = sizeof(Elf32_Sym);
 }
@@ -20,7 +21,3 @@ void SymbolTable::appendContent(Elf32_Sym* _content, size_t _size) {
     }
     section_header.sh_size += _size * sizeof(Elf32_Sym);
 }
-
-void SymbolTable::addSymbol(
-    Section* _section, const std::string& _name, Elf32_Addr _value, Elf32_Word _size
-) {}

@@ -1,5 +1,6 @@
 #include "../inc/Instructions.hpp"
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 
@@ -9,22 +10,17 @@ std::unordered_map<std::string, uint8_t> OC_MOD = {
     {"halt", 0x00}, {"int", 0x01}, {"add", 0x50}, {"sub", 0x51}, {"mul", 0x52}, {"div", 0x53}
 };
 
-// std::unordered_map<std::string, uint8_t> REGA_REGB = {
-// {"halt", 0x00}
-// };
+void Instructions::iHALT() {}
 
-// std::unordered_map<std::string, uint8_t> REGC_DISP = {
-// {"halt", 0x00}
-// };
+void Instructions::arithmetic(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
+    uint8_t instruction_format[4] = {
+        0,
+        (uint8_t) (_gprS << 4),
+        (uint8_t) (_gprD << 4 | _gprD),
+        OC_MOD[_instruction]
+    };
 
-// std::unordered_map<std::string, uint8_t> DISP_DISP = {
-// {"halt", 0x00}
-// };
-
-std::unordered_map<std::string, std::function<void()>> Instructions::instruction_map = {
-    {"halt", Instructions::iHALT}
-};
-
-void Instructions::iHALT() {
-    return;
+    Assembler::current_section->appendContent((char*) instruction_format, sizeof(uint8_t) * 4);
+    Assembler::current_section->printContent();
+    Assembler::increaseLocationCounter(4);
 }

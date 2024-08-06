@@ -34,7 +34,7 @@
 %token <ival> NUMBER
 %token <sval> STRING 
 
-%token <sval> REGISTER
+%token <ival> REGISTER
 %token <sval> HALT
 %token <sval> INT
 %token <sval> IRET
@@ -80,7 +80,7 @@ line:
 ;
 
 directive:
-      SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2); free($2); }
+      SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }
     | END { cout << "END " << endl; Directives::dEnd(); }
     | SKIP NUMBER { cout << "SKIP " << $2 << endl; Directives::dSkip($2); }
 
@@ -91,26 +91,26 @@ instruction:
     | CALL REGISTER { cout << "CALL " << $2 << endl; free($1); }
     | CALL NUMBER { cout << "CALL " << $2 << endl; }
     | RET { cout << "RET " << endl; free($1); }
-    | JMP REGISTER { cout << "JMP " << $2 << endl; free($2); }
+    | JMP REGISTER { cout << "JMP " << $2 << endl; }
     | JMP NUMBER { cout << "JMP " << $2 << endl; }
     // missing jump instructions...
-    | PUSH REGISTER { cout << "PUSH " << $2 << endl; free($2); }
-    | POP REGISTER { cout << "POP " << $2 << endl; free($2); }
-    | XCHG REGISTER COMMA REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | ADD REGISTER COMMA REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | SUB REGISTER COMMA REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | MUL REGISTER COMMA REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | DIV REGISTER COMMA REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | NOT REGISTER { cout << "NOT " << $2 << endl; free($2); }
-    | AND REGISTER COMMA REGISTER { cout << "AND " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | OR REGISTER COMMA REGISTER { cout << "OR " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | XOR REGISTER COMMA REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | SHL REGISTER COMMA REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | SHR REGISTER COMMA REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | LD REGISTER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | LD NUMBER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; free($4); }
-    | ST REGISTER COMMA REGISTER { cout << "ST " << $2 << ", " << $4 << endl; free($2); free($4); }
-    | ST REGISTER COMMA NUMBER { cout << "ST " << $2 << ", " << $4 << endl; free($2); }
+    | PUSH REGISTER { cout << "PUSH " << $2 << endl; }
+    | POP REGISTER { cout << "POP " << $2 << endl; }
+    | XCHG REGISTER COMMA REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; }
+    | ADD REGISTER COMMA REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmetic($1, (uint8_t) $2, (uint8_t) $4); free($1);}
+    | SUB REGISTER COMMA REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; }
+    | MUL REGISTER COMMA REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; }
+    | DIV REGISTER COMMA REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; }
+    | NOT REGISTER { cout << "NOT " << $2 << endl; }
+    | AND REGISTER COMMA REGISTER { cout << "AND " << $2 << ", " << $4 << endl; }
+    | OR REGISTER COMMA REGISTER { cout << "OR " << $2 << ", " << $4 << endl; }
+    | XOR REGISTER COMMA REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; }
+    | SHL REGISTER COMMA REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; }
+    | SHR REGISTER COMMA REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; }
+    | LD REGISTER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
+    | LD NUMBER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
+    | ST REGISTER COMMA REGISTER { cout << "ST " << $2 << ", " << $4 << endl; }
+    | ST REGISTER COMMA NUMBER { cout << "ST " << $2 << ", " << $4 << endl; }
 ;
 
 %%

@@ -1,10 +1,9 @@
 #pragma once
 
-
 #include <functional>
+#include <string>
 #include <unordered_map>
-
-#define Instruction uint32_t
+#include <cstdint>
 
 #define OC_MASK     0x0000000F
 #define MOD_MASK    0x000000F0
@@ -21,6 +20,8 @@ public:
     static void iHALT();
 
     static void iINT();
+
+    static void arithmetic(std::string _instruction, uint8_t _gprS, uint8_t _gprD);
 
 private:
 

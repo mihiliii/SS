@@ -14,5 +14,6 @@ Elf32_Half SymbolStringTable::addSymbol(const std::string& _symbol) {
 }
 
 SymbolStringTable::SymbolStringTable() : Section() {
-    SectionHeaderStringTable::getInstance().setSectionName(this, ".strtab");
+    name = ".strtab";
+    SectionHeaderStringTable::getInstance().setSectionName(this);
 }

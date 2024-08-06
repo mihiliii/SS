@@ -5,14 +5,12 @@
 #include "Elf32.hpp"
 #include "Section.hpp"
 
-class SectionHeaderStringTable : public Section {
+class SectionHeaderStringTable : Section {
 public:
 
     static SectionHeaderStringTable& getInstance();
 
-    void setSectionName(Section* _section, const std::string& _content);
-
-    std::string getSectionName(Section* _section) const;
+    void setSectionName(Section* _section);
 
     void printContent() const;
 

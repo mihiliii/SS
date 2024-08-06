@@ -76,10 +76,10 @@ CSRWR "csrwr"
 {SECTION}                   { yylval.sval = strdup(yytext); return SECTION; }
 {SKIP}                      { yylval.sval = strdup(yytext); return SKIP; } 
 
-%r[0-9]|%r1[0-5]            { yylval.sval = strdup(yytext); return REGISTER; }
+%r[0-9]|%r1[0-5]            { yylval.ival = (int) strtol(yytext + 2, NULL, 10); return REGISTER; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
 [a-zA-Z0-9]+                { yylval.sval = strdup(yytext); return STRING; }
-\n                          { Assembler::increaseLocationCounter(); }
+\n                          { Assembler::increaseLocationCounter(4); }
 [ \t]+                      ;
 .                           { printf("Unknown character: %s\n", yytext); }
 

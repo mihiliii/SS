@@ -15,5 +15,6 @@ void Directives::dSection(const std::string& _section_name) {
 void Directives::dEnd() {}
 
 void Directives::dSkip(int _bytes) {
-    dynamic_cast<InputSection*>(Assembler::current_section)->appendContent((char) 0, _bytes);
+    std::vector<char> vector(_bytes, 0);
+    dynamic_cast<InputSection*>(Assembler::current_section)->appendContent(vector.data(), _bytes);
 }

@@ -13,9 +13,9 @@ public:
 
     void appendContent(const char* _content, size_t _size);
 
-    void appendContent(char _content, size_t _number_of_repetitions);
-
     void printContent() const;
+
+    void setSize(size_t _length);
 
     ~InputSection() = default;
 

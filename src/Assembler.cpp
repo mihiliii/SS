@@ -1,8 +1,8 @@
 #include "../inc/Assembler.hpp"
 
 #include <fstream>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
@@ -13,12 +13,11 @@ extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
-int Assembler::location_counter = 0;
+size_t Assembler::location_counter = 0;
 Elf32_Ehdr Assembler::elf_header = {};
-Section* Assembler::current_section;
+InputSection* Assembler::current_section;
 
 std::ofstream Assembler::f_output;
-
 
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,
  *  that's why it is private. It initializes the static variables of the Assembler class.
@@ -41,8 +40,8 @@ int Assembler::startAssembler() {
     // Close the file handle:
     fclose(f_input);
 
-    Assembler::writeToFile();
-    Assembler::readElfFile();
+    // Assembler::writeToFile();
+    // Assembler::readElfFile();
     return 0;
 }
 
@@ -56,7 +55,6 @@ int Assembler::writeToFile() {
 
     // Write the ELF header to the file:
     f_output.write(reinterpret_cast<char*>(&elf_header), sizeof(Elf32_Ehdr));
-     
 
     f_output.close();
 
@@ -90,7 +88,7 @@ void Assembler::readElfFile() {
             }
         }
     }
-    
+
     std::cout << std::dec << "\n";
 
     f_input.clear();
@@ -108,7 +106,6 @@ void Assembler::readElfFile() {
                 std::cout << std::dec << "\n";
             }
         }
- 
     }
 
     f_input.close();
