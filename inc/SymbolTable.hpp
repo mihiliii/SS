@@ -15,6 +15,8 @@ public:
     SymbolTable(const SymbolTable&) = delete;
     SymbolTable& operator=(const SymbolTable&) = delete;
 
+    void printContent() const;
+
     ~SymbolTable() = default;
 
 private:

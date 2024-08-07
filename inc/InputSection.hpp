@@ -3,7 +3,7 @@
 #include <string>
 
 #include "Section.hpp"
-#include "SectionHeaderStringTable.hpp"
+#include "StringTable.hpp"
 #include "SectionHeaderTable.hpp"
 
 class InputSection : public Section {

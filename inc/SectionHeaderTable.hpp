@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <vector>
 
 #include "Elf32.hpp"
@@ -8,7 +7,7 @@
 class SectionHeaderTable {
 public:
 
-    static SectionHeaderTable& getInstance(); 
+    static SectionHeaderTable& getInstance();
 
     uint32_t insert(Elf32_Shdr* _section_entry);
 

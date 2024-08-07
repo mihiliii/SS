@@ -19,6 +19,8 @@ public:
 
     uint32_t getSectionHeaderTableIndex() const;
 
+    virtual void printContent() const = 0;
+
 protected:
 
     Section();

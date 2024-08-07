@@ -4,9 +4,10 @@
 #include <iostream>
 #include "InputSection.hpp"
 
+
 InputSection::InputSection(const std::string& _name) : Section() {
     this->name = _name;
-    SectionHeaderStringTable::getInstance().setSectionName(this);
+    section_header.sh_name = StringTable::getInstance().addString(_name);
 }
 
 void InputSection::appendContent(const char* _content, size_t _content_size) {

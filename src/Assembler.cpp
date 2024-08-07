@@ -6,7 +6,6 @@
 
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
-#include "../inc/SectionHeaderStringTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -40,6 +39,7 @@ int Assembler::startAssembler() {
     // Close the file handle:
     fclose(f_input);
 
+    StringTable::getInstance().printContent();
     // Assembler::writeToFile();
     // Assembler::readElfFile();
     return 0;

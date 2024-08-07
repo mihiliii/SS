@@ -13,10 +13,9 @@ src/Assembler.cpp \
 src/main.cpp \
 src/Section.cpp \
 src/Instructions.cpp \
-src/SectionHeaderStringTable.cpp \
 src/SectionHeaderTable.cpp \
 src/SymbolTable.cpp \
-src/SymbolStringTable.cpp \
+src/StringTable.cpp \
 src/Directives.cpp \
 src/InputSection.cpp \
 

@@ -6,7 +6,7 @@
 #include "Section.hpp"
 #include "InputSection.hpp"
 #include "SectionHeaderTable.hpp"
-#include "SectionHeaderStringTable.hpp"
+#include "StringTable.hpp"
 #include "SymbolTable.hpp"
 
 class Assembler {
@@ -44,6 +44,6 @@ private:
     static Elf32_Ehdr elf_header;
     static SectionHeaderTable* section_header_table;
 
-    static SectionHeaderStringTable* section_header_string_table;
+    static StringTable* section_header_string_table;
     static SymbolTable* symbol_table;
 };
