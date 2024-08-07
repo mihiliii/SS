@@ -97,16 +97,16 @@ instruction:
     | PUSH REGISTER { cout << "PUSH " << $2 << endl; }
     | POP REGISTER { cout << "POP " << $2 << endl; }
     | XCHG REGISTER COMMA REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; }
-    | ADD REGISTER COMMA REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmetic($1, (uint8_t) $2, (uint8_t) $4); free($1);}
-    | SUB REGISTER COMMA REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; }
-    | MUL REGISTER COMMA REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; }
-    | DIV REGISTER COMMA REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; }
-    | NOT REGISTER { cout << "NOT " << $2 << endl; }
-    | AND REGISTER COMMA REGISTER { cout << "AND " << $2 << ", " << $4 << endl; }
-    | OR REGISTER COMMA REGISTER { cout << "OR " << $2 << ", " << $4 << endl; }
-    | XOR REGISTER COMMA REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; }
-    | SHL REGISTER COMMA REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; }
-    | SHR REGISTER COMMA REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; }
+    | ADD REGISTER COMMA REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SUB REGISTER COMMA REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | MUL REGISTER COMMA REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | DIV REGISTER COMMA REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | NOT REGISTER { cout << "NOT " << $2 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $2); free($1); }
+    | AND REGISTER COMMA REGISTER { cout << "AND " << $2 << ", " << $4 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | OR REGISTER COMMA REGISTER { cout << "OR " << $2 << ", " << $4 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | XOR REGISTER COMMA REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SHL REGISTER COMMA REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; Instructions::shiftIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SHR REGISTER COMMA REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; Instructions::shiftIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
     | LD REGISTER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
     | LD NUMBER COMMA REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
     | ST REGISTER COMMA REGISTER { cout << "ST " << $2 << ", " << $4 << endl; }

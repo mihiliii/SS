@@ -21,7 +21,11 @@ public:
 
     static void iINT();
 
-    static void arithmetic(std::string _instruction, uint8_t _gprS, uint8_t _gprD);
+    static void arithmeticIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD);
+
+    static void logicIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD);
+
+    static void shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD);
 
 private:
 
