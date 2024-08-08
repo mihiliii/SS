@@ -14,6 +14,8 @@ public:
 
     friend class Instructions;
 
+    friend class Directives;
+
     static void increaseLocationCounter(size_t _increment) { location_counter += _increment; }
 
     static size_t getLocationCounter() { return location_counter; }

@@ -10,7 +10,9 @@ public:
 
     static SymbolTable& getInstance();
 
-    void appendContent(Elf32_Sym* _content, size_t _size);
+    void appendContent(Elf32_Sym* _content);
+
+    void appendContent(std::string _name, Elf32_Addr _value);
 
     SymbolTable(const SymbolTable&) = delete;
     SymbolTable& operator=(const SymbolTable&) = delete;

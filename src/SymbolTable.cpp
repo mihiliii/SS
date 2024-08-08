@@ -1,4 +1,5 @@
 #include "../inc/SymbolTable.hpp"
+#include "../inc/Assembler.hpp"
 
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
@@ -15,11 +16,19 @@ SymbolTable::SymbolTable() : Section() {
     section_header.sh_entsize = sizeof(Elf32_Sym);
 }
 
-void SymbolTable::appendContent(Elf32_Sym* _content, size_t _size) {
-    for (size_t i = 0; i < _size; i++) {
-        content.emplace_back(_content[i]);
-    }
-    section_header.sh_size += _size * sizeof(Elf32_Sym);
+void SymbolTable::appendContent(Elf32_Sym* _content) {
+    content.emplace_back(*_content);
+    section_header.sh_size += sizeof(Elf32_Sym);
+}
+
+void SymbolTable::appendContent(std::string _name, Elf32_Addr _value) {
+    Elf32_Sym symbol = {};
+    symbol.st_name = StringTable::getInstance().addString(_name);
+    symbol.st_value = _value;
+    symbol.st_info = 0;
+    symbol.st_other = 0;
+    symbol.st_shndx = Assembler::current_section->getSectionHeaderTableIndex();
+    appendContent(&symbol);
 }
 
 void SymbolTable::printContent() const {

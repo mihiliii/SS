@@ -1,5 +1,6 @@
 .section swag
 # .skip 0x8
+.word 0xABCDEF
 add %r4, %r5
 sub %r4, %r5
 # i love snickers

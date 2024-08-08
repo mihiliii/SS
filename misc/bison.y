@@ -1,10 +1,10 @@
 
 %{
+    #include "../inc/Directives.hpp"
     #include <cstdio>
     #include <iostream>
     #include "../inc/Assembler.hpp"
     #include "../inc/Instructions.hpp"
-    #include "../inc/Directives.hpp"
 
     using namespace std;
 
@@ -14,7 +14,13 @@
     extern FILE *yyin;
  
     void yyerror(const char *s);
+
 %}
+
+%code requires {
+    #include <vector>
+    struct init_list_node;
+}
 
 // Bison fundamentally works by asking flex to get the next token, which it
 // returns as an object of type "yystype". Initially (by default), yystype
@@ -27,6 +33,7 @@
 %union {
     int ival;
     char* sval;
+    std::vector<init_list_node> *init_list;
 }
 
 // Define the "terminal symbol" token types I'm going to use (in CAPS
@@ -65,8 +72,11 @@
 %token <sval> SECTION
 %token <sval> END
 %token <sval> SKIP
+%token <sval> WORD
 
 %token COMMA
+
+%type <init_list> init_list 
 
 %%
 
@@ -79,10 +89,18 @@ line:
     instruction | directive
 ;
 
+init_list:
+      STRING { init_list_node node{typeid($1).name(), &($1)}; $$ = new vector<init_list_node>; $$->push_back(node); }
+    | NUMBER { init_list_node node{typeid($1).name(), new int($1)}; $$ = new vector<init_list_node>; $$->push_back(node); } 
+    | init_list COMMA STRING { init_list_node node{typeid($3).name(), $3}; $$->push_back(node); }
+    | init_list COMMA NUMBER { init_list_node node{typeid($3).name(), new int($3)}; $$->push_back(node); }
+    ;
+
 directive:
       SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }
     | END { cout << "END " << endl; Directives::dEnd(); }
     | SKIP NUMBER { cout << "SKIP " << $2 << endl; Directives::dSkip($2); }
+    | WORD init_list { cout << "WORD "; for (auto value: *($2)) std::cout << *(int*) value.value << " "; std::cout << std::endl; Directives::dWord($2); }
 
 instruction:
       HALT { Instructions::iHALT(); cout << $1 << endl; free($1); }
