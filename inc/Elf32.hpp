@@ -52,8 +52,8 @@ struct Elf32_Ehdr {
 // #define SHN_XINDEX    0xffff /* Index is in extra table. */
 // #define SHN_HIRESERVE 0xffff /* End of reserved indices */
 
-#define SHT_SYMTAB   0x7 /* Symbol table */
-#define SHT_SHSTRTAB 0x3 /* Section header string table */
+#define SHT_SYMTAB 0x1 /* Symbol table */
+#define SHT_STRTAB 0x2 /* Section header string table */
 
 // Struct that represents the section table entry
 struct Elf32_Shdr {

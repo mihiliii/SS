@@ -15,7 +15,7 @@ uint32_t SectionHeaderTable::insert(Elf32_Shdr* _section_entry) {
     return section_header_table_index++;
 }
 
-void SectionHeaderTable::writeFile(std::ofstream* _file) {
+void SectionHeaderTable::write(std::ofstream* _file) {
     for (Elf32_Shdr* section : section_header_table) {
         _file->write(reinterpret_cast<char*>(section), sizeof(Elf32_Shdr));
     }
@@ -23,6 +23,7 @@ void SectionHeaderTable::writeFile(std::ofstream* _file) {
 }
 
 void SectionHeaderTable::printSectionHeaderTable() {
+    std::cout << "       ***  SECTION HEADER TABLE  ***       " << std::endl;
     for (Elf32_Shdr* section : section_header_table) {
         std::cout << "Section name: " << section->sh_name << std::endl;
         std::cout << "Section type: " << section->sh_type << std::endl;

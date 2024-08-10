@@ -12,9 +12,11 @@ public:
 
     uint32_t insert(Elf32_Shdr* _section_entry);
 
-    void writeFile(std::ofstream* _file);
+    void write(std::ofstream* _file);
 
     void printSectionHeaderTable();
+
+    size_t getSize() const { return section_header_table.size(); }
 
     SectionHeaderTable(const SectionHeaderTable&) = delete;
     SectionHeaderTable& operator=(const SectionHeaderTable&) = delete;

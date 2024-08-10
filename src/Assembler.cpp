@@ -19,6 +19,8 @@ InputSection* Assembler::current_section;
 
 SectionHeaderTable* Assembler::section_header_table = &SectionHeaderTable::getInstance();
 ElfHeader* Assembler::elf_header = &ElfHeader::getInstance();
+StringTable* Assembler::string_table = &StringTable::getInstance();
+SymbolTable* Assembler::symbol_table = &SymbolTable::getInstance();
 
 std::ofstream Assembler::f_output;
 
@@ -56,22 +58,28 @@ int Assembler::writeToFile() {
         return -1;
     }
 
-    // Write the ELF header to the file:
-    elf_header->write(&f_output);
-
-    // Write the section header table to the file:
-    std::streampos section_header_table_offset = f_output.tellp();
-    section_header_table->writeFile(&f_output);
-
-    // Write the section header table offset to the ELF header:
-    f_output.seekp(offsetof(Elf32_Ehdr, e_shoff), std::ios::beg);
-    f_output.write(reinterpret_cast<char*>(&section_header_table_offset), sizeof(std::streampos));
-
-    // Write the string table to the file:
-    f_output.seekp(0, std::ios::end);
-    std::streampos string_table_offset = f_output.tellp();
+    // Write string and symbol table right after the ELF header:
+    f_output.seekp(sizeof(Elf32_Ehdr), std::ios::beg);
 
     string_table->write(&f_output);
+    symbol_table->write(&f_output);
+
+    // Write the sections:
+    for (auto iterator : Section::getSectionTable()) {
+        iterator.second->write(&f_output);
+    }
+
+    // Set section header table offset and number of entries in the ELF header:
+    std::streampos section_header_table_offset = f_output.tellp();
+    elf_header->setField(ElfHeaderField::SH_OFFSET, section_header_table_offset);
+    elf_header->setField(ElfHeaderField::SH_NUM, section_header_table->getSize());
+
+    // Write the section header table:
+    section_header_table->write(&f_output);
+
+    // Write the ELF header at the beginning of the file:
+    f_output.seekp(0, std::ios::beg);
+    elf_header->write(&f_output);
 
     f_output.close();
 

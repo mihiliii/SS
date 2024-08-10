@@ -26,7 +26,7 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
             dynamic_cast<InputSection*>(Assembler::current_section)->appendContent((char*) value.value, sizeof(int));
             dynamic_cast<InputSection*>(Assembler::current_section)->printContent();
         } else if (value.type == typeid(std::string).name()) {
-            SymbolTable::getInstance().appendContent(*(std::string*) value.value, Assembler::location_counter);
+            SymbolTable::getInstance().addSymbol(*(std::string*) value.value, Assembler::location_counter);
             dynamic_cast<InputSection*>(Assembler::current_section)->printContent();
         }
     }

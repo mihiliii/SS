@@ -6,20 +6,18 @@
 class StringTable : public Section {
 public:
 
-    Elf32_Off addString(std::string _symbol);
-
-    void printContentHex() const;
-
-    void printContent() const;
-
     static StringTable& getInstance();
-
-    void write(std::ofstream* _file);
 
     StringTable(const StringTable&) = delete;
     StringTable& operator=(const StringTable&) = delete;
 
     ~StringTable() = default;
+
+    void addString(std::string _symbol, Elf32_Off* _offset);
+
+    void printContent() const override;
+
+    void write(std::ofstream* _file) override;
 
 private:
 

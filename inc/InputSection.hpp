@@ -11,13 +11,13 @@ public:
 
     InputSection(const std::string& _name);
 
-    void appendContent(const char* _content, size_t _size);
+    void appendContent(void* _content, size_t _size);
+    
+    void increaseLocationCounter(size_t _size) { location_counter += _size; };
 
-    void printContent() const;
+    void printContent() const override;
 
-    void setSize(size_t _length);
-
-    void increaseLocationCounter(Elf32_Off _increment);
+    void write(std::ofstream* _file) override;
 
     ~InputSection() = default;
 

@@ -3,24 +3,32 @@
 #include "Elf32.hpp"
 #include <fstream>
 
+enum ElfHeaderField {
+    SH_OFFSET,
+    SH_ENTRYSIZE,
+    SH_NUM,
+};
+
 class ElfHeader {
 public:
 
     static ElfHeader& getInstance();
-
-    Elf32_Ehdr& getElfHeader() { return elf_header; }
-
-    void write(std::ofstream* _file);
-
+    
     ElfHeader(const ElfHeader&) = delete;
     ElfHeader& operator=(const ElfHeader&) = delete;
 
     ~ElfHeader() = default;
 
+    Elf32_Ehdr& getElfHeader() { return elf_header; }
+
+    void setField(ElfHeaderField _field, uint32_t _value);
+
+    void write(std::ofstream* _file);
+
 private:
 
     Elf32_Ehdr elf_header;
 
-    ElfHeader() = default;
+    ElfHeader();
 
 };

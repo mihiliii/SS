@@ -13,13 +13,15 @@ public:
 
     virtual ~Section() = 0;
 
-    Elf32_Shdr& getSectionHeader();
-
-    uint32_t getSectionHeaderTableIndex() const;
-
     virtual void printContent() const = 0;
 
     virtual void write(std::ofstream* _file) = 0;
+
+    Elf32_Shdr& getSectionHeader() { return section_header; };
+
+    uint32_t getSectionHeaderTableIndex() const { return section_header_table_index; };
+
+    static std::map<std::string, Section*>& getSectionTable() { return section_table; };
 
 protected:
 

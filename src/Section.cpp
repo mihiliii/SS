@@ -13,7 +13,3 @@ Section::~Section() {
         section_table.erase(it);
     }
 }
-
-uint32_t Section::getSectionHeaderTableIndex() const { return section_header_table_index; }
-
-Elf32_Shdr& Section::getSectionHeader() { return section_header; }
