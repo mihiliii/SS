@@ -18,6 +18,7 @@ src/SymbolTable.cpp \
 src/StringTable.cpp \
 src/Directives.cpp \
 src/InputSection.cpp \
+src/ElfHeader.cpp \
 
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a

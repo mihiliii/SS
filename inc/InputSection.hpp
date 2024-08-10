@@ -17,9 +17,12 @@ public:
 
     void setSize(size_t _length);
 
+    void increaseLocationCounter(Elf32_Off _increment);
+
     ~InputSection() = default;
 
 private:
 
+    Elf32_Off location_counter;
     std::vector<char> content;
 };

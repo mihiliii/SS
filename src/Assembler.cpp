@@ -3,9 +3,11 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <cstddef>
 
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
+#include "../inc/ElfHeader.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -13,8 +15,10 @@ extern int yyparse();
 extern FILE* yyin;
 
 size_t Assembler::location_counter = 0;
-Elf32_Ehdr Assembler::elf_header = {};
 InputSection* Assembler::current_section;
+
+SectionHeaderTable* Assembler::section_header_table = &SectionHeaderTable::getInstance();
+ElfHeader* Assembler::elf_header = &ElfHeader::getInstance();
 
 std::ofstream Assembler::f_output;
 
@@ -39,14 +43,13 @@ int Assembler::startAssembler() {
     // Close the file handle:
     fclose(f_input);
 
-    StringTable::getInstance().printContent();
-    // Assembler::writeToFile();
-    // Assembler::readElfFile();
     return 0;
 }
 
 int Assembler::writeToFile() {
     f_output.open("output.o", std::ios::out | std::ios::binary);
+
+    std::cout << sizeof(Elf32_Ehdr) << std::endl;
 
     if (!f_output.is_open()) {
         std::cout << "I can't open output.o!" << std::endl;
@@ -54,7 +57,21 @@ int Assembler::writeToFile() {
     }
 
     // Write the ELF header to the file:
-    f_output.write(reinterpret_cast<char*>(&elf_header), sizeof(Elf32_Ehdr));
+    elf_header->write(&f_output);
+
+    // Write the section header table to the file:
+    std::streampos section_header_table_offset = f_output.tellp();
+    section_header_table->writeFile(&f_output);
+
+    // Write the section header table offset to the ELF header:
+    f_output.seekp(offsetof(Elf32_Ehdr, e_shoff), std::ios::beg);
+    f_output.write(reinterpret_cast<char*>(&section_header_table_offset), sizeof(std::streampos));
+
+    // Write the string table to the file:
+    f_output.seekp(0, std::ios::end);
+    std::streampos string_table_offset = f_output.tellp();
+
+    string_table->write(&f_output);
 
     f_output.close();
 

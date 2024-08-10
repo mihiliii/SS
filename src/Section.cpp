@@ -14,8 +14,6 @@ Section::~Section() {
     }
 }
 
-std::string Section::getName() const { return name; }
-
 uint32_t Section::getSectionHeaderTableIndex() const { return section_header_table_index; }
 
 Elf32_Shdr& Section::getSectionHeader() { return section_header; }

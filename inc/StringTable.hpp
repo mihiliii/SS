@@ -14,6 +14,8 @@ public:
 
     static StringTable& getInstance();
 
+    void write(std::ofstream* _file);
+
     StringTable(const StringTable&) = delete;
     StringTable& operator=(const StringTable&) = delete;
 

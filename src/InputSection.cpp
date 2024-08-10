@@ -8,6 +8,7 @@
 InputSection::InputSection(const std::string& _name) : Section() {
     this->name = _name;
     section_header.sh_name = StringTable::getInstance().addString(_name);
+    this->location_counter = 0;
 }
 
 void InputSection::appendContent(const char* _content, size_t _content_size) {
@@ -34,4 +35,8 @@ void InputSection::printContent() const {
 
 void InputSection::setSize(size_t _length) {
     this->section_header.sh_size = _length;
+}
+
+void InputSection::increaseLocationCounter(Elf32_Off _increment) {
+    this->location_counter += _increment;
 }

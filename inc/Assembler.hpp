@@ -8,6 +8,7 @@
 #include "SectionHeaderTable.hpp"
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
+#include "ElfHeader.hpp"
 
 class Assembler {
 public:
@@ -43,9 +44,9 @@ private:
     static void initAssembler() {};
 
     static size_t location_counter;
-    static Elf32_Ehdr elf_header;
+    static ElfHeader* elf_header;
     static SectionHeaderTable* section_header_table;
 
-    static StringTable* section_header_string_table;
+    static StringTable* string_table;
     static SymbolTable* symbol_table;
 };

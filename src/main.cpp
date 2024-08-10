@@ -14,6 +14,8 @@ int main() {
     if (Assembler::writeToFile() == -1) {
         std::cout << "Assembler failed to write to file. \n";
         return -1;
+    } else {
+        Assembler::readElfFile();
     }
 
     std::cout << "\nProgram end. \n";

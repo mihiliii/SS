@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Elf32.hpp"
+#include <fstream>
 
 class SectionHeaderTable {
 public:
@@ -10,6 +11,8 @@ public:
     static SectionHeaderTable& getInstance();
 
     uint32_t insert(Elf32_Shdr* _section_entry);
+
+    void writeFile(std::ofstream* _file);
 
     void printSectionHeaderTable();
 

@@ -27,7 +27,7 @@ void Instructions::iHALT() {
     instruction_format instruction = {0, 0, 0, OC_MOD["halt"]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::increaseLocationCounter(sizeof(instruction));
+    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::arithmeticIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
@@ -36,7 +36,7 @@ void Instructions::arithmeticIns(std::string _instruction, uint8_t _gprS, uint8_
     };
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::increaseLocationCounter(sizeof(instruction));
+    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::logicIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
@@ -45,7 +45,7 @@ void Instructions::logicIns(std::string _instruction, uint8_t _gprS, uint8_t _gp
     };
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::increaseLocationCounter(sizeof(instruction));
+    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
@@ -54,5 +54,5 @@ void Instructions::shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gp
     };
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::increaseLocationCounter(sizeof(instruction));
+    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }

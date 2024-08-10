@@ -15,11 +15,11 @@ public:
 
     Elf32_Shdr& getSectionHeader();
 
-    std::string getName() const;
-
     uint32_t getSectionHeaderTableIndex() const;
 
     virtual void printContent() const = 0;
+
+    virtual void write(std::ofstream* _file) = 0;
 
 protected:
 

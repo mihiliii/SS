@@ -1,6 +1,7 @@
 #include "../inc/StringTable.hpp"
 
 #include <iomanip>
+#include "StringTable.hpp"
 
 Elf32_Off StringTable::addString(std::string _string) {
     Elf32_Off offset = section_header.sh_size;
@@ -17,9 +18,20 @@ StringTable& StringTable::getInstance() {
     return instance;
 }
 
+void StringTable::write(std::ofstream* _file) {
+    section_header.sh_size = content.size();
+    section_header.sh_offset = _file->tellp();
+    _file->write(content.data(), content.size());
+    // allignment to 4 bytes
+    // for (int i = 0; i < 4 - (content.size() % 4); i++) {
+        // _file->put('\0');
+    // }
+}
+
 StringTable::StringTable() : Section() {
     name = ".strtab";
     section_header.sh_name = addString(name);
+    section_header.sh_entsize = 0;
 }
 
 void StringTable::printContentHex() const {
