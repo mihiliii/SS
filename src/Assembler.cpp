@@ -1,13 +1,13 @@
 #include "../inc/Assembler.hpp"
 
+#include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <cstddef>
 
+#include "../inc/ElfHeader.hpp"
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
-#include "../inc/ElfHeader.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -16,11 +16,6 @@ extern FILE* yyin;
 
 size_t Assembler::location_counter = 0;
 InputSection* Assembler::current_section;
-
-SectionHeaderTable* Assembler::section_header_table = &SectionHeaderTable::getInstance();
-ElfHeader* Assembler::elf_header = &ElfHeader::getInstance();
-StringTable* Assembler::string_table = &StringTable::getInstance();
-SymbolTable* Assembler::symbol_table = &SymbolTable::getInstance();
 
 std::ofstream Assembler::f_output;
 
@@ -49,6 +44,11 @@ int Assembler::startAssembler() {
 }
 
 int Assembler::writeToFile() {
+    SectionHeaderTable* section_header_table = &SectionHeaderTable::getInstance();
+    ElfHeader* elf_header = &ElfHeader::getInstance();
+    StringTable* string_table = &StringTable::getInstance();
+    SymbolTable* symbol_table = &SymbolTable::getInstance();
+
     f_output.open("output.o", std::ios::out | std::ios::binary);
 
     std::cout << sizeof(Elf32_Ehdr) << std::endl;
@@ -103,35 +103,55 @@ void Assembler::readElfFile() {
         f_input.read(buffer.data(), bufferSize);
         size_t s = f_input.gcount();
         for (size_t i = 0; i < s; i++) {
-            if (i % 16 == 0) {
+            if (i % 16 == 0)
                 std::cout << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
-            }
-            std::cout << std::hex << std::setw(2) << std::setfill('0')
-                      << (unsigned int) (unsigned char) buffer[i] << " ";
+            else if (i % 8 == 0)
+                std::cout << std::dec << " ";
+
+            std::cout << std::hex << std::setw(2) << std::setfill('0') << (unsigned int) (unsigned char) buffer[i]
+                      << " ";
+
             if ((i + 1) % 16 == 0) {
-                std::cout << std::dec << "\n";
+                std::cout << std::dec << " |";
+                for (size_t j = i - 15; j < i + 1; j++) {
+                    if (buffer[j] < 32 || buffer[j] > 126) {
+                        std::cout << ".";
+                    } else {
+                        std::cout << buffer[j];
+                    }
+                    if ((j + 1) % 16 == 0) {
+                        std::cout << std::dec << "|\n";
+                    }
+                }
+            }
+        }
+
+        if (s % 16 != 0) {
+            for (size_t i = 0; i < 16 - s % 16; i++) {
+                std::cout << "   ";
+                // adding another blank space after 8th byte
+                if ((s + i) % 8 == 0) {
+                    std::cout << " ";
+                }
+            }
+            std::cout << std::dec << " |";
+            for (size_t i = s - s % 16; i < s; i++) {
+                if (buffer[i] < 32 || buffer[i] > 126) {
+                    std::cout << ".";
+                } else {
+                    std::cout << buffer[i];
+                }
+                if (i == s - 1) {
+                    std::cout << std::dec << "|\n";
+                }
             }
         }
     }
 
-    std::cout << std::dec << "\n";
+    SymbolTable::getInstance().printContent();
 
-    f_input.clear();
-    f_input.seekg(0, std::ios::beg);
-
-    while (!f_input.eof()) {
-        f_input.read(buffer.data(), bufferSize);
-        size_t s = f_input.gcount();
-        for (size_t i = 0; i < s; i++) {
-            if (i % 16 == 0) {
-                std::cout << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
-            }
-            std::cout << buffer[i] << " ";
-            if ((i + 1) % 16 == 0) {
-                std::cout << std::dec << "\n";
-            }
-        }
-    }
+    std::cout << std::dec << std::endl;
 
     f_input.close();
 }
+

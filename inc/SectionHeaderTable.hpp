@@ -1,9 +1,9 @@
 #pragma once
 
+#include <fstream>
 #include <vector>
 
 #include "Elf32.hpp"
-#include <fstream>
 
 class SectionHeaderTable {
 public:

@@ -23,9 +23,7 @@ typedef int32_t Elf32_SWord;
 
 // Struct that represents the ELF header
 struct Elf32_Ehdr {
-    unsigned char e_identification[EI_NIDENT] = {
-        'E', 'L', 'F', 'H', 'E', 'A', 'D', 'F'
-    };  // ELF identification
+    unsigned char e_identification[EI_NIDENT] = {'E', 'L', 'F', 'H', 'E', 'A', 'D', 'F'};  // ELF identification
     Elf32_Half e_type;       // File type
     Elf32_Addr e_entry;      // Entry point address (virtual address where the program starts)
     Elf32_Off e_phoff;       // Program header table file offset

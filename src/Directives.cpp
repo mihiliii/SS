@@ -16,18 +16,27 @@ void Directives::dSection(const std::string& _section_name) {
 void Directives::dEnd() {}
 
 void Directives::dSkip(int _bytes) {
+    InputSection* current_section = dynamic_cast<InputSection*>(Assembler::current_section);
     std::vector<char> vector(_bytes, 0);
-    dynamic_cast<InputSection*>(Assembler::current_section)->appendContent(vector.data(), _bytes);
+    current_section->appendContent(vector.data(), _bytes);
 }
 
 void Directives::dWord(std::vector<init_list_node>* _values) {
-    for (init_list_node& value : *_values) {
-        if (value.type == typeid(int).name()) {
-            dynamic_cast<InputSection*>(Assembler::current_section)->appendContent((char*) value.value, sizeof(int));
-            dynamic_cast<InputSection*>(Assembler::current_section)->printContent();
-        } else if (value.type == typeid(std::string).name()) {
-            SymbolTable::getInstance().addSymbol(*(std::string*) value.value, Assembler::location_counter);
-            dynamic_cast<InputSection*>(Assembler::current_section)->printContent();
+    InputSection* current_section = dynamic_cast<InputSection*>(Assembler::current_section);
+    SymbolTable& symbol_table = SymbolTable::getInstance();
+    for (init_list_node& node : *_values) {
+        if (node.type == typeid(int).name()) {
+            current_section->appendContent(node.value, sizeof(int));
+        } else if (node.type == typeid(std::string).name()) {
+            if (symbol_table.findSymbol(*(std::string*) node.value) != nullptr) {
+                current_section->appendContent(
+                    &symbol_table.findSymbol(*(std::string*) node.value)->st_value, sizeof(int)
+                );
+            } else {
+                symbol_table.addSymbol(*(std::string*) node.value, current_section->getLocationCounter());
+                std::vector<char> vector(sizeof(uint32_t), 0);
+                current_section->appendContent(vector.data(), sizeof(uint32_t));
+            }
         }
     }
 }

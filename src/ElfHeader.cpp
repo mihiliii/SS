@@ -1,6 +1,8 @@
 #include "../inc/ElfHeader.hpp"
-#include "../inc/Assembler.hpp"
+
 #include <fstream>
+
+#include "../inc/Assembler.hpp"
 #include "ElfHeader.hpp"
 
 ElfHeader& ElfHeader::getInstance() {
@@ -27,6 +29,4 @@ void ElfHeader::write(std::ofstream* _file) {
     Assembler::increaseLocationCounter(sizeof(Elf32_Ehdr));
 }
 
-ElfHeader::ElfHeader() {
-    elf_header.e_shentsize = sizeof(Elf32_Shdr);
-}
+ElfHeader::ElfHeader() { elf_header.e_shentsize = sizeof(Elf32_Shdr); }

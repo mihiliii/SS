@@ -23,5 +23,4 @@ public:
     static void dSkip(int _bytes);
 
     static void dWord(std::vector<init_list_node>* _values);
-
 };

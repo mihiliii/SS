@@ -15,6 +15,8 @@ public:
 
     void addString(std::string _symbol, Elf32_Off* _offset);
 
+    std::string getString(Elf32_Off _offset);
+
     void printContent() const override;
 
     void write(std::ofstream* _file) override;

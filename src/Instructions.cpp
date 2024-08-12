@@ -27,32 +27,26 @@ void Instructions::iHALT() {
     instruction_format instruction = {0, 0, 0, OC_MOD["halt"]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
+    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::arithmeticIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
-    instruction_format instruction = {
-        0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]
-    };
+    instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
+    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::logicIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
-    instruction_format instruction = {
-        0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]
-    };
+    instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
+    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
-    instruction_format instruction = {
-        0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]
-    };
+    instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    Assembler::current_section->increaseLocationCounter(sizeof(instruction));
+    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }

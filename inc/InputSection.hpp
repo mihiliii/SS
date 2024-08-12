@@ -12,8 +12,8 @@ public:
     InputSection(const std::string& _name);
 
     void appendContent(void* _content, size_t _size);
-    
-    void increaseLocationCounter(size_t _size) { location_counter += _size; };
+
+    Elf32_Off getLocationCounter() const { return content.size(); };
 
     void printContent() const override;
 
@@ -23,6 +23,5 @@ public:
 
 private:
 
-    Elf32_Off location_counter;
     std::vector<char> content;
 };

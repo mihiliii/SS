@@ -1,4 +1,5 @@
 .section swag
+labela:
 # .skip 0x8
 .word 0xABCDEF
 add %r4, %r5

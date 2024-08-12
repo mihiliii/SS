@@ -19,6 +19,8 @@ public:
 
     void addSymbol(std::string _name, Elf32_Addr _value);
 
+    Elf32_Sym* findSymbol(std::string& _name);
+
     void printContent() const override;
 
     void write(std::ofstream* _file) override;

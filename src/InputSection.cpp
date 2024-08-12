@@ -6,13 +6,12 @@
 InputSection::InputSection(const std::string& _name) : Section() {
     this->name = _name;
     StringTable::getInstance().addString(_name, &section_header.sh_name);
-    this->location_counter = 0;
 }
 
 void InputSection::appendContent(void* _content, size_t _content_size) {
-    char* casted_content = (char*) _content;
+    char* char_content = (char*) _content;
     for (size_t i = 0; i < _content_size; i++) {
-        this->content.push_back(casted_content[i]);
+        this->content.push_back(char_content[i]);
     }
     this->section_header.sh_size += sizeof(char) * _content_size;
 }

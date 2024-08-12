@@ -3,12 +3,12 @@
 #include <iostream>
 #include <vector>
 
-#include "Section.hpp"
+#include "ElfHeader.hpp"
 #include "InputSection.hpp"
+#include "Section.hpp"
 #include "SectionHeaderTable.hpp"
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
-#include "ElfHeader.hpp"
 
 class Assembler {
 public:
@@ -24,7 +24,7 @@ public:
     static void resetLocationCounter() { location_counter = 0; }
 
     static SectionHeaderTable* getSectionHeaderTable() { return section_header_table; }
-    
+
     static int startAssembler();
 
     static int writeToFile();

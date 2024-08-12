@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Elf32.hpp"
 #include <fstream>
+
+#include "Elf32.hpp"
 
 enum ElfHeaderField {
     SH_OFFSET,
@@ -13,7 +14,7 @@ class ElfHeader {
 public:
 
     static ElfHeader& getInstance();
-    
+
     ElfHeader(const ElfHeader&) = delete;
     ElfHeader& operator=(const ElfHeader&) = delete;
 
@@ -30,5 +31,4 @@ private:
     Elf32_Ehdr elf_header;
 
     ElfHeader();
-
 };

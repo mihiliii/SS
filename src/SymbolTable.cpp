@@ -33,15 +33,26 @@ void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value) {
     addSymbol(&symbol);
 }
 
+Elf32_Sym* SymbolTable::findSymbol(std::string& _name) {
+    for (Elf32_Sym& symbol : content) {
+        if (StringTable::getInstance().getString(symbol.st_name) == _name) return &symbol;
+    }
+    return nullptr;
+}
+
 void SymbolTable::printContent() const {
     std::cout << "       ***  SYMBOL TABLE  ***       " << std::endl;
-    std::cout << std::setw(10) << "Name" << std::setw(10) << "Value" << std::setw(4) << "Size"
-              << std::setw(4) << "Info" << std::setw(4) << "Other" << std::setw(4) << "Shndx"
-              << std::endl;
+    std::cout << "NUM " << std::setw(32) << std::left << std::setfill(' ') << "NAME" << " " << std::setw(8) << "VALUE"
+              << " " << std::setw(8) << "SIZE" << " " << std::setw(8) << "INFO"
+              << " " << std::setw(8) << "OTHER" << " " << std::setw(8) << "Shndx" << " " << std::endl;
+    uint32_t i = 0;
     for (Elf32_Sym c : content) {
-        std::cout << std::setw(10) << c.st_name << std::setw(10) << c.st_value << std::setw(4)
-                  << c.st_size << std::setw(4) << (int) c.st_info << std::setw(4) << (int) c.st_other
-                  << std::setw(4) << c.st_shndx << std::endl;
+        std::cout << std::setw(3) << std::setfill(' ') << std::dec << i << " " << std::setw(32) << std::left << std::hex
+                  << StringTable::getInstance().getString(c.st_name) << " " << std::setw(8) << std::setfill('0')
+                  << std::hex << c.st_value << " " << std::setw(8) << c.st_size << " " << std::setw(8)
+                  << (int) c.st_info << " " << std::setw(8) << (int) c.st_other << " " << std::setw(8) << std::setfill(' ') << c.st_shndx
+                  << " " << std::endl;
+        i += 1;
     }
     std::cout << std::endl;
 }

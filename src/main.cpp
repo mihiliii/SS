@@ -1,7 +1,8 @@
-#include "../inc/SymbolTable.hpp"
-#include "../inc/Section.hpp"
-#include "../inc/Assembler.hpp"
 #include <iostream>
+
+#include "../inc/Assembler.hpp"
+#include "../inc/Section.hpp"
+#include "../inc/SymbolTable.hpp"
 
 int main() {
     std::cout << "\nProgram start: \n\n";
