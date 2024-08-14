@@ -14,7 +14,6 @@ extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
-size_t Assembler::location_counter = 0;
 InputSection* Assembler::current_section;
 
 std::ofstream Assembler::f_output;
@@ -46,25 +45,17 @@ int Assembler::startAssembler() {
 int Assembler::writeToFile() {
     SectionHeaderTable* section_header_table = &SectionHeaderTable::getInstance();
     ElfHeader* elf_header = &ElfHeader::getInstance();
-    StringTable* string_table = &StringTable::getInstance();
-    SymbolTable* symbol_table = &SymbolTable::getInstance();
 
     f_output.open("output.o", std::ios::out | std::ios::binary);
-
-    std::cout << sizeof(Elf32_Ehdr) << std::endl;
 
     if (!f_output.is_open()) {
         std::cout << "I can't open output.o!" << std::endl;
         return -1;
     }
 
-    // Write string and symbol table right after the ELF header:
+    // Write sections right after the ELF header:
     f_output.seekp(sizeof(Elf32_Ehdr), std::ios::beg);
 
-    string_table->write(&f_output);
-    symbol_table->write(&f_output);
-
-    // Write the sections:
     for (auto iterator : Section::getSectionTable()) {
         iterator.second->write(&f_output);
     }
@@ -149,6 +140,7 @@ void Assembler::readElfFile() {
     }
 
     SymbolTable::getInstance().printContent();
+    SectionHeaderTable::getInstance().printSectionHeaderTable();
 
     std::cout << std::dec << std::endl;
 

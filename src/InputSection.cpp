@@ -3,8 +3,7 @@
 #include <iomanip>
 #include <iostream>
 
-InputSection::InputSection(const std::string& _name) : Section() {
-    this->name = _name;
+InputSection::InputSection(const std::string& _name) : Section(_name) {
     StringTable::getInstance().addString(_name, &section_header.sh_name);
 }
 

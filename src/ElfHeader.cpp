@@ -26,7 +26,6 @@ void ElfHeader::setField(ElfHeaderField _field, uint32_t _value) {
 
 void ElfHeader::write(std::ofstream* _file) {
     _file->write(reinterpret_cast<char*>(&elf_header), sizeof(Elf32_Ehdr));
-    Assembler::increaseLocationCounter(sizeof(Elf32_Ehdr));
 }
 
 ElfHeader::ElfHeader() { elf_header.e_shentsize = sizeof(Elf32_Shdr); }

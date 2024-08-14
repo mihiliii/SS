@@ -17,12 +17,6 @@ public:
 
     friend class Directives;
 
-    static void increaseLocationCounter(size_t _increment) { location_counter += _increment; }
-
-    static size_t getLocationCounter() { return location_counter; }
-
-    static void resetLocationCounter() { location_counter = 0; }
-
     static SectionHeaderTable* getSectionHeaderTable() { return section_header_table; }
 
     static int startAssembler();
@@ -43,7 +37,6 @@ private:
 
     static void initAssembler() {};
 
-    static size_t location_counter;
     static ElfHeader* elf_header;
     static SectionHeaderTable* section_header_table;
 

@@ -10,7 +10,6 @@
 void Directives::dSection(const std::string& _section_name) {
     InputSection* section = new InputSection(_section_name);
     Assembler::current_section = section;
-    Assembler::resetLocationCounter();
 }
 
 void Directives::dEnd() {}

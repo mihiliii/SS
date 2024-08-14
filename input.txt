@@ -1,8 +1,8 @@
 .section swag
-labela:
 # .skip 0x8
 .word 0xABCDEF
 add %r4, %r5
+labela:
 sub %r4, %r5
 # i love snickers
 call %r4

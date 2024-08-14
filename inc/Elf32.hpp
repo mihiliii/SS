@@ -24,7 +24,7 @@ typedef int32_t Elf32_SWord;
 // Struct that represents the ELF header
 struct Elf32_Ehdr {
     unsigned char e_identification[EI_NIDENT] = {'E', 'L', 'F', 'H', 'E', 'A', 'D', 'F'};  // ELF identification
-    Elf32_Half e_type;       // File type
+    Elf32_Half e_type;                                                                     // File type
     Elf32_Addr e_entry;      // Entry point address (virtual address where the program starts)
     Elf32_Off e_phoff;       // Program header table file offset
     Elf32_Off e_shoff;       // Section header table file offset
@@ -78,11 +78,17 @@ struct Elf32_Shdr {
 
 // Struct that represents the symbol table entry
 struct Elf32_Sym {
-    Elf32_Word st_name;      // Offset in the symbol string name table that matches that symbol name
-    unsigned char st_info;   // Type attributes
-    unsigned char st_other;  // Symbol visibility
-    Elf32_Half st_shndx;     // Section index which the symbol is defined
-    Elf32_Addr st_value;     // Symbol value
-    Elf32_Word st_size;      // Size of the symbol
+    Elf32_Word st_name;            // Offset in the symbol string name table that matches that symbol name
+    unsigned char st_info;         // Type attributes
+    unsigned char st_other;        // Symbol visibility
+    Elf32_Half st_shndx;           // Section index which the symbol is defined
+    Elf32_Addr st_value;           // Symbol value
+    Elf32_Word st_size;            // Size of the symbol
+    bool st_defined;               // True if the symbol is defined in the ELF file
+    Elf32_Fr* st_forward;  // Forward reference to the symbol
 };
 
+struct Elf32_Fr {
+    Elf32_Addr fr_addr;
+    Elf32_Fr* fr_next;
+};

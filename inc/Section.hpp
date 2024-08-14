@@ -25,7 +25,7 @@ public:
 
 protected:
 
-    Section();
+    Section(std::string _name);
 
     Elf32_Shdr section_header;
     std::string name;
