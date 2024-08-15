@@ -6,6 +6,7 @@
     #include "../inc/Assembler.hpp"
     #include "../inc/Instructions.hpp"
     #include "../inc/SymbolTable.hpp"
+    #include "../inc/ForwardReferenceTable.hpp"
 
     using namespace std;
 
@@ -89,14 +90,14 @@ line:
 ;
 
 init_list:
-      STRING { init_list_node node{typeid($1).name(), &($1)}; $$ = new vector<init_list_node>; $$->push_back(node); }
+      STRING { init_list_node node{typeid($1).name(), $1}; $$ = new vector<init_list_node>; $$->push_back(node); }
     | NUMBER { init_list_node node{typeid($1).name(), new int($1)}; $$ = new vector<init_list_node>; $$->push_back(node); } 
     | init_list ',' STRING { init_list_node node{typeid($3).name(), $3}; $$->push_back(node); }
     | init_list ',' NUMBER { init_list_node node{typeid($3).name(), new int($3)}; $$->push_back(node); }
     ;
 
 label:
-    STRING ':' { cout << "LABEL " << $1 << endl; SymbolTable::getInstance().addSymbol($1, Assembler::current_section->getLocationCounter(), true); free($1); }
+    STRING ':' { cout << "LABEL " << $1 << endl; if (SymbolTable::getInstance().findSymbol(std::string($1))) ForwardReferenceTable::getInstance().resolveSymbol($1); else SymbolTable::getInstance().addSymbol($1, Assembler::current_section->getLocationCounter(), true); free($1); }
 
 directive:
       SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }

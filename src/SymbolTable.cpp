@@ -24,7 +24,7 @@ void SymbolTable::addSymbol(Elf32_Sym* _content) {
 }
 
 void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined) {
-    Elf32_Sym symbol = {
+    Elf32_Sym symbol_entry = {
         .st_name = 0,
         .st_info = 0,
         .st_other = 0,
@@ -33,13 +33,16 @@ void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined)
         .st_size = 0,
         .st_defined = _defined
     };
-    StringTable::getInstance().addString(_name, &symbol.st_name);
+    StringTable::getInstance().addString(_name, &symbol_entry.st_name);
     if (_defined == false)
-        ForwardReferenceTable::getInstance().addReference(&symbol, Assembler::current_section->getLocationCounter());
-    addSymbol(&symbol);
+        ForwardReferenceTable::getInstance().addReference(
+            &symbol_entry, Assembler::current_section->getLocationCounter()
+        );
+
+    addSymbol(&symbol_entry);
 }
 
-Elf32_Sym* SymbolTable::findSymbol(std::string& _name) {
+Elf32_Sym* SymbolTable::findSymbol(std::string _name) {
     for (Elf32_Sym& symbol : content) {
         if (StringTable::getInstance().getString(symbol.st_name) == _name) return &symbol;
     }
@@ -56,7 +59,8 @@ void SymbolTable::printContent() const {
     std::cout << std::setw(9) << "SIZE";
     std::cout << std::setw(5) << "INFO";
     std::cout << std::setw(6) << "OTHER";
-    std::cout << std::setw(9) << "SHINDEX";
+    std::cout << std::setw(8) << "SHINDEX";
+    std::cout << "DEFINED";
     std::cout << std::endl;
     uint32_t i = 0;
     for (Elf32_Sym c : content) {
@@ -71,7 +75,9 @@ void SymbolTable::printContent() const {
         std::cout << std::setfill(' ') << std::dec;
         std::cout << std::setw(4) << (int) c.st_info << " ";
         std::cout << std::setw(5) << (int) c.st_other << " ";
-        std::cout << std::setw(7) << c.st_shndx << std::endl;
+        std::cout << std::setw(7) << c.st_shndx << " ";
+        std::cout << (c.st_defined ? "true" : "false");
+        std::cout << std::endl;
         i += 1;
     }
 }

@@ -7,4 +7,5 @@ labela:
     add %r4, %r5
     sub %r4, %r5
     halt
+ludilo:
 .word 0xFFFFFFFF

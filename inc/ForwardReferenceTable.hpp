@@ -15,6 +15,8 @@ public:
 
     void resolveSymbol(Elf32_Sym* _symbol_entry);
 
+    void resolveSymbol(std::string _symbol_name);
+
     void write(std::ofstream* file) override;
 
     void printContent() const override;

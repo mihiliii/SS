@@ -25,12 +25,14 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
     InputSection* current_section = dynamic_cast<InputSection*>(Assembler::current_section);
     SymbolTable& symbol_table = SymbolTable::getInstance();
     for (init_list_node& node : *_values) {
-        if (node.type == typeid(int).name()) current_section->appendContent(node.value, sizeof(int));
-        if (node.type == typeid(std::string).name()) {
-            Elf32_Sym* symbol_entry = symbol_table.findSymbol(*(std::string*) node.value);
+        if (node.type == typeid(int).name())
+            current_section->appendContent(node.value, sizeof(int));
+        if (node.type == typeid(char*).name()) {
+            std::string symbol_name = std::string((char*) node.value);
+            Elf32_Sym* symbol_entry = symbol_table.findSymbol(symbol_name);
             // if symbol is not in symbol table
             if (symbol_entry == nullptr) {
-                symbol_table.addSymbol(*(std::string*) node.value, 0, false);
+                symbol_table.addSymbol(symbol_name, 0, false);
                 uint32_t zero = 0;
                 current_section->appendContent(&zero, sizeof(uint32_t));
             } else {
@@ -45,7 +47,7 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
                 // if symbol is in symbol table and defined
                 else if (symbol_entry->st_defined == true) {
                     current_section->appendContent(
-                        &symbol_table.findSymbol(*(std::string*) node.value)->st_value, sizeof(int)
+                        &symbol_table.findSymbol(symbol_name)->st_value, sizeof(int)
                     );
                 }
             }
