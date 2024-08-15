@@ -8,6 +8,7 @@
 #include "../inc/ElfHeader.hpp"
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
+#include "../inc/ForwardReferenceTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -141,6 +142,7 @@ void Assembler::readElfFile() {
 
     SymbolTable::getInstance().printContent();
     SectionHeaderTable::getInstance().printSectionHeaderTable();
+    ForwardReferenceTable::getInstance().printContent();
 
     std::cout << std::dec << std::endl;
 

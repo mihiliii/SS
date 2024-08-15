@@ -16,6 +16,8 @@ public:
 
     void printSectionHeaderTable();
 
+    Elf32_Shdr* getSectionHeader(uint32_t _index) { return section_header_table[_index]; }
+
     size_t getSize() const { return section_header_table.size(); }
 
     SectionHeaderTable(const SectionHeaderTable&) = delete;

@@ -11,7 +11,9 @@ public:
 
     InputSection(const std::string& _name);
 
-    void appendContent(void* _content, size_t _size);
+    void appendContent(void* _content, size_t _content_size);
+
+    void overwriteContent(void* _content, size_t _content_size, Elf32_Off _offset);
 
     Elf32_Off getLocationCounter() const { return content.size(); };
 

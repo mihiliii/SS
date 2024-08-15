@@ -2,6 +2,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include "InputSection.hpp"
 
 InputSection::InputSection(const std::string& _name) : Section(_name) {
     StringTable::getInstance().addString(_name, &section_header.sh_name);
@@ -13,6 +14,13 @@ void InputSection::appendContent(void* _content, size_t _content_size) {
         this->content.push_back(char_content[i]);
     }
     this->section_header.sh_size += sizeof(char) * _content_size;
+}
+
+void InputSection::overwriteContent(void* _content, size_t _content_size, Elf32_Off _offset) {
+    char* char_content = (char*) _content;
+    for (size_t i = 0; i < _content_size; i++) {
+        this->content[_offset + i] = char_content[i];
+    }
 }
 
 void InputSection::printContent() const {

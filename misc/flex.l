@@ -5,6 +5,7 @@
     extern int yyerror(const char* s);
 %}
 %option noyywrap
+%option nounput
 
 /* directives: */
 GLOBAL ".global"

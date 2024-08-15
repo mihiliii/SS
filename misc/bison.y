@@ -96,13 +96,13 @@ init_list:
     ;
 
 label:
-    STRING ':' { cout << "LABEL " << $1 << endl; SymbolTable::getInstance().addSymbol($1, Assembler::current_section->getLocationCounter()); free($1); }
+    STRING ':' { cout << "LABEL " << $1 << endl; SymbolTable::getInstance().addSymbol($1, Assembler::current_section->getLocationCounter(), true); free($1); }
 
 directive:
       SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }
     | END { cout << "END " << endl; Directives::dEnd(); }
     | SKIP NUMBER { cout << "SKIP " << $2 << endl; Directives::dSkip($2); }
-    | WORD init_list { cout << "WORD "; for (auto value: *($2)) std::cout << *(int*) value.value << " "; std::cout << std::endl; Directives::dWord($2); }
+    | WORD init_list { cout << "WORD "; for (auto value: *($2)) std::cout << std::hex << "0x" << *(uint32_t*) value.value << " "; std::cout << std::endl; Directives::dWord($2); }
 
 instruction:
       HALT { Instructions::iHALT(); cout << $1 << endl; free($1); }

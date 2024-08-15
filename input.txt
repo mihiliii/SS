@@ -1,9 +1,10 @@
+# komentar
 .section swag
-# .skip 0x8
+.skip 0x8
 .word 0xABCDEF
-add %r4, %r5
+.word ludilo
 labela:
-sub %r4, %r5
-# i love snickers
-call %r4
-halt
+    add %r4, %r5
+    sub %r4, %r5
+    halt
+.word 0xFFFFFFFF

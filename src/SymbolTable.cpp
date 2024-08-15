@@ -3,6 +3,7 @@
 #include <iomanip>
 
 #include "../inc/Assembler.hpp"
+#include "../inc/ForwardReferenceTable.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
 
@@ -22,13 +23,19 @@ void SymbolTable::addSymbol(Elf32_Sym* _content) {
     section_header.sh_size += sizeof(Elf32_Sym);
 }
 
-void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value) {
-    Elf32_Sym symbol = {};
+void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined) {
+    Elf32_Sym symbol = {
+        .st_name = 0,
+        .st_info = 0,
+        .st_other = 0,
+        .st_shndx = (Elf32_Half) Assembler::current_section->getSectionHeaderTableIndex(),
+        .st_value = _value,
+        .st_size = 0,
+        .st_defined = _defined
+    };
     StringTable::getInstance().addString(_name, &symbol.st_name);
-    symbol.st_value = _value;
-    symbol.st_info = 0;
-    symbol.st_other = 0;
-    symbol.st_shndx = Assembler::current_section->getSectionHeaderTableIndex();
+    if (_defined == false)
+        ForwardReferenceTable::getInstance().addReference(&symbol, Assembler::current_section->getLocationCounter());
     addSymbol(&symbol);
 }
 
@@ -59,7 +66,7 @@ void SymbolTable::printContent() const {
         std::cout << std::left;
         std::cout << std::setw(32) << StringTable::getInstance().getString(c.st_name) << " ";
         std::cout << std::right << std::setfill('0') << std::hex;
-        std::cout << std::setw(8) << c.st_value << " " ;
+        std::cout << std::setw(8) << c.st_value << " ";
         std::cout << std::setw(8) << c.st_size << " ";
         std::cout << std::setfill(' ') << std::dec;
         std::cout << std::setw(4) << (int) c.st_info << " ";
@@ -72,7 +79,6 @@ void SymbolTable::printContent() const {
 void SymbolTable::write(std::ofstream* _file) {
     this->section_header.sh_size = this->content.size() * sizeof(Elf32_Sym);
     this->section_header.sh_offset = _file->tellp();
-
 
     _file->write((char*) this->content.data(), this->content.size() * sizeof(Elf32_Sym));
 }

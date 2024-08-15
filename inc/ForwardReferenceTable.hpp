@@ -9,9 +9,11 @@
 class ForwardReferenceTable : Section {
 public:
 
-    ForwardReferenceTable& getInstance();
+    static ForwardReferenceTable& getInstance();
 
     void addReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
+
+    void resolveSymbol(Elf32_Sym* _symbol_entry);
 
     void write(std::ofstream* file) override;
 
@@ -26,7 +28,6 @@ private:
 
     ForwardReferenceTable();
 
-    std::map<std::string, std::list<Elf32_Fr>> forward_references; 
-
+    std::map<std::string, std::list<Elf32_Addr>> forward_references; 
 
 };

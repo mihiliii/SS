@@ -76,6 +76,11 @@ struct Elf32_Shdr {
 #define STB_GLOBAL 1 /* Global symbol */
 #define STB_WEAK   2 /* Weak symbol */
 
+struct Elf32_Fr {
+    Elf32_Addr fr_addr;
+    Elf32_Fr* fr_next;
+};
+
 // Struct that represents the symbol table entry
 struct Elf32_Sym {
     Elf32_Word st_name;            // Offset in the symbol string name table that matches that symbol name
@@ -85,10 +90,5 @@ struct Elf32_Sym {
     Elf32_Addr st_value;           // Symbol value
     Elf32_Word st_size;            // Size of the symbol
     bool st_defined;               // True if the symbol is defined in the ELF file
-    Elf32_Fr* st_forward;  // Forward reference to the symbol
-};
-
-struct Elf32_Fr {
-    Elf32_Addr fr_addr;
-    Elf32_Fr* fr_next;
+    Elf32_Fr* st_forward;          // Forward reference to the symbol
 };
