@@ -25,8 +25,7 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
     InputSection* current_section = dynamic_cast<InputSection*>(Assembler::current_section);
     SymbolTable& symbol_table = SymbolTable::getInstance();
     for (init_list_node& node : *_values) {
-        if (node.type == typeid(int).name())
-            current_section->appendContent(node.value, sizeof(int));
+        if (node.type == typeid(int).name()) current_section->appendContent(node.value, sizeof(int));
         if (node.type == typeid(char*).name()) {
             std::string symbol_name = std::string((char*) node.value);
             Elf32_Sym* symbol_entry = symbol_table.findSymbol(symbol_name);
@@ -46,11 +45,31 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
                 }
                 // if symbol is in symbol table and defined
                 else if (symbol_entry->st_defined == true) {
-                    current_section->appendContent(
-                        &symbol_table.findSymbol(symbol_name)->st_value, sizeof(int)
-                    );
+                    current_section->appendContent(&symbol_table.findSymbol(symbol_name)->st_value, sizeof(int));
                 }
             }
         }
+    }
+}
+
+void Directives::dGlobal(std::vector<init_list_node>* _symbols) {
+    SymbolTable& symbol_table = SymbolTable::getInstance();
+    for (init_list_node& node : *_symbols) {
+        std::string symbol_name = std::string((char*) node.value);
+        Elf32_Sym* symbol_entry = symbol_table.findSymbol(symbol_name);
+        // if symbol is not in symbol table
+        if (symbol_entry == nullptr) symbol_table.addSymbol(symbol_name, 0, false);
+        symbol_table.setInfo(symbol_name, STB_GLOBAL);
+    }
+}
+
+void Directives::dExtern(std::vector<init_list_node>* _symbols) {
+    SymbolTable& symbol_table = SymbolTable::getInstance();
+    for (init_list_node& node : *_symbols) {
+        std::string symbol_name = std::string((char*) node.value);
+        Elf32_Sym* symbol_entry = symbol_table.findSymbol(symbol_name);
+        // if symbol is not in symbol table
+        if (symbol_entry == nullptr) symbol_table.addSymbol(symbol_name, 0, false);
+        symbol_table.setInfo(symbol_name, STB_EXTERN);
     }
 }

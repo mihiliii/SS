@@ -78,6 +78,9 @@ CSRWR "csrwr"
 {SECTION}                   { yylval.sval = strdup(yytext); return SECTION; }
 {SKIP}                      { yylval.sval = strdup(yytext); return SKIP; } 
 {WORD}                      { yylval.sval = strdup(yytext); return WORD; }
+{END}                       { yylval.sval = strdup(yytext); return END; }
+{GLOBAL}                    { yylval.sval = strdup(yytext); return GLOBAL; }
+{EXTERN}                    { yylval.sval = strdup(yytext); return EXTERN; }
 
 %r[0-9]|%r1[0-5]            { yylval.ival = (int) strtol(yytext + 2, NULL, 10); return REGISTER; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }

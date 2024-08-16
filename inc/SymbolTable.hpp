@@ -19,6 +19,10 @@ public:
 
     void addSymbol(std::string _name, Elf32_Addr _value, bool _defined);
 
+    void setInfo(std::string _name, Elf32_Half _info);
+
+    void setInfo(Elf32_Sym* _symbol, Elf32_Half _info);
+
     Elf32_Sym* findSymbol(std::string _name);
 
     void printContent() const override;

@@ -75,8 +75,11 @@
 %token <sval> END
 %token <sval> SKIP
 %token <sval> WORD
+%token <sval> GLOBAL
+%token <sval> EXTERN
 
-%type <init_list> init_list 
+%type <init_list> list_symbol_or_literal 
+%type <init_list> list_symbol
 
 %%
 
@@ -89,11 +92,16 @@ line:
     instruction | directive | label
 ;
 
-init_list:
+list_symbol_or_literal:
       STRING { init_list_node node{typeid($1).name(), $1}; $$ = new vector<init_list_node>; $$->push_back(node); }
     | NUMBER { init_list_node node{typeid($1).name(), new int($1)}; $$ = new vector<init_list_node>; $$->push_back(node); } 
-    | init_list ',' STRING { init_list_node node{typeid($3).name(), $3}; $$->push_back(node); }
-    | init_list ',' NUMBER { init_list_node node{typeid($3).name(), new int($3)}; $$->push_back(node); }
+    | list_symbol_or_literal ',' STRING { init_list_node node{typeid($3).name(), $3}; $$->push_back(node); }
+    | list_symbol_or_literal ',' NUMBER { init_list_node node{typeid($3).name(), new int($3)}; $$->push_back(node); }
+    ;
+
+list_symbol:
+      STRING { init_list_node node{typeid($1).name(), $1}; $$ = new vector<init_list_node>; $$->push_back(node); }
+    | list_symbol ',' STRING { init_list_node node{typeid($3).name(), $3}; $$->push_back(node); }
     ;
 
 label:
@@ -101,9 +109,11 @@ label:
 
 directive:
       SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }
-    | END { cout << "END " << endl; Directives::dEnd(); }
+    | END { cout << "END " << endl; YYACCEPT; }
     | SKIP NUMBER { cout << "SKIP " << $2 << endl; Directives::dSkip($2); }
-    | WORD init_list { cout << "WORD "; for (auto value: *($2)) std::cout << std::hex << "0x" << *(uint32_t*) value.value << " "; std::cout << std::endl; Directives::dWord($2); }
+    | WORD list_symbol_or_literal { cout << "WORD "; for (auto value: *($2)) std::cout << std::hex << "0x" << *(uint32_t*) value.value << " "; std::cout << std::endl; Directives::dWord($2); delete $2; }
+    | GLOBAL list_symbol { cout << "GLOBAL "; for (auto symbol: *($2)) std::cout << symbol.value << " "; std::cout << std::endl; Directives::dGlobal($2); delete $2; }
+    | EXTERN list_symbol { cout << "EXTERN "; for (auto symbol: *($2)) std::cout << symbol.value << " "; std::cout << std::endl; Directives::dExtern($2); delete $2; }
 
 instruction:
       HALT { Instructions::iHALT(); cout << $1 << endl; free($1); }

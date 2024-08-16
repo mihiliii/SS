@@ -23,4 +23,8 @@ public:
     static void dSkip(int _bytes);
 
     static void dWord(std::vector<init_list_node>* _values);
+
+    static void dGlobal(std::vector<init_list_node>* _symbols);
+
+    static void dExtern(std::vector<init_list_node>* _symbols);
 };

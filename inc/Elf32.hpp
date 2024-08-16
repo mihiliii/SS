@@ -74,7 +74,8 @@ struct Elf32_Shdr {
 // Type attributes used in st_info
 #define STB_LOCAL  0 /* Local symbol */
 #define STB_GLOBAL 1 /* Global symbol */
-#define STB_WEAK   2 /* Weak symbol */
+#define STB_EXTERN 2 /* External symbol */
+#define STB_WEAK   3 /* Weak symbol */
 
 struct Elf32_Fr {
     Elf32_Addr fr_addr;
@@ -83,12 +84,12 @@ struct Elf32_Fr {
 
 // Struct that represents the symbol table entry
 struct Elf32_Sym {
-    Elf32_Word st_name;            // Offset in the symbol string name table that matches that symbol name
-    unsigned char st_info;         // Type attributes
-    unsigned char st_other;        // Symbol visibility
-    Elf32_Half st_shndx;           // Section index which the symbol is defined
-    Elf32_Addr st_value;           // Symbol value
-    Elf32_Word st_size;            // Size of the symbol
-    bool st_defined;               // True if the symbol is defined in the ELF file
-    Elf32_Fr* st_forward;          // Forward reference to the symbol
+    Elf32_Word st_name;      // Offset in the symbol string name table that matches that symbol name
+    unsigned char st_info;   // Type attributes
+    unsigned char st_other;  // Symbol visibility
+    Elf32_Half st_shndx;     // Section index which the symbol is defined
+    Elf32_Addr st_value;     // Symbol value
+    Elf32_Word st_size;      // Size of the symbol
+    bool st_defined;         // True if the symbol is defined in the ELF file
+    Elf32_Fr* st_forward;    // Forward reference to the symbol
 };

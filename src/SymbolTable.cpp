@@ -6,6 +6,7 @@
 #include "../inc/ForwardReferenceTable.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
+#include "SymbolTable.hpp"
 
 SymbolTable& SymbolTable::getInstance() {
     static SymbolTable instance;
@@ -41,6 +42,13 @@ void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined)
 
     addSymbol(&symbol_entry);
 }
+
+void SymbolTable::setInfo(std::string _name, Elf32_Half _info) {
+    Elf32_Sym* symbol = findSymbol(_name);
+    if (symbol != nullptr) setInfo(symbol, _info);
+}
+
+void SymbolTable::setInfo(Elf32_Sym* _symbol, Elf32_Half _info) { _symbol->st_info = _info; }
 
 Elf32_Sym* SymbolTable::findSymbol(std::string _name) {
     for (Elf32_Sym& symbol : content) {
