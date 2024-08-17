@@ -20,33 +20,50 @@ std::unordered_map<std::string, uint8_t> OC_MOD = {
     {"or", 0x62},
     {"xor", 0x63},
     {"shl", 0x70},
-    {"shr", 0x71}
+    {"shr", 0x71},
+    {"jmp", 0x30}
 };
 
 void Instructions::iHALT() {
     instruction_format instruction = {0, 0, 0, OC_MOD["halt"]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::arithmeticIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
     instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::logicIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
     instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
 
 void Instructions::shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
     instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
 
     Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-    // Assembler::current_section->increaseLocationCounter(sizeof(instruction));
 }
+
+void Instructions::jumpIns(std::string _instruction, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint16_t _disp) {
+    uint8_t OC = OC_MOD[_instruction];
+    switch (OC) {
+        case 0x30:  // JMP
+            instruction_format instruction = {
+                (uint8_t) (_disp & 0xFF),
+                (uint8_t) (_gprC << 4) | (uint8_t) (_disp & 0xF00),
+                (uint8_t) (_gprA << 4 | _gprB),
+                OC
+            };
+            Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
+        
+            break;
+        default:
+            break;
+    }
+}
+
+5/22

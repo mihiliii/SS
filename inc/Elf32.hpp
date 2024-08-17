@@ -52,6 +52,7 @@ struct Elf32_Ehdr {
 
 #define SHT_SYMTAB 0x1 /* Symbol table */
 #define SHT_STRTAB 0x2 /* Section header string table */
+#define SHT_RELA   0x4 /* Relocation entries with addends */
 
 // Struct that represents the section table entry
 struct Elf32_Shdr {
@@ -92,4 +93,11 @@ struct Elf32_Sym {
     Elf32_Word st_size;      // Size of the symbol
     bool st_defined;         // True if the symbol is defined in the ELF file
     Elf32_Fr* st_forward;    // Forward reference to the symbol
+};
+
+// Struct that represents the relocation table entry
+struct Elf32_Rela {
+    Elf32_Addr r_offset;   // Offset in the section where the relocation should be applied
+    Elf32_Word r_info;     // Symbol table index and relocation type
+    Elf32_SWord r_addend;  // Constant addend used to compute the value to be stored
 };

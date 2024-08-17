@@ -27,6 +27,8 @@ public:
 
     static void shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD);
 
+    static void jumpIns(std::string _instruction, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint16_t _disp);
+
 private:
 
     static std::unordered_map<std::string, std::function<void()>> instruction_map;

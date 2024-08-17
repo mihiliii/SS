@@ -23,6 +23,8 @@ public:
 
     static std::map<std::string, Section*>& getSectionTable() { return section_table; };
 
+    std::string getName() const { return name; };
+
 protected:
 
     Section(std::string _name);
