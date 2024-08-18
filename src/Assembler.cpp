@@ -15,15 +15,26 @@ extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
-InputSection* Assembler::current_section;
+CustomSection* Assembler::current_section;
 
 std::ofstream Assembler::f_output;
+
+ElfHeader* Assembler::elf_header;
+SectionHeaderTable* Assembler::section_header_table;
+StringTable* Assembler::string_table;
+SymbolTable* Assembler::symbol_table;
+ForwardReferenceTable* Assembler::forward_reference_table;
 
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,
  *  that's why it is private. It initializes the static variables of the Assembler class.
  */
 int Assembler::startAssembler() {
-    SymbolTable::getInstance();
+    elf_header = new ElfHeader();
+    section_header_table = new SectionHeaderTable();
+    string_table = new StringTable();
+    symbol_table = new SymbolTable();
+    forward_reference_table = new ForwardReferenceTable();
+
     // Open a file handle to a particular file:
     FILE* f_input = fopen("input.txt", "r");
     // Make sure it is valid:
@@ -44,8 +55,6 @@ int Assembler::startAssembler() {
 }
 
 int Assembler::writeToFile() {
-    SectionHeaderTable* section_header_table = &SectionHeaderTable::getInstance();
-    ElfHeader* elf_header = &ElfHeader::getInstance();
 
     f_output.open("output.o", std::ios::out | std::ios::binary);
 
@@ -57,9 +66,15 @@ int Assembler::writeToFile() {
     // Write sections right after the ELF header:
     f_output.seekp(sizeof(Elf32_Ehdr), std::ios::beg);
 
-    for (auto iterator : Section::getSectionTable()) {
+    for (auto iterator : CustomSection::getAllSections()) {
         iterator.second->write(&f_output);
     }
+
+    // Write the string table:
+    string_table->write(&f_output);
+
+    // Write the symbol table:
+    symbol_table->write(&f_output);
 
     // Set section header table offset and number of entries in the ELF header:
     std::streampos section_header_table_offset = f_output.tellp();
@@ -140,9 +155,9 @@ void Assembler::readElfFile() {
         }
     }
 
-    SymbolTable::getInstance().printContent();
-    SectionHeaderTable::getInstance().printSectionHeaderTable();
-    ForwardReferenceTable::getInstance().printContent();
+    symbol_table->print();
+    section_header_table->print();
+    forward_reference_table->print();
 
     std::cout << std::dec << std::endl;
 

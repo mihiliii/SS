@@ -6,15 +6,9 @@
 #include "../inc/ForwardReferenceTable.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
-#include "SymbolTable.hpp"
 
-SymbolTable& SymbolTable::getInstance() {
-    static SymbolTable instance;
-    return instance;
-}
-
-SymbolTable::SymbolTable() : Section(std::string(".symtab")) {
-    StringTable::getInstance().addString(name, &section_header.sh_name);
+SymbolTable::SymbolTable() : Section() {
+    section_header.sh_name = Assembler::string_table->addString(".symtab");
     section_header.sh_type = SHT_SYMTAB;
     section_header.sh_entsize = sizeof(Elf32_Sym);
 }
@@ -26,7 +20,7 @@ void SymbolTable::addSymbol(Elf32_Sym* _content) {
 
 void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined) {
     Elf32_Sym symbol_entry = {
-        .st_name = 0,
+        .st_name = Assembler::string_table->addString(_name),
         .st_info = 0,
         .st_other = 0,
         .st_shndx = (Elf32_Half) Assembler::current_section->getSectionHeaderTableIndex(),
@@ -34,9 +28,8 @@ void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined)
         .st_size = 0,
         .st_defined = _defined
     };
-    StringTable::getInstance().addString(_name, &symbol_entry.st_name);
     if (_defined == false)
-        ForwardReferenceTable::getInstance().addReference(
+        Assembler::forward_reference_table->addReference(
             &symbol_entry, Assembler::current_section->getLocationCounter()
         );
 
@@ -52,12 +45,12 @@ void SymbolTable::setInfo(Elf32_Sym* _symbol, Elf32_Half _info) { _symbol->st_in
 
 Elf32_Sym* SymbolTable::findSymbol(std::string _name) {
     for (Elf32_Sym& symbol : content) {
-        if (StringTable::getInstance().getString(symbol.st_name) == _name) return &symbol;
+        if (Assembler::string_table->getString(symbol.st_name) == _name) return &symbol;
     }
     return nullptr;
 }
 
-void SymbolTable::printContent() const {
+void SymbolTable::print() const {
     std::cout << "Symbol Table:" << std::endl;
     std::cout << "  ";
     std::cout << std::left << std::setfill(' ');
@@ -76,7 +69,7 @@ void SymbolTable::printContent() const {
         std::cout << std::right << std::setfill(' ') << std::dec;
         std::cout << std::setw(3) << i << " ";
         std::cout << std::left;
-        std::cout << std::setw(32) << StringTable::getInstance().getString(c.st_name) << " ";
+        std::cout << std::setw(32) << Assembler::string_table->getString(c.st_name) << " ";
         std::cout << std::right << std::setfill('0') << std::hex;
         std::cout << std::setw(8) << c.st_value << " ";
         std::cout << std::setw(8) << c.st_size << " ";

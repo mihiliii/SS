@@ -6,24 +6,20 @@
 class StringTable : public Section {
 public:
 
-    static StringTable& getInstance();
+    StringTable();
+
+    Elf32_Off addString(std::string _string);
+
+    std::string getString(Elf32_Off _offset);
+
+    void write(std::ofstream* _file) override;
 
     StringTable(const StringTable&) = delete;
     StringTable& operator=(const StringTable&) = delete;
 
     ~StringTable() = default;
 
-    void addString(std::string _symbol, Elf32_Off* _offset);
-
-    std::string getString(Elf32_Off _offset);
-
-    void printContent() const override;
-
-    void write(std::ofstream* _file) override;
-
 private:
-
-    StringTable();
 
     std::vector<char> content;
 };

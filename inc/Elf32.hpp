@@ -52,6 +52,7 @@ struct Elf32_Ehdr {
 
 #define SHT_SYMTAB 0x1 /* Symbol table */
 #define SHT_STRTAB 0x2 /* Section header string table */
+#define SHT_CUSTOM 0x3 /* Custom section */
 #define SHT_RELA   0x4 /* Relocation entries with addends */
 
 // Struct that represents the section table entry

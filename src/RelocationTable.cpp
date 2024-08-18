@@ -1,19 +1,20 @@
 #include "../inc/RelocationTable.hpp"
 #include "../inc/Section.hpp"
+#include "../inc/Assembler.hpp"
 
-#include "../inc/InputSection.hpp"
+#include "../inc/CustomSection.hpp"
 #include "../inc/Elf32.hpp"
 #include "../inc/StringTable.hpp"
 
-RelocationTable::RelocationTable(InputSection* _linked_section) : Section(std::string(".rela") + _linked_section->getName()) {
-    StringTable::getInstance().addString(name, &section_header.sh_name);
+RelocationTable::RelocationTable(CustomSection* _linked_section) : Section() {
+    section_header.sh_name = Assembler::string_table->addString(std::string(".rela") + _linked_section->getName());
     section_header.sh_type = SHT_RELA;
     section_header.sh_entsize = sizeof(Elf32_Rela);
     section_header.sh_info = _linked_section->getSectionHeaderTableIndex();
-    section_header.sh_link = StringTable::getInstance().getSectionHeaderTableIndex();
+    section_header.sh_link = Assembler::string_table->getSectionHeaderTableIndex();
 }
 
-void RelocationTable::printContent() const {
+void RelocationTable::print() const {
 
 }
 

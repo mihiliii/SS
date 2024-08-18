@@ -51,19 +51,17 @@ void Instructions::shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gp
 void Instructions::jumpIns(std::string _instruction, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint16_t _disp) {
     uint8_t OC = OC_MOD[_instruction];
     switch (OC) {
-        case 0x30:  // JMP
+        case 0x30: {
             instruction_format instruction = {
                 (uint8_t) (_disp & 0xFF),
-                (uint8_t) (_gprC << 4) | (uint8_t) (_disp & 0xF00),
+                (uint8_t) (_gprC << 4) | (uint8_t) ((_disp & 0xF00) >> 8),
                 (uint8_t) (_gprA << 4 | _gprB),
                 OC
             };
             Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
-        
             break;
+        }
         default:
             break;
     }
 }
-
-5/22

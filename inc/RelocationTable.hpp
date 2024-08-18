@@ -7,9 +7,9 @@
 class RelocationTable : public Section {
 public:
 
-    RelocationTable(InputSection* _linked_section);
+    RelocationTable(CustomSection* _linked_section);
 
-    void printContent() const override;
+    void print() const;
 
     void write(std::ofstream* _file) override;
 

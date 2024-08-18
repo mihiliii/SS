@@ -8,12 +8,9 @@
 class SymbolTable : public Section {
 public:
 
-    static SymbolTable& getInstance();
+    SymbolTable();
 
-    SymbolTable(const SymbolTable&) = delete;
-    SymbolTable& operator=(const SymbolTable&) = delete;
-
-    ~SymbolTable() = default;
+    void write(std::ofstream* _file) override;
 
     void addSymbol(Elf32_Sym* _content);
 
@@ -25,13 +22,14 @@ public:
 
     Elf32_Sym* findSymbol(std::string _name);
 
-    void printContent() const override;
+    void print() const;
 
-    void write(std::ofstream* _file) override;
+    SymbolTable(const SymbolTable&) = delete;
+    SymbolTable& operator=(const SymbolTable&) = delete;
+
+    ~SymbolTable() = default;
 
 private:
-
-    SymbolTable();
 
     std::vector<Elf32_Sym> content;
 };

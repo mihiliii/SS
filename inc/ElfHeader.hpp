@@ -13,12 +13,7 @@ enum ElfHeaderField {
 class ElfHeader {
 public:
 
-    static ElfHeader& getInstance();
-
-    ElfHeader(const ElfHeader&) = delete;
-    ElfHeader& operator=(const ElfHeader&) = delete;
-
-    ~ElfHeader() = default;
+    ElfHeader();
 
     Elf32_Ehdr& getElfHeader() { return elf_header; }
 
@@ -26,9 +21,13 @@ public:
 
     void write(std::ofstream* _file);
 
+    ElfHeader(const ElfHeader&) = delete;
+    ElfHeader& operator=(const ElfHeader&) = delete;
+
+    ~ElfHeader() = default;
+
 private:
 
     Elf32_Ehdr elf_header;
 
-    ElfHeader();
 };

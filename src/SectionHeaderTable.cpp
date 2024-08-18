@@ -6,23 +6,23 @@
 
 #include "../inc/Assembler.hpp"
 
-SectionHeaderTable& SectionHeaderTable::getInstance() {
-    static SectionHeaderTable instance;
-    return instance;
-}
+uint32_t SectionHeaderTable::section_header_table_index = 0;
+
+SectionHeaderTable::SectionHeaderTable() : section_header_table() {}
 
 uint32_t SectionHeaderTable::insert(Elf32_Shdr* _section_entry) {
-    section_header_table.emplace_back(_section_entry);
+    section_header_table.emplace(section_header_table_index, _section_entry);
     return section_header_table_index++;
 }
 
 void SectionHeaderTable::write(std::ofstream* _file) {
-    for (Elf32_Shdr* section : section_header_table) {
-        _file->write(reinterpret_cast<char*>(section), sizeof(Elf32_Shdr));
+    for (auto& iterator : section_header_table) {
+        Elf32_Shdr* section = iterator.second;
+        _file->write((char*) (section), sizeof(Elf32_Shdr));
     }
 }
 
-void SectionHeaderTable::printSectionHeaderTable() {
+void SectionHeaderTable::print() {
     std::cout << "Section Header Table:" << std::endl;
     std::cout << "  ";
     std::cout << std::left << std::setfill(' ');
@@ -39,11 +39,12 @@ void SectionHeaderTable::printSectionHeaderTable() {
     std::cout << std::setw(9) << "ENTSIZE";
     std::cout << std::endl;
     uint32_t index = 0;
-    for (Elf32_Shdr* section : section_header_table) {
+    for (auto& iterator : section_header_table) {
+        Elf32_Shdr* section = iterator.second;
         std::cout << "  ";
         std::cout << std::setw(3) << std::right << std::dec << std::setfill(' ') << index << " ";
         std::cout << std::left;
-        std::cout << std::setw(16) << StringTable::getInstance().getString(section->sh_name);
+        std::cout << std::setw(16) << Assembler::string_table->getString(section->sh_name);
         std::cout << std::right << std::hex << std::setfill('0');
         std::cout << std::setw(4) << section->sh_type << " ";
         std::cout << std::setw(8) << section->sh_addr << " ";
@@ -57,5 +58,3 @@ void SectionHeaderTable::printSectionHeaderTable() {
         index++;
     }
 }
-
-SectionHeaderTable::SectionHeaderTable() : section_header_table(), section_header_table_index(0) {}

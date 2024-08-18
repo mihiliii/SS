@@ -3,12 +3,6 @@
 #include <fstream>
 
 #include "../inc/Assembler.hpp"
-#include "ElfHeader.hpp"
-
-ElfHeader& ElfHeader::getInstance() {
-    static ElfHeader instance;
-    return instance;
-}
 
 void ElfHeader::setField(ElfHeaderField _field, uint32_t _value) {
     switch (_field) {

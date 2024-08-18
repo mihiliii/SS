@@ -17,7 +17,7 @@ src/SectionHeaderTable.cpp \
 src/SymbolTable.cpp \
 src/StringTable.cpp \
 src/Directives.cpp \
-src/InputSection.cpp \
+src/CustomSection.cpp \
 src/ElfHeader.cpp \
 src/ForwardReferenceTable.cpp \
 

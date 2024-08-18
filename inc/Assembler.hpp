@@ -4,11 +4,12 @@
 #include <vector>
 
 #include "ElfHeader.hpp"
-#include "InputSection.hpp"
+#include "CustomSection.hpp"
 #include "Section.hpp"
 #include "SectionHeaderTable.hpp"
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
+#include "ForwardReferenceTable.hpp"
 
 class Assembler {
 public:
@@ -16,8 +17,6 @@ public:
     friend class Instructions;
 
     friend class Directives;
-
-    static SectionHeaderTable* getSectionHeaderTable() { return section_header_table; }
 
     static int startAssembler();
 
@@ -29,17 +28,14 @@ public:
 
     ~Assembler() = delete;
 
-    static InputSection* current_section;
+    static CustomSection* current_section;
 
     static std::ofstream f_output;
 
-private:
-
-    static void initAssembler() {};
-
     static ElfHeader* elf_header;
     static SectionHeaderTable* section_header_table;
-
     static StringTable* string_table;
     static SymbolTable* symbol_table;
+    static ForwardReferenceTable* forward_reference_table;
+
 };

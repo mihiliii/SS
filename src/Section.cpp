@@ -1,15 +1,16 @@
 #include "../inc/Section.hpp"
 
-std::map<std::string, Section*> Section::section_table;
+#include "../inc/Assembler.hpp"
 
-Section::Section(std::string _name) : section_header(), name(_name), section_header_table_index(0) {
-    section_header_table_index = SectionHeaderTable::getInstance().insert(&section_header);
-    section_table.insert({name, this});  // insertion check needs to be added
+std::string Section::getName() const { return std::string(Assembler::string_table->getString(section_header.sh_name)); }
+
+Section::Section() : section_header(), section_header_table_index() {
+    section_header_table_index = Assembler::section_header_table->insert(&section_header);
 }
 
 Section::~Section() {
-    auto it = section_table.find(name);
-    if (it != section_table.end() && it->second == this) {
-        section_table.erase(it);
-    }
+    // auto it = section_table.find(name);
+    // if (it != section_table.end() && it->second == this) {
+    // section_table.erase(it);
+    //}
 }

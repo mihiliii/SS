@@ -6,10 +6,10 @@
 #include <list>
 #include <map>
 
-class ForwardReferenceTable : Section {
+class ForwardReferenceTable {
 public:
 
-    static ForwardReferenceTable& getInstance();
+    ForwardReferenceTable();
 
     void addReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
 
@@ -17,18 +17,16 @@ public:
 
     void resolveSymbol(std::string _symbol_name);
 
-    void write(std::ofstream* file) override;
+    void write(std::ofstream* file);
 
-    void printContent() const override;
-
+    void print() const;
+ 
     ForwardReferenceTable(const ForwardReferenceTable&) = delete;
     ForwardReferenceTable& operator=(const ForwardReferenceTable&) = delete;
 
     ~ForwardReferenceTable() = default;
 
 private:
-
-    ForwardReferenceTable();
 
     std::map<std::string, std::list<Elf32_Addr>> forward_references; 
 

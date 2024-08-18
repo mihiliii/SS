@@ -105,7 +105,7 @@ list_symbol:
     ;
 
 label:
-    STRING ':' { cout << "LABEL " << $1 << endl; if (SymbolTable::getInstance().findSymbol(std::string($1))) ForwardReferenceTable::getInstance().resolveSymbol($1); else SymbolTable::getInstance().addSymbol($1, Assembler::current_section->getLocationCounter(), true); free($1); }
+    STRING ':' { cout << "LABEL " << $1 << endl; if (Assembler::symbol_table->findSymbol(std::string($1))) Assembler::forward_reference_table->resolveSymbol($1); else Assembler::symbol_table->addSymbol($1, Assembler::current_section->getLocationCounter(), true); free($1); }
 
 directive:
       SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }
