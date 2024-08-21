@@ -8,7 +8,6 @@
 #include "../inc/ElfHeader.hpp"
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
-#include "../inc/ForwardReferenceTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -23,7 +22,6 @@ ElfHeader* Assembler::elf_header;
 SectionHeaderTable* Assembler::section_header_table;
 StringTable* Assembler::string_table;
 SymbolTable* Assembler::symbol_table;
-ForwardReferenceTable* Assembler::forward_reference_table;
 
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,
  *  that's why it is private. It initializes the static variables of the Assembler class.
@@ -33,7 +31,6 @@ int Assembler::startAssembler() {
     section_header_table = new SectionHeaderTable();
     string_table = new StringTable();
     symbol_table = new SymbolTable();
-    forward_reference_table = new ForwardReferenceTable();
 
     // Open a file handle to a particular file:
     FILE* f_input = fopen("input.txt", "r");
@@ -46,16 +43,28 @@ int Assembler::startAssembler() {
     yyin = f_input;
 
     // Parse through the input:
-    yyparse();
+    if (yyparse())
+        exit(0);
 
     // Close the file handle:
     fclose(f_input);
 
+    startBackpatching();
+
     return 0;
 }
 
-int Assembler::writeToFile() {
+void Assembler::startBackpatching() {
 
+    for (auto iterator : CustomSection::getAllSections()) {
+        current_section = iterator.second;
+        current_section->backpatch();
+    }
+
+    symbol_table->resolveSymbolReferences();
+}
+
+int Assembler::writeToFile() {
     f_output.open("output.o", std::ios::out | std::ios::binary);
 
     if (!f_output.is_open()) {
@@ -157,10 +166,8 @@ void Assembler::readElfFile() {
 
     symbol_table->print();
     section_header_table->print();
-    forward_reference_table->print();
 
     std::cout << std::dec << std::endl;
 
     f_input.close();
 }
-

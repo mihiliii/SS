@@ -4,10 +4,11 @@
 #include <iostream>
 
 #include "../inc/Assembler.hpp"
+#include "CustomSection.hpp"
 
-std::map<std::string, CustomSection*> CustomSection::all_sections; 
+std::map<std::string, CustomSection*> CustomSection::all_sections;
 
-CustomSection::CustomSection(const std::string& _name) : Section() {
+CustomSection::CustomSection(const std::string& _name) : Section(), literal_table(this) {
     section_header.sh_name = Assembler::string_table->addString(_name);
     section_header.sh_type = SHT_CUSTOM;
     section_header.sh_entsize = 4;
@@ -22,12 +23,22 @@ void CustomSection::appendContent(void* _content, size_t _content_size) {
     section_header.sh_size += sizeof(char) * _content_size;
 }
 
+void CustomSection::appendContent(instruction_format _content) {
+    uint32_t instruction = (uint32_t) _content;
+    for (size_t i = 0; i < sizeof(_content); i++) {
+        content.push_back((char) ((instruction >> (8 * i)) & 0xFF));
+    }
+    section_header.sh_size += sizeof(_content);
+}
+
 void CustomSection::overwriteContent(void* _content, size_t _content_size, Elf32_Off _offset) {
     char* char_content = (char*) _content;
     for (size_t i = 0; i < _content_size; i++) {
         content[_offset + i] = char_content[i];
     }
 }
+
+char* CustomSection::getContent(Elf32_Off _offset) { return &content[_offset]; }
 
 void CustomSection::print() const {
     std::cout << "Content of section " << getName() << ":\n";
@@ -49,4 +60,16 @@ void CustomSection::write(std::ofstream* _file) {
     section_header.sh_offset = _file->tellp();
 
     _file->write(content.data(), content.size());
+
+    if (!literal_table.isEmpty()) {
+        literal_table.writePool(_file);
+    }
+}
+
+void CustomSection::addLiteralReference(int _literal, Elf32_Off _section_offset) {
+    literal_table.addLiteralReference(_literal, _section_offset);
+}
+
+void CustomSection::backpatch() {
+    literal_table.resolveLiteralReferences();
 }

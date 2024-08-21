@@ -3,10 +3,8 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include <vector>
 
 #include "Elf32.hpp"
-#include "SectionHeaderTable.hpp"
 
 class Section {
 public:
@@ -20,6 +18,8 @@ public:
     uint32_t getSectionHeaderTableIndex() const { return section_header_table_index; };
 
     std::string getName() const;
+
+    static std::string getName(uint32_t _index);
 
 protected:
 

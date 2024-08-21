@@ -6,59 +6,50 @@
 
 #include "../inc/Assembler.hpp"
 
-typedef uint8_t instruction_format[4];
+#define CREATE_INSTRUCTION(OP_CODE, MOD, RegA, RegB, RegC, disp)                                           \
+    ((((OP_CODE) & 0xF) << 28) | (((MOD) & 0xF) << 24) | (((RegA) & 0xF) << 20) | (((RegB) & 0xF) << 16) | \
+     (((RegC) & 0xF) << 12) | ((disp) & 0xFFF))
 
-std::unordered_map<std::string, uint8_t> OC_MOD = {
-    {"halt", 0x00},
-    {"int", 0x01},
-    {"add", 0x50},
-    {"sub", 0x51},
-    {"mul", 0x52},
-    {"div", 0x53},
-    {"not", 0x60},
-    {"and", 0x61},
-    {"or", 0x62},
-    {"xor", 0x63},
-    {"shl", 0x70},
-    {"shr", 0x71},
-    {"jmp", 0x30}
-};
+typedef uint32_t instruction_format;
 
-void Instructions::iHALT() {
-    instruction_format instruction = {0, 0, 0, OC_MOD["halt"]};
+void Instructions::haltIns() {
+    instruction_format instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::HALT, 0, 0, 0, 0, 0);
 
-    Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
+    Assembler::current_section->appendContent(instruction);
 }
 
-void Instructions::arithmeticIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
-    instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
+void Instructions::arithmeticIns(MOD_ALU _mod, uint8_t _gprS, uint8_t _gprD) {
+    instruction_format instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::ALU, (uint8_t) _mod, _gprD, _gprD, _gprS, 0);
 
-    Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
+    Assembler::current_section->appendContent(instruction);
 }
 
-void Instructions::logicIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
-    instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
+void Instructions::logicIns(MOD_LOG _mod, uint8_t _gprS, uint8_t _gprD) {
+    instruction_format instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::ALU, (uint8_t) _mod, _gprD, _gprD, _gprS, 0);
 
-    Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
+    Assembler::current_section->appendContent(instruction);
 }
 
-void Instructions::shiftIns(std::string _instruction, uint8_t _gprS, uint8_t _gprD) {
-    instruction_format instruction = {0, (uint8_t) (_gprS << 4), (uint8_t) (_gprD << 4 | _gprD), OC_MOD[_instruction]};
+void Instructions::shiftIns(MOD_SHF _mod, uint8_t _gprS, uint8_t _gprD) {
+    instruction_format instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::ALU, (uint8_t) _mod, _gprD, _gprD, _gprS, 0);
 
-    Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
+    Assembler::current_section->appendContent(instruction);
 }
 
-void Instructions::jumpIns(std::string _instruction, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint16_t _disp) {
-    uint8_t OC = OC_MOD[_instruction];
-    switch (OC) {
-        case 0x30: {
-            instruction_format instruction = {
-                (uint8_t) (_disp & 0xFF),
-                (uint8_t) (_gprC << 4) | (uint8_t) ((_disp & 0xF00) >> 8),
-                (uint8_t) (_gprA << 4 | _gprB),
-                OC
-            };
-            Assembler::current_section->appendContent((char*) instruction, sizeof(instruction));
+void Instructions::jumpIns(OP_CODE _oc, MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint16_t _disp) {
+
+    switch (_mod) {
+        case MOD_JMP::JMP: {
+            instruction_format instruction = CREATE_INSTRUCTION((uint8_t) _oc, (uint8_t) _mod, _gprA, 0, 0, _disp);
+
+            Assembler::current_section->appendContent(instruction);
+            break;
+        }
+        case MOD_JMP::JMP_IND: {
+            instruction_format instruction = CREATE_INSTRUCTION((uint8_t) _oc, (uint8_t) _mod, _gprA, 0, 0, 0);
+
+            Assembler::current_section->addLiteralReference(_disp, Assembler::current_section->getLocationCounter());
+            Assembler::current_section->appendContent(instruction);
             break;
         }
         default:

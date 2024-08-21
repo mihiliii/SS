@@ -3,10 +3,10 @@
     #include "../inc/Directives.hpp"
     #include <cstdio>
     #include <iostream>
+    #include <cmath>
     #include "../inc/Assembler.hpp"
     #include "../inc/Instructions.hpp"
     #include "../inc/SymbolTable.hpp"
-    #include "../inc/ForwardReferenceTable.hpp"
 
     using namespace std;
 
@@ -105,7 +105,20 @@ list_symbol:
     ;
 
 label:
-    STRING ':' { cout << "LABEL " << $1 << endl; if (Assembler::symbol_table->findSymbol(std::string($1))) Assembler::forward_reference_table->resolveSymbol($1); else Assembler::symbol_table->addSymbol($1, Assembler::current_section->getLocationCounter(), true); free($1); }
+    STRING ':' { 
+        cout << "LABEL " << $1 << endl;
+        Elf32_Sym* symbol = Assembler::symbol_table->findSymbol(std::string($1));
+        if (symbol != nullptr)
+            if (symbol->st_defined == true) {
+                std::cout << "Symbol " << std::string($1) << " already defined!" << std::endl;
+                YYABORT;
+            }
+            else
+                Assembler::symbol_table->defineSymbol(symbol, Assembler::current_section->getLocationCounter()); 
+        else
+            Assembler::symbol_table->addSymbol($1, Assembler::current_section->getLocationCounter(), true);
+        free($1);
+    }
 
 directive:
       SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }
@@ -116,28 +129,36 @@ directive:
     | EXTERN list_symbol { cout << "EXTERN "; for (auto symbol: *($2)) std::cout << symbol.value << " "; std::cout << std::endl; Directives::dExtern($2); delete $2; }
 
 instruction:
-      HALT { Instructions::iHALT(); cout << $1 << endl; free($1); }
+      HALT { Instructions::haltIns(); cout << $1 << endl; free($1); }
     | INT  { cout << "INT " << endl; free($1); }
     | IRET { cout << "IRET " << endl; free($1); }
     | CALL REGISTER { cout << "CALL " << $2 << endl; free($1); }
     | CALL NUMBER { cout << "CALL " << $2 << endl; }
     | RET { cout << "RET " << endl; free($1); }
-    | JMP REGISTER { cout << "JMP " << $2 << endl; }
-    | JMP NUMBER { cout << "JMP " << $2 << endl; }
+    | JMP STRING { 
+        cout << "JMP " << $2 << endl; 
+    }
+    | JMP NUMBER { 
+        cout << "JMP " << $2 << endl;
+        if ($2 > 0xFFF)
+            Instructions::jumpIns(OP_CODE::JMP, MOD_JMP::JMP_IND, 15, 0, 0, (uint16_t) $2);
+        else
+            Instructions::jumpIns(OP_CODE::JMP, MOD_JMP::JMP, 15, 0, 0, (uint16_t) $2); 
+    }
     // missing jump instructions...
     | PUSH REGISTER { cout << "PUSH " << $2 << endl; }
     | POP REGISTER { cout << "POP " << $2 << endl; }
     | XCHG REGISTER ',' REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; }
-    | ADD REGISTER ',' REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | SUB REGISTER ',' REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | MUL REGISTER ',' REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | DIV REGISTER ',' REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; Instructions::arithmeticIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | NOT REGISTER { cout << "NOT " << $2 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $2); free($1); }
-    | AND REGISTER ',' REGISTER { cout << "AND " << $2 << ", " << $4 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | OR REGISTER ',' REGISTER { cout << "OR " << $2 << ", " << $4 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | XOR REGISTER ',' REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; Instructions::logicIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | SHL REGISTER ',' REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; Instructions::shiftIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | SHR REGISTER ',' REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; Instructions::shiftIns($1, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | ADD REGISTER ',' REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::ADD, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SUB REGISTER ',' REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::SUB, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | MUL REGISTER ',' REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::MUL, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | DIV REGISTER ',' REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::DIV, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | NOT REGISTER { cout << "NOT " << $2 << endl; Instructions::logicIns(MOD_LOG::NOT, (uint8_t) $2, (uint8_t) $2); free($1); }
+    | AND REGISTER ',' REGISTER { cout << "AND " << $2 << ", " << $4 << endl; Instructions::logicIns(MOD_LOG::AND, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | OR REGISTER ',' REGISTER { cout << "OR " << $2 << ", " << $4 << endl; Instructions::logicIns(MOD_LOG::OR, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | XOR REGISTER ',' REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; Instructions::logicIns(MOD_LOG::XOR, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SHL REGISTER ',' REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; Instructions::shiftIns(MOD_SHF::SHL, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SHR REGISTER ',' REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; Instructions::shiftIns(MOD_SHF::SHR, (uint8_t) $2, (uint8_t) $4); free($1); }
     | LD REGISTER ',' REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
     | LD NUMBER ',' REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
     | ST REGISTER ',' REGISTER { cout << "ST " << $2 << ", " << $4 << endl; }

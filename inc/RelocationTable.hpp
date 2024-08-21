@@ -2,6 +2,7 @@
 
 #include "Elf32.hpp"
 #include "Section.hpp"
+#include "CustomSection.hpp"
 #include <vector>
 
 class RelocationTable : public Section {
@@ -14,7 +15,6 @@ public:
     void write(std::ofstream* _file) override;
 
     void addRelocation(Elf32_Rela _rela_entry);
-
 
 private:
 

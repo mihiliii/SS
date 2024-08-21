@@ -10,16 +10,17 @@ $(BUILD_DIR)/lex.yy.c
 
 CPP_FILES = \
 src/Assembler.cpp \
-src/main.cpp \
-src/Section.cpp \
-src/Instructions.cpp \
-src/SectionHeaderTable.cpp \
-src/SymbolTable.cpp \
-src/StringTable.cpp \
-src/Directives.cpp \
 src/CustomSection.cpp \
+src/Directives.cpp \
 src/ElfHeader.cpp \
-src/ForwardReferenceTable.cpp \
+src/Instructions.cpp \
+src/LiteralTable.cpp \
+src/main.cpp \
+src/RelocationTable.cpp \
+src/Section.cpp \
+src/SectionHeaderTable.cpp \
+src/StringTable.cpp \
+src/SymbolTable.cpp \
 
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a

@@ -3,7 +3,6 @@
 #include <iomanip>
 
 #include "../inc/Assembler.hpp"
-#include "../inc/ForwardReferenceTable.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
 
@@ -13,8 +12,8 @@ SymbolTable::SymbolTable() : Section() {
     section_header.sh_entsize = sizeof(Elf32_Sym);
 }
 
-void SymbolTable::addSymbol(Elf32_Sym* _content) {
-    content.emplace_back(*_content);
+void SymbolTable::addSymbol(Elf32_Sym& _content) {
+    content.emplace_back(_content);
     section_header.sh_size += sizeof(Elf32_Sym);
 }
 
@@ -29,25 +28,51 @@ void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined)
         .st_defined = _defined
     };
     if (_defined == false)
-        Assembler::forward_reference_table->addReference(
-            &symbol_entry, Assembler::current_section->getLocationCounter()
-        );
-
-    addSymbol(&symbol_entry);
+        addSymbolReference(&symbol_entry, Assembler::current_section->getLocationCounter());
+    addSymbol(symbol_entry);
 }
 
 void SymbolTable::setInfo(std::string _name, Elf32_Half _info) {
     Elf32_Sym* symbol = findSymbol(_name);
-    if (symbol != nullptr) setInfo(symbol, _info);
+    if (symbol != nullptr)
+        setInfo(symbol, _info);
 }
 
-void SymbolTable::setInfo(Elf32_Sym* _symbol, Elf32_Half _info) { _symbol->st_info = _info; }
+void SymbolTable::setInfo(Elf32_Sym* _symbol, Elf32_Half _info) {
+    _symbol->st_info = _info;
+}
 
 Elf32_Sym* SymbolTable::findSymbol(std::string _name) {
     for (Elf32_Sym& symbol : content) {
-        if (Assembler::string_table->getString(symbol.st_name) == _name) return &symbol;
+        if (Assembler::string_table->getString(symbol.st_name) == _name)
+            return &symbol;
     }
     return nullptr;
+}
+
+void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
+    _symbol_entry->st_value = _value;
+    _symbol_entry->st_defined = true;
+}
+
+void SymbolTable::addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {
+    std::string symbol_name = Assembler::string_table->getString(_symbol_entry->st_name);
+    if (symbol_bp_references.find(symbol_name) == symbol_bp_references.end()) {
+        symbol_bp_references[symbol_name] = std::list<Elf32_Off>();
+    }
+    symbol_bp_references[symbol_name].push_back(_address);
+}
+
+void SymbolTable::resolveSymbolReferences() {
+    for (auto& entry : symbol_bp_references) {
+        std::string symbol_name = entry.first;
+        Elf32_Sym* symbol_entry = findSymbol(symbol_name);
+
+        CustomSection* section = CustomSection::getAllSections()[Section::getName(symbol_entry->st_shndx)];
+        for (Elf32_Addr& address : entry.second) {
+            section->overwriteContent(&symbol_entry->st_value, sizeof(Elf32_Addr), address);
+        }
+    }
 }
 
 void SymbolTable::print() const {
@@ -89,4 +114,3 @@ void SymbolTable::write(std::ofstream* _file) {
 
     _file->write((char*) this->content.data(), this->content.size() * sizeof(Elf32_Sym));
 }
-

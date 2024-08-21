@@ -1,11 +1,16 @@
 # komentar
-.section swag
+.section sekcija1 
 .skip 0x8
 .word 0xABCDEF
-.word ludilo
-labela:
+.word labela2 
+labela1:
     add %r4, %r5
     sub %r4, %r5
     halt
-ludilo:
-.word 0xFFFFFFFF
+.word 0xBBBBBBBB
+    jmp 0x5
+    jmp 0xFFFF
+labela2:
+.word 0xAAAAAAAA
+.word 0xAAAAAAAA
+.end

@@ -2,6 +2,8 @@
 
 #include "Elf32.hpp"
 #include "Section.hpp"
+#include <vector>
+#include <fstream>
 
 class StringTable : public Section {
 public:

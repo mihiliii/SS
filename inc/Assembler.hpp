@@ -3,13 +3,12 @@
 #include <iostream>
 #include <vector>
 
-#include "ElfHeader.hpp"
 #include "CustomSection.hpp"
+#include "ElfHeader.hpp"
 #include "Section.hpp"
 #include "SectionHeaderTable.hpp"
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
-#include "ForwardReferenceTable.hpp"
 
 class Assembler {
 public:
@@ -19,6 +18,8 @@ public:
     friend class Directives;
 
     static int startAssembler();
+
+    static void startBackpatching();
 
     static int writeToFile();
 
@@ -36,6 +37,4 @@ public:
     static SectionHeaderTable* section_header_table;
     static StringTable* string_table;
     static SymbolTable* symbol_table;
-    static ForwardReferenceTable* forward_reference_table;
-
 };
