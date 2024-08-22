@@ -27,8 +27,6 @@ void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined)
         .st_size = 0,
         .st_defined = _defined
     };
-    if (_defined == false)
-        addSymbolReference(&symbol_entry, Assembler::current_section->getLocationCounter());
     addSymbol(symbol_entry);
 }
 
@@ -55,12 +53,12 @@ void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
     _symbol_entry->st_defined = true;
 }
 
-void SymbolTable::addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {
+void SymbolTable::addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address, bool _indirect) {
     std::string symbol_name = Assembler::string_table->getString(_symbol_entry->st_name);
     if (symbol_bp_references.find(symbol_name) == symbol_bp_references.end()) {
-        symbol_bp_references[symbol_name] = std::list<Elf32_Off>();
+        symbol_bp_references[symbol_name] = std::list<symbol_reference>();
     }
-    symbol_bp_references[symbol_name].push_back(_address);
+    symbol_bp_references[symbol_name].push_back({_indirect, _address});
 }
 
 void SymbolTable::resolveSymbolReferences() {
@@ -69,8 +67,11 @@ void SymbolTable::resolveSymbolReferences() {
         Elf32_Sym* symbol_entry = findSymbol(symbol_name);
 
         CustomSection* section = CustomSection::getAllSections()[Section::getName(symbol_entry->st_shndx)];
-        for (Elf32_Addr& address : entry.second) {
-            section->overwriteContent(&symbol_entry->st_value, sizeof(Elf32_Addr), address);
+        for (symbol_reference& reference : entry.second) {
+            if (reference.indirect == false)
+                section->overwriteContent(&symbol_entry->st_value, sizeof(Elf32_Addr), reference.address);
+            else
+                section->getLiteralTable().addLiteralReference(symbol_entry->st_value, reference.address);
         }
     }
 }

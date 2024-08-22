@@ -19,7 +19,11 @@ public:
 
     void addLiteralReference(int _literal, Elf32_Addr _address);
 
+    Elf32_Off addLiteralToPool(int _literal);
+
     Elf32_Off getLiteralOffset(int _literal);
+
+    size_t getSize() const { return literal_pool.size(); };
 
     void printTable() const;
 

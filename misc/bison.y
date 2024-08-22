@@ -137,13 +137,11 @@ instruction:
     | RET { cout << "RET " << endl; free($1); }
     | JMP STRING { 
         cout << "JMP " << $2 << endl; 
+        Instructions::jumpIns(OP_CODE::JMP, 15, 0, 0, std::string($2));
     }
     | JMP NUMBER { 
         cout << "JMP " << $2 << endl;
-        if ($2 > 0xFFF)
-            Instructions::jumpIns(OP_CODE::JMP, MOD_JMP::JMP_IND, 15, 0, 0, (uint16_t) $2);
-        else
-            Instructions::jumpIns(OP_CODE::JMP, MOD_JMP::JMP, 15, 0, 0, (uint16_t) $2); 
+        Instructions::jumpIns(OP_CODE::JMP, 15, 0, 0, (uint32_t) $2);
     }
     // missing jump instructions...
     | PUSH REGISTER { cout << "PUSH " << $2 << endl; }

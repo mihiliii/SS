@@ -55,13 +55,12 @@ int Assembler::startAssembler() {
 }
 
 void Assembler::startBackpatching() {
+    symbol_table->resolveSymbolReferences();
 
     for (auto iterator : CustomSection::getAllSections()) {
         current_section = iterator.second;
         current_section->backpatch();
     }
-
-    symbol_table->resolveSymbolReferences();
 }
 
 int Assembler::writeToFile() {

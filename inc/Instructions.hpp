@@ -59,7 +59,9 @@ public:
 
     static void shiftIns(MOD_SHF _mod, uint8_t _gprS, uint8_t _gprD);
 
-    static void jumpIns(OP_CODE _oc, MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint16_t _disp);
+    static void jumpIns(OP_CODE _oc, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _disp);
+
+    static void jumpIns(OP_CODE _oc, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);
 
 private:
 

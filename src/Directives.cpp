@@ -22,7 +22,8 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
     SymbolTable* symbol_table = Assembler::symbol_table;
 
     for (init_list_node& node : *_values) {
-        if (node.type == typeid(int).name()) current_section->appendContent(node.value, sizeof(int));
+        if (node.type == typeid(int).name())
+            current_section->appendContent(node.value, sizeof(int));
         if (node.type == typeid(char*).name()) {
             std::string symbol_name = std::string((char*) node.value);
             Elf32_Sym* symbol_entry = symbol_table->findSymbol(symbol_name);
@@ -30,10 +31,12 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
             // if symbol is not in symbol table
             if (symbol_entry == nullptr) {
                 symbol_table->addSymbol(symbol_name, 0, false);
-                symbol_table->addSymbolReference(symbol_table->findSymbol(symbol_name), current_section->getLocationCounter());
+                symbol_entry = symbol_table->findSymbol(symbol_name);
+                symbol_table->addSymbolReference(symbol_entry, Assembler::current_section->getLocationCounter());
                 uint32_t zero = 0;
                 current_section->appendContent(&zero, sizeof(uint32_t));
-            } else {
+            }
+            else {
                 // if symbol is in symbol table but not defined
                 if (symbol_entry->st_defined == false) {
                     symbol_table->addSymbolReference(symbol_entry, current_section->getLocationCounter());
@@ -55,7 +58,8 @@ void Directives::dGlobal(std::vector<init_list_node>* _symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->findSymbol(symbol_name);
         // if symbol is not in symbol table
-        if (symbol_entry == nullptr) symbol_table->addSymbol(symbol_name, 0, false);
+        if (symbol_entry == nullptr)
+            symbol_table->addSymbol(symbol_name, 0, false);
         symbol_table->setInfo(symbol_name, STB_GLOBAL);
     }
 }
@@ -66,7 +70,8 @@ void Directives::dExtern(std::vector<init_list_node>* _symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->findSymbol(symbol_name);
         // if symbol is not in symbol table
-        if (symbol_entry == nullptr) symbol_table->addSymbol(symbol_name, 0, false);
+        if (symbol_entry == nullptr)
+            symbol_table->addSymbol(symbol_name, 0, false);
         symbol_table->setInfo(symbol_name, STB_EXTERN);
     }
 }

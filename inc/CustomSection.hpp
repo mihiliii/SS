@@ -31,6 +31,8 @@ public:
 
     void addLiteralReference(int _literal, Elf32_Off _section_offset);
 
+    LiteralTable& getLiteralTable() { return literal_table; };
+
     void backpatch();
 
     ~CustomSection() = default;

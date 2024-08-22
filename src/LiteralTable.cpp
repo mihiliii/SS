@@ -14,6 +14,11 @@ void LiteralTable::addLiteralReference(int _literal, Elf32_Addr _address) {
     literal_table[_literal].second.push_back(_address);
 }
 
+Elf32_Off LiteralTable::addLiteralToPool(int _literal) {
+    literal_pool.emplace_back(_literal);
+    return (literal_pool.size() * sizeof(uint32_t) - 4);
+}
+
 Elf32_Off LiteralTable::getLiteralOffset(int _literal) {
     if (literal_table.find(_literal) != literal_table.end()) {
         return literal_table[_literal].first;
@@ -29,8 +34,7 @@ void LiteralTable::resolveLiteralReferences() {
     for (const auto& entry : literal_table) {
         for (const Elf32_Off& section_offset : entry.second.second) {
             Elf32_Off literal_pool_offset = entry.second.first;
-            char* temp = parent_section->getContent(section_offset);
-            uint8_t* content = (u_char*) temp;
+            uint8_t* content = (uint8_t*) parent_section->getContent(section_offset);
 
             uint32_t disp = literal_pool_offset + (parent_section->getLocationCounter() - section_offset) - 4;
 

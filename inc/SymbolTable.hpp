@@ -27,7 +27,7 @@ public:
 
     void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value);
 
-    void addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
+    void addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address, bool _indirect = false);
     
     void resolveSymbolReferences();
 
@@ -40,6 +40,11 @@ public:
 
 private:
 
+    struct symbol_reference {
+        bool indirect;
+        Elf32_Addr address;
+    };
+
     std::vector<Elf32_Sym> content;
-    std::map<std::string, std::list<Elf32_Addr>> symbol_bp_references;
+    std::map<std::string, std::list<symbol_reference>> symbol_bp_references;
 };
