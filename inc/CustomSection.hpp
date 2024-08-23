@@ -23,17 +23,13 @@ public:
 
     Elf32_Off getLocationCounter() const { return content.size(); };
 
+    LiteralTable& getLiteralTable() { return literal_table; };
+
     void print() const;
 
     void write(std::ofstream* _file) override;
 
-    static std::map<std::string, CustomSection*> getAllSections() { return all_sections; };
-
-    void addLiteralReference(int _literal, Elf32_Off _section_offset);
-
-    LiteralTable& getLiteralTable() { return literal_table; };
-
-    void backpatch();
+    static std::map<std::string, CustomSection*> getSectionsMap() { return all_sections; };
 
     ~CustomSection() = default;
 

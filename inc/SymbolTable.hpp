@@ -15,9 +15,9 @@ public:
 
     void write(std::ofstream* _file) override;
 
-    void addSymbol(Elf32_Sym& _content);
+    Elf32_Sym* addSymbol(Elf32_Sym& _symbol_entry);
 
-    void addSymbol(std::string _name, Elf32_Addr _value, bool _defined);
+    Elf32_Sym* addSymbol(std::string _name, Elf32_Addr _value, bool _defined);
 
     void setInfo(std::string _name, Elf32_Half _info);
 
@@ -45,6 +45,6 @@ private:
         Elf32_Addr address;
     };
 
-    std::vector<Elf32_Sym> content;
+    std::vector<Elf32_Sym*> content;
     std::map<std::string, std::list<symbol_reference>> symbol_bp_references;
 };

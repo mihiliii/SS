@@ -22,7 +22,13 @@ enum struct OP_CODE {
 
 enum struct MOD_JMP {
     JMP = 0x0,
-    JMP_IND = 0x8
+    BEQ = 0x1,
+    BNE = 0x2,
+    BGT = 0x3,
+    JMP_IND = 0x8,
+    BEQ_IND = 0x9,
+    BNE_IND = 0xA,
+    BGT_IND = 0xB,
 };
 
 enum struct MOD_ALU {
@@ -51,17 +57,15 @@ public:
 
     static void haltIns();
 
-    static void iINT();
-
     static void arithmeticIns(MOD_ALU _mod, uint8_t _gprS, uint8_t _gprD);
 
     static void logicIns(MOD_LOG _mod, uint8_t _gprS, uint8_t _gprD);
 
     static void shiftIns(MOD_SHF _mod, uint8_t _gprS, uint8_t _gprD);
 
-    static void jumpIns(OP_CODE _oc, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _disp);
+    static void jumpIns(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _disp);
 
-    static void jumpIns(OP_CODE _oc, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);
+    static void jumpIns(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);
 
 private:
 

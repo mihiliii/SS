@@ -30,8 +30,7 @@ void Directives::dWord(std::vector<init_list_node>* _values) {
 
             // if symbol is not in symbol table
             if (symbol_entry == nullptr) {
-                symbol_table->addSymbol(symbol_name, 0, false);
-                symbol_entry = symbol_table->findSymbol(symbol_name);
+                symbol_entry = symbol_table->addSymbol(symbol_name, 0, false);
                 symbol_table->addSymbolReference(symbol_entry, Assembler::current_section->getLocationCounter());
                 uint32_t zero = 0;
                 current_section->appendContent(&zero, sizeof(uint32_t));

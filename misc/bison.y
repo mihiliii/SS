@@ -135,14 +135,14 @@ instruction:
     | CALL REGISTER { cout << "CALL " << $2 << endl; free($1); }
     | CALL NUMBER { cout << "CALL " << $2 << endl; }
     | RET { cout << "RET " << endl; free($1); }
-    | JMP STRING { 
-        cout << "JMP " << $2 << endl; 
-        Instructions::jumpIns(OP_CODE::JMP, 15, 0, 0, std::string($2));
-    }
-    | JMP NUMBER { 
-        cout << "JMP " << $2 << endl;
-        Instructions::jumpIns(OP_CODE::JMP, 15, 0, 0, (uint32_t) $2);
-    }
+    | JMP STRING { cout << "JMP " << $2 << endl; Instructions::jumpIns(MOD_JMP::JMP, 15, 0, 0, std::string($2)); }
+    | JMP NUMBER { cout << "JMP " << $2 << endl; Instructions::jumpIns(MOD_JMP::JMP, 15, 0, 0, (uint32_t) $2); }
+    | BEQ REGISTER ',' REGISTER ',' STRING { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BEQ REGISTER ',' REGISTER ',' NUMBER { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
+    | BNE REGISTER ',' REGISTER ',' STRING { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BNE REGISTER ',' REGISTER ',' NUMBER { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
+    | BGT REGISTER ',' REGISTER ',' STRING { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BGT REGISTER ',' REGISTER ',' NUMBER { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
     // missing jump instructions...
     | PUSH REGISTER { cout << "PUSH " << $2 << endl; }
     | POP REGISTER { cout << "POP " << $2 << endl; }

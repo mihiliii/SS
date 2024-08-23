@@ -57,9 +57,9 @@ int Assembler::startAssembler() {
 void Assembler::startBackpatching() {
     symbol_table->resolveSymbolReferences();
 
-    for (auto iterator : CustomSection::getAllSections()) {
+    for (auto iterator : CustomSection::getSectionsMap()) {
         current_section = iterator.second;
-        current_section->backpatch();
+        current_section->getLiteralTable().resolveLiteralReferences();
     }
 }
 
@@ -74,7 +74,7 @@ int Assembler::writeToFile() {
     // Write sections right after the ELF header:
     f_output.seekp(sizeof(Elf32_Ehdr), std::ios::beg);
 
-    for (auto iterator : CustomSection::getAllSections()) {
+    for (auto iterator : CustomSection::getSectionsMap()) {
         iterator.second->write(&f_output);
     }
 

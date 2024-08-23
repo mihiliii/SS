@@ -14,6 +14,7 @@ labela1:
     sub %r4, %r5
 .word 0xCCCCCCCC
     jmp labela2
+    beq %r1, %r2, labela2
     mul %r6, %r7
 labela2:
 .word 0xAAAAAAAA

@@ -12,22 +12,26 @@ SymbolTable::SymbolTable() : Section() {
     section_header.sh_entsize = sizeof(Elf32_Sym);
 }
 
-void SymbolTable::addSymbol(Elf32_Sym& _content) {
-    content.emplace_back(_content);
+Elf32_Sym* SymbolTable::addSymbol(Elf32_Sym& _symbol_entry) {
+    Elf32_Sym* symbol_entry = new Elf32_Sym(_symbol_entry);
+    content.emplace_back(symbol_entry);
     section_header.sh_size += sizeof(Elf32_Sym);
+    return symbol_entry;
 }
 
-void SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined) {
-    Elf32_Sym symbol_entry = {
-        .st_name = Assembler::string_table->addString(_name),
-        .st_info = 0,
-        .st_other = 0,
-        .st_shndx = (Elf32_Half) Assembler::current_section->getSectionHeaderTableIndex(),
-        .st_value = _value,
-        .st_size = 0,
-        .st_defined = _defined
-    };
-    addSymbol(symbol_entry);
+Elf32_Sym* SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined) {
+    Elf32_Sym* symbol_entry = new Elf32_Sym(
+        {.st_name = Assembler::string_table->addString(_name),
+         .st_info = 0,
+         .st_other = 0,
+         .st_shndx = (Elf32_Half) Assembler::current_section->getSectionHeaderTableIndex(),
+         .st_value = _value,
+         .st_size = 0,
+         .st_defined = _defined}
+    );
+    content.emplace_back(symbol_entry);
+    section_header.sh_size += sizeof(Elf32_Sym);
+    return symbol_entry;
 }
 
 void SymbolTable::setInfo(std::string _name, Elf32_Half _info) {
@@ -41,9 +45,9 @@ void SymbolTable::setInfo(Elf32_Sym* _symbol, Elf32_Half _info) {
 }
 
 Elf32_Sym* SymbolTable::findSymbol(std::string _name) {
-    for (Elf32_Sym& symbol : content) {
-        if (Assembler::string_table->getString(symbol.st_name) == _name)
-            return &symbol;
+    for (Elf32_Sym* symbol : content) {
+        if (Assembler::string_table->getString(symbol->st_name) == _name)
+            return symbol;
     }
     return nullptr;
 }
@@ -66,7 +70,7 @@ void SymbolTable::resolveSymbolReferences() {
         std::string symbol_name = entry.first;
         Elf32_Sym* symbol_entry = findSymbol(symbol_name);
 
-        CustomSection* section = CustomSection::getAllSections()[Section::getName(symbol_entry->st_shndx)];
+        CustomSection* section = CustomSection::getSectionsMap()[Section::getName(symbol_entry->st_shndx)];
         for (symbol_reference& reference : entry.second) {
             if (reference.indirect == false)
                 section->overwriteContent(&symbol_entry->st_value, sizeof(Elf32_Addr), reference.address);
@@ -90,28 +94,30 @@ void SymbolTable::print() const {
     std::cout << "DEFINED";
     std::cout << std::endl;
     uint32_t i = 0;
-    for (Elf32_Sym c : content) {
+    for (Elf32_Sym* c : content) {
         std::cout << "  ";
         std::cout << std::right << std::setfill(' ') << std::dec;
         std::cout << std::setw(3) << i << " ";
         std::cout << std::left;
-        std::cout << std::setw(32) << Assembler::string_table->getString(c.st_name) << " ";
+        std::cout << std::setw(32) << Assembler::string_table->getString(c->st_name) << " ";
         std::cout << std::right << std::setfill('0') << std::hex;
-        std::cout << std::setw(8) << c.st_value << " ";
-        std::cout << std::setw(8) << c.st_size << " ";
+        std::cout << std::setw(8) << c->st_value << " ";
+        std::cout << std::setw(8) << c->st_size << " ";
         std::cout << std::setfill(' ') << std::dec;
-        std::cout << std::setw(4) << (int) c.st_info << " ";
-        std::cout << std::setw(5) << (int) c.st_other << " ";
-        std::cout << std::setw(7) << c.st_shndx << " ";
-        std::cout << (c.st_defined ? "true" : "false");
+        std::cout << std::setw(4) << (int) c->st_info << " ";
+        std::cout << std::setw(5) << (int) c->st_other << " ";
+        std::cout << std::setw(7) << c->st_shndx << " ";
+        std::cout << (c->st_defined ? "true" : "false");
         std::cout << std::endl;
         i += 1;
     }
 }
 
 void SymbolTable::write(std::ofstream* _file) {
-    this->section_header.sh_size = this->content.size() * sizeof(Elf32_Sym);
-    this->section_header.sh_offset = _file->tellp();
+    section_header.sh_size = content.size() * sizeof(Elf32_Sym);
+    section_header.sh_offset = _file->tellp();
 
-    _file->write((char*) this->content.data(), this->content.size() * sizeof(Elf32_Sym));
+    for (Elf32_Sym* symbol_entry : content) {
+        _file->write((char*) symbol_entry, sizeof(Elf32_Sym));
+    }
 }

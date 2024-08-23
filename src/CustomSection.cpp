@@ -65,11 +65,3 @@ void CustomSection::write(std::ofstream* _file) {
         literal_table.writePool(_file);
     }
 }
-
-void CustomSection::addLiteralReference(int _literal, Elf32_Off _section_offset) {
-    literal_table.addLiteralReference(_literal, _section_offset);
-}
-
-void CustomSection::backpatch() {
-    literal_table.resolveLiteralReferences();
-}
