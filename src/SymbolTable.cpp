@@ -10,6 +10,7 @@ SymbolTable::SymbolTable() : Section() {
     section_header.sh_name = Assembler::string_table->addString(".symtab");
     section_header.sh_type = SHT_SYMTAB;
     section_header.sh_entsize = sizeof(Elf32_Sym);
+    section_header.sh_addralign = 4;
 }
 
 Elf32_Sym* SymbolTable::addSymbol(Elf32_Sym& _symbol_entry) {
@@ -19,12 +20,22 @@ Elf32_Sym* SymbolTable::addSymbol(Elf32_Sym& _symbol_entry) {
     return symbol_entry;
 }
 
-Elf32_Sym* SymbolTable::addSymbol(std::string _name, Elf32_Addr _value, bool _defined) {
+Elf32_Sym* SymbolTable::addSymbol(
+    std::string _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index, unsigned char _info
+) {
+    if (findSymbol(_name) != nullptr) {
+        std::cerr << "Symbol " << _name << " already exists in the symbol table." << std::endl;
+        return nullptr;
+    }
+
+    Elf32_Half section_index =
+        ((short) _section_index == -1) ? Assembler::current_section->getSectionHeaderTableIndex() : _section_index;
+
     Elf32_Sym* symbol_entry = new Elf32_Sym(
         {.st_name = Assembler::string_table->addString(_name),
-         .st_info = 0,
+         .st_info = _info,
          .st_other = 0,
-         .st_shndx = (Elf32_Half) Assembler::current_section->getSectionHeaderTableIndex(),
+         .st_shndx = section_index,
          .st_value = _value,
          .st_size = 0,
          .st_defined = _defined}
@@ -57,6 +68,8 @@ void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
     _symbol_entry->st_defined = true;
 }
 
+// Adds a symbol reference of the undefined symbol that will be resolved in backpatching phase.
+// NOTE: This method needs to be called instead of addLiteralReference for undefined symbols.
 void SymbolTable::addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address, bool _indirect) {
     std::string symbol_name = Assembler::string_table->getString(_symbol_entry->st_name);
     if (symbol_bp_references.find(symbol_name) == symbol_bp_references.end()) {
@@ -103,9 +116,9 @@ void SymbolTable::print() const {
         std::cout << std::right << std::setfill('0') << std::hex;
         std::cout << std::setw(8) << c->st_value << " ";
         std::cout << std::setw(8) << c->st_size << " ";
-        std::cout << std::setfill(' ') << std::dec;
         std::cout << std::setw(4) << (int) c->st_info << " ";
         std::cout << std::setw(5) << (int) c->st_other << " ";
+        std::cout << std::setfill(' ') << std::dec << std::left;
         std::cout << std::setw(7) << c->st_shndx << " ";
         std::cout << (c->st_defined ? "true" : "false");
         std::cout << std::endl;
@@ -115,6 +128,11 @@ void SymbolTable::print() const {
 
 void SymbolTable::write(std::ofstream* _file) {
     section_header.sh_size = content.size() * sizeof(Elf32_Sym);
+
+    if (_file->tellp() % section_header.sh_addralign != 0) {
+        _file->write("\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
+    }
+
     section_header.sh_offset = _file->tellp();
 
     for (Elf32_Sym* symbol_entry : content) {

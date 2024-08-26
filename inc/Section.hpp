@@ -25,6 +25,8 @@ protected:
 
     Section();
 
+    Section(std::string _name);
+
     Elf32_Shdr section_header;
     uint32_t section_header_table_index;
 };

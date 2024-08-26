@@ -14,6 +14,8 @@ public:
 
     std::string getString(Elf32_Off _offset);
 
+    Elf32_Off findString(std::string _string);
+
     void write(std::ofstream* _file) override;
 
     StringTable(const StringTable&) = delete;
@@ -23,5 +25,5 @@ public:
 
 private:
 
-    std::vector<char> content;
+    std::map<Elf32_Off, std::string> string_table;
 };

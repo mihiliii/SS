@@ -10,6 +10,11 @@
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
 
+struct operand {
+    std::string type;
+    void* value;
+};
+
 class Assembler {
 public:
 

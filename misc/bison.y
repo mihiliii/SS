@@ -21,7 +21,8 @@
 
 %code requires {
     #include <vector>
-    struct init_list_node;
+    #include <cstdint>
+    struct operand;
 }
 
 // Bison fundamentally works by asking flex to get the next token, which it
@@ -33,50 +34,50 @@
 // we can return ints or floats or strings cleanly. Bison implements this
 // mechanism with the %union directive:
 %union {
-    int ival;
-    char* sval;
-    std::vector<init_list_node> *init_list;
+    uint32_t uint_val;
+    char* s_val;
+    std::vector<operand> *init_list;
 }
 
 // Define the "terminal symbol" token types I'm going to use (in CAPS
 // by convention), and associate each with a field of the %union:
-%token <ival> NUMBER
-%token <sval> STRING 
+%token <uint_val> LITERAL
+%token <s_val> STRING 
 
-%token <ival> REGISTER
-%token <sval> HALT
-%token <sval> INT
-%token <sval> IRET
-%token <sval> CALL
-%token <sval> RET
-%token <sval> JMP
-%token <sval> BEQ
-%token <sval> BNE
-%token <sval> BGT
-%token <sval> PUSH
-%token <sval> POP
-%token <sval> XCHG 
-%token <sval> ADD
-%token <sval> SUB
-%token <sval> MUL
-%token <sval> DIV
-%token <sval> NOT
-%token <sval> AND
-%token <sval> OR
-%token <sval> XOR
-%token <sval> SHL
-%token <sval> SHR
-%token <sval> LD
-%token <sval> ST
-%token <sval> CSSRD
-%token <sval> CSRWR
+%token <uint_val> REGISTER
+%token <s_val> HALT
+%token <s_val> INT
+%token <s_val> IRET
+%token <s_val> CALL
+%token <s_val> RET
+%token <s_val> JMP
+%token <s_val> BEQ
+%token <s_val> BNE
+%token <s_val> BGT
+%token <s_val> PUSH
+%token <s_val> POP
+%token <s_val> XCHG 
+%token <s_val> ADD
+%token <s_val> SUB
+%token <s_val> MUL
+%token <s_val> DIV
+%token <s_val> NOT
+%token <s_val> AND
+%token <s_val> OR
+%token <s_val> XOR
+%token <s_val> SHL
+%token <s_val> SHR
+%token <s_val> LD
+%token <s_val> ST
+%token <s_val> CSSRD
+%token <s_val> CSRWR
 
-%token <sval> SECTION
-%token <sval> END
-%token <sval> SKIP
-%token <sval> WORD
-%token <sval> GLOBAL
-%token <sval> EXTERN
+%token <s_val> SECTION
+%token <s_val> END
+%token <s_val> SKIP
+%token <s_val> WORD
+%token <s_val> GLOBAL
+%token <s_val> EXTERN
 
 %type <init_list> list_symbol_or_literal 
 %type <init_list> list_symbol
@@ -93,74 +94,60 @@ line:
 ;
 
 list_symbol_or_literal:
-      STRING { init_list_node node{typeid($1).name(), $1}; $$ = new vector<init_list_node>; $$->push_back(node); }
-    | NUMBER { init_list_node node{typeid($1).name(), new int($1)}; $$ = new vector<init_list_node>; $$->push_back(node); } 
-    | list_symbol_or_literal ',' STRING { init_list_node node{typeid($3).name(), $3}; $$->push_back(node); }
-    | list_symbol_or_literal ',' NUMBER { init_list_node node{typeid($3).name(), new int($3)}; $$->push_back(node); }
+      STRING { operand node{typeid($1).name(), $1}; $$ = new vector<operand>; $$->push_back(node); }
+    | LITERAL { operand node{typeid($1).name(), new int($1)}; $$ = new vector<operand>; $$->push_back(node); } 
+    | list_symbol_or_literal ',' STRING { operand node{typeid($3).name(), $3}; $$->push_back(node); }
+    | list_symbol_or_literal ',' LITERAL { operand node{typeid($3).name(), new int($3)}; $$->push_back(node); }
     ;
 
 list_symbol:
-      STRING { init_list_node node{typeid($1).name(), $1}; $$ = new vector<init_list_node>; $$->push_back(node); }
-    | list_symbol ',' STRING { init_list_node node{typeid($3).name(), $3}; $$->push_back(node); }
+      STRING { operand node{typeid($1).name(), $1}; $$ = new vector<operand>; $$->push_back(node); }
+    | list_symbol ',' STRING { operand node{typeid($3).name(), $3}; $$->push_back(node); }
     ;
 
 label:
-    STRING ':' { 
-        cout << "LABEL " << $1 << endl;
-        Elf32_Sym* symbol = Assembler::symbol_table->findSymbol(std::string($1));
-        if (symbol != nullptr)
-            if (symbol->st_defined == true) {
-                std::cout << "Symbol " << std::string($1) << " already defined!" << std::endl;
-                YYABORT;
-            }
-            else
-                Assembler::symbol_table->defineSymbol(symbol, Assembler::current_section->getLocationCounter()); 
-        else
-            Assembler::symbol_table->addSymbol($1, Assembler::current_section->getLocationCounter(), true);
-        free($1);
-    }
+      STRING ':' { cout << "LABEL " << $1 << endl; if (Directives::defineLabel($1)) YYABORT; free($1); }
 
 directive:
-      SECTION STRING { cout << "SECTION " << $2 << endl; Directives::dSection($2);  }
+      SECTION STRING { cout << "SECTION " << $2 << endl; Directives::sectionDirective($2); }
+    | SKIP LITERAL { cout << "SKIP " << $2 << endl; Directives::skipDirective($2); }
+    | WORD list_symbol_or_literal { cout << "WORD "; for (auto value: *($2)) std::cout << std::hex << "0x" << *(uint32_t*) value.value << " "; std::cout << std::endl; Directives::wordDirective($2); delete $2; }
+    | GLOBAL list_symbol { cout << "GLOBAL "; for (auto symbol: *($2)) std::cout << symbol.value << " "; std::cout << std::endl; Directives::globalDirective($2); delete $2; }
+    | EXTERN list_symbol { cout << "EXTERN "; for (auto symbol: *($2)) std::cout << symbol.value << " "; std::cout << std::endl; Directives::externDirective($2); delete $2; }
     | END { cout << "END " << endl; YYACCEPT; }
-    | SKIP NUMBER { cout << "SKIP " << $2 << endl; Directives::dSkip($2); }
-    | WORD list_symbol_or_literal { cout << "WORD "; for (auto value: *($2)) std::cout << std::hex << "0x" << *(uint32_t*) value.value << " "; std::cout << std::endl; Directives::dWord($2); delete $2; }
-    | GLOBAL list_symbol { cout << "GLOBAL "; for (auto symbol: *($2)) std::cout << symbol.value << " "; std::cout << std::endl; Directives::dGlobal($2); delete $2; }
-    | EXTERN list_symbol { cout << "EXTERN "; for (auto symbol: *($2)) std::cout << symbol.value << " "; std::cout << std::endl; Directives::dExtern($2); delete $2; }
 
 instruction:
-      HALT { Instructions::haltIns(); cout << $1 << endl; free($1); }
+      HALT { Instructions::halt(); cout << $1 << endl; free($1); }
     | INT  { cout << "INT " << endl; free($1); }
     | IRET { cout << "IRET " << endl; free($1); }
     | CALL REGISTER { cout << "CALL " << $2 << endl; free($1); }
-    | CALL NUMBER { cout << "CALL " << $2 << endl; }
+    | CALL LITERAL { cout << "CALL " << $2 << endl; }
     | RET { cout << "RET " << endl; free($1); }
-    | JMP STRING { cout << "JMP " << $2 << endl; Instructions::jumpIns(MOD_JMP::JMP, 15, 0, 0, std::string($2)); }
-    | JMP NUMBER { cout << "JMP " << $2 << endl; Instructions::jumpIns(MOD_JMP::JMP, 15, 0, 0, (uint32_t) $2); }
-    | BEQ REGISTER ',' REGISTER ',' STRING { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
-    | BEQ REGISTER ',' REGISTER ',' NUMBER { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    | BNE REGISTER ',' REGISTER ',' STRING { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
-    | BNE REGISTER ',' REGISTER ',' NUMBER { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    | BGT REGISTER ',' REGISTER ',' STRING { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
-    | BGT REGISTER ',' REGISTER ',' NUMBER { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jumpIns(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    // missing jump instructions...
+    | JMP STRING { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 15, 0, 0, std::string($2)); }
+    | JMP LITERAL { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 15, 0, 0, (uint32_t) $2); }
+    | BEQ REGISTER ',' REGISTER ',' STRING { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BEQ REGISTER ',' REGISTER ',' LITERAL { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
+    | BNE REGISTER ',' REGISTER ',' STRING { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BNE REGISTER ',' REGISTER ',' LITERAL { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
+    | BGT REGISTER ',' REGISTER ',' STRING { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BGT REGISTER ',' REGISTER ',' LITERAL { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
     | PUSH REGISTER { cout << "PUSH " << $2 << endl; }
     | POP REGISTER { cout << "POP " << $2 << endl; }
     | XCHG REGISTER ',' REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; }
-    | ADD REGISTER ',' REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::ADD, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | SUB REGISTER ',' REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::SUB, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | MUL REGISTER ',' REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::MUL, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | DIV REGISTER ',' REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; Instructions::arithmeticIns(MOD_ALU::DIV, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | NOT REGISTER { cout << "NOT " << $2 << endl; Instructions::logicIns(MOD_LOG::NOT, (uint8_t) $2, (uint8_t) $2); free($1); }
-    | AND REGISTER ',' REGISTER { cout << "AND " << $2 << ", " << $4 << endl; Instructions::logicIns(MOD_LOG::AND, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | OR REGISTER ',' REGISTER { cout << "OR " << $2 << ", " << $4 << endl; Instructions::logicIns(MOD_LOG::OR, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | XOR REGISTER ',' REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; Instructions::logicIns(MOD_LOG::XOR, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | SHL REGISTER ',' REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; Instructions::shiftIns(MOD_SHF::SHL, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | SHR REGISTER ',' REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; Instructions::shiftIns(MOD_SHF::SHR, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | LD REGISTER ',' REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
-    | LD NUMBER ',' REGISTER { cout << "LD " << $2 << ", " << $4 << endl; }
+    | ADD REGISTER ',' REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::AR, MOD_ALU::ADD, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SUB REGISTER ',' REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::AR, MOD_ALU::SUB, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | MUL REGISTER ',' REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::AR, MOD_ALU::MUL, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | DIV REGISTER ',' REGISTER { cout << "DIV " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::AR, MOD_ALU::DIV, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | NOT REGISTER { cout << "NOT " << $2 << endl; Instructions::arithmetic_logic_shift(OP_CODE::LOG, MOD_ALU::NOT, (uint8_t) $2, (uint8_t) $2); free($1); }
+    | AND REGISTER ',' REGISTER { cout << "AND " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::LOG, MOD_ALU::AND, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | OR REGISTER ',' REGISTER { cout << "OR " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::LOG, MOD_ALU::OR, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | XOR REGISTER ',' REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::LOG, MOD_ALU::XOR, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SHL REGISTER ',' REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::SHF, MOD_ALU::SHL, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | SHR REGISTER ',' REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::SHF, MOD_ALU::SHR, (uint8_t) $2, (uint8_t) $4); free($1); }
+    | LD '$' LITERAL ',' REGISTER { cout << "LD " << $3 << ", " << $5 << endl; Instructions::load(LD_ADDR::LITERAL_GPR, (uint8_t) $5, 0, 0, (uint32_t) $3); }
+    | LD '$' STRING ',' REGISTER { cout << "LD " << $3 << ", " << $5 << endl; }
     | ST REGISTER ',' REGISTER { cout << "ST " << $2 << ", " << $4 << endl; }
-    | ST REGISTER ',' NUMBER { cout << "ST " << $2 << ", " << $4 << endl; }
+    | ST REGISTER ',' LITERAL { cout << "ST " << $2 << ", " << $4 << endl; }
 ;
 
 %%

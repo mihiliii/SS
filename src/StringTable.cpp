@@ -2,29 +2,37 @@
 
 #include <iomanip>
 
+#include "StringTable.hpp"
+
 Elf32_Off StringTable::addString(std::string _string) {
     Elf32_Off offset = section_header.sh_size;
-    const char* c = _string.c_str();
-    do {
-        content.push_back(*c);
-    } while (*c++ != '\0');
+    string_table.insert(std::make_pair(offset, _string));
     section_header.sh_size += _string.size() + 1;
+    section_header.sh_addralign = 1;
     return offset;
 }
 
+std::string StringTable::getString(Elf32_Off _offset) {
+    if (string_table.find(_offset) == string_table.end())
+        return "";
+    else
+        return string_table[_offset];
+}
 
-std::string StringTable::getString(Elf32_Off _offset) { return std::string((const char*) &content[_offset]); }
+Elf32_Off StringTable::findString(std::string _string) {
+    for (auto& pair : string_table) {
+        if (pair.second == _string)
+            return pair.first;
+    }
+    return 0;
+}
 
 void StringTable::write(std::ofstream* _file) {
-    section_header.sh_size = content.size();
     section_header.sh_offset = _file->tellp();
 
-    _file->write(content.data(), content.size());
-
-    // allignment to 4 bytes
-    // for (int i = 0; i < 4 - (content.size() % 4); i++) {
-    // _file->put('\0');
-    // }
+    for (auto& pair : string_table) {
+        _file->write(pair.second.c_str(), pair.second.size() + 1);
+    }
 }
 
 StringTable::StringTable() : Section() {

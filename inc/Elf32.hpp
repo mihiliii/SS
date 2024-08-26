@@ -73,12 +73,23 @@ struct Elf32_Shdr {
 // *                               SYMBOL TABLE                               *
 // ****************************************************************************
 
-// Type attributes used in st_info
+// Makros used in st_info in Elf32_Sym (Symbol table entry)
+#define ELF32_ST_BIND(i)    ((i) >> 4)                 /* Symbol binding */
+#define ELF32_ST_TYPE(i)    ((i) & 0xf)                /* Symbol type */
+#define ELF32_ST_INFO(b, t) (((b) << 4) + ((t) & 0xf)) /* Symbol type and binding */
+
+// Symbol table bindings
 #define STB_LOCAL  0 /* Local symbol */
 #define STB_GLOBAL 1 /* Global symbol */
-#define STB_EXTERN 2 /* External symbol */
-#define STB_WEAK   3 /* Weak symbol */
+#define STB_WEAK   2 /* Weak symbol */
 
+// Symbol table types
+#define STT_NOTYPE  0 /* No type */
+#define STT_SECTION 1 /* Section */
+#define STT_FILE    2 /* File */
+
+// Symbol table visibility
+#define STV_DEFAULT 0 /* Default visibility */
 
 // Struct that represents the symbol table entry
 struct Elf32_Sym {
@@ -94,6 +105,6 @@ struct Elf32_Sym {
 // Struct that represents the relocation table entry
 struct Elf32_Rela {
     Elf32_Addr r_offset;   // Offset in the section where the relocation should be applied
-    Elf32_Word r_info;     // Symbol table index and relocation type
+    Elf32_Word r_info;     // Symbol table index that is used to determine whose value should be used in the relocation
     Elf32_SWord r_addend;  // Constant addend used to compute the value to be stored
 };

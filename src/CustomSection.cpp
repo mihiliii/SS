@@ -8,11 +8,14 @@
 
 std::map<std::string, CustomSection*> CustomSection::all_sections;
 
-CustomSection::CustomSection(const std::string& _name) : Section(), literal_table(this) {
-    section_header.sh_name = Assembler::string_table->addString(_name);
+CustomSection::CustomSection(const std::string& _name) : Section(_name), literal_table(this), relocation_table(nullptr) {
     section_header.sh_type = SHT_CUSTOM;
     section_header.sh_entsize = 4;
+    section_header.sh_addralign = 4;
     all_sections[_name] = this;
+    Assembler::symbol_table->addSymbol(
+        _name, 0, true, section_header_table_index, ELF32_ST_INFO(STB_LOCAL, STT_SECTION)
+    );
 }
 
 void CustomSection::appendContent(void* _content, size_t _content_size) {
@@ -38,7 +41,16 @@ void CustomSection::overwriteContent(void* _content, size_t _content_size, Elf32
     }
 }
 
-char* CustomSection::getContent(Elf32_Off _offset) { return &content[_offset]; }
+char* CustomSection::getContent(Elf32_Off _offset) {
+    return &content[_offset];
+}
+
+RelocationTable& CustomSection::getRelocationTable() {
+    if (relocation_table == nullptr) {
+        relocation_table = new RelocationTable(this);
+    }
+    return *relocation_table;
+}
 
 void CustomSection::print() const {
     std::cout << "Content of section " << getName() << ":\n";
@@ -57,11 +69,19 @@ void CustomSection::print() const {
 
 void CustomSection::write(std::ofstream* _file) {
     section_header.sh_size = content.size();
-    section_header.sh_offset = _file->tellp();
 
+    if (_file->tellp() % section_header.sh_addralign != 0) {
+        _file->write("\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
+    }
+
+    section_header.sh_offset = _file->tellp();
     _file->write(content.data(), content.size());
 
     if (!literal_table.isEmpty()) {
         literal_table.writePool(_file);
+    }
+
+    if (relocation_table != nullptr) {
+        relocation_table->write(_file);
     }
 }

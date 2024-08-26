@@ -1,8 +1,8 @@
 #pragma once
 
 #include <iostream>
-#include <map>
 #include <list>
+#include <map>
 #include <vector>
 
 #include "Elf32.hpp"
@@ -17,7 +17,9 @@ public:
 
     Elf32_Sym* addSymbol(Elf32_Sym& _symbol_entry);
 
-    Elf32_Sym* addSymbol(std::string _name, Elf32_Addr _value, bool _defined);
+    Elf32_Sym* addSymbol(
+        std::string _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index = -1, unsigned char _info = 0
+    );
 
     void setInfo(std::string _name, Elf32_Half _info);
 
@@ -28,7 +30,7 @@ public:
     void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value);
 
     void addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address, bool _indirect = false);
-    
+
     void resolveSymbolReferences();
 
     void print() const;

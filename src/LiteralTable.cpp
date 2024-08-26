@@ -6,24 +6,15 @@
 
 bool LiteralTable::isEmpty() { return literal_table.empty(); }
 
+// Method needs to be called when literal cant stay in instruction displacement field because of its size.
+// It adds literal to literal pool and adds a reference to that literal in the literal table.
+// All references will be resolved in backpatching phase.
 void LiteralTable::addLiteralReference(int _literal, Elf32_Addr _address) {
     if (literal_table.find(_literal) == literal_table.end()) {
         literal_table[_literal] = std::make_pair(literal_pool.size() * sizeof(int), std::list<Elf32_Addr>());
         literal_pool.emplace_back(_literal);
     }
     literal_table[_literal].second.push_back(_address);
-}
-
-Elf32_Off LiteralTable::addLiteralToPool(int _literal) {
-    literal_pool.emplace_back(_literal);
-    return (literal_pool.size() * sizeof(uint32_t) - 4);
-}
-
-Elf32_Off LiteralTable::getLiteralOffset(int _literal) {
-    if (literal_table.find(_literal) != literal_table.end()) {
-        return literal_table[_literal].first;
-    }
-    return -1;
 }
 
 void LiteralTable::writePool(std::ofstream* _file) {
@@ -44,7 +35,6 @@ void LiteralTable::resolveLiteralReferences() {
 
             uint32_t new_content = content[3] << 24 | content[2] << 16 | (content[1] & 0xF0) << 8 | (disp & 0xFFF);
 
-            std::cout << new_content;
             parent_section->overwriteContent(&new_content, sizeof(uint32_t), section_offset);
         }
     }

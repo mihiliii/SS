@@ -53,7 +53,7 @@ void SectionHeaderTable::print() {
         std::cout << std::setw(8) << section->sh_flags << " ";
         std::cout << std::setw(4) << section->sh_link << " ";
         std::cout << std::setw(4) << section->sh_info << " ";
-        std::cout << std::setw(8) << section->sh_addralign << " ";
+        std::cout << std::setw(8) << std::dec << std::setfill(' ') << std::left << section->sh_addralign << " ";
         std::cout << std::setw(8) << section->sh_entsize << std::endl;
         index++;
     }

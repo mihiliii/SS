@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "LiteralTable.hpp"
+#include "RelocationTable.hpp"
 #include "Section.hpp"
 
 typedef uint32_t instruction_format;
@@ -25,18 +26,21 @@ public:
 
     LiteralTable& getLiteralTable() { return literal_table; };
 
+    RelocationTable& getRelocationTable();
+
     void print() const;
 
     void write(std::ofstream* _file) override;
 
     static std::map<std::string, CustomSection*> getSectionsMap() { return all_sections; };
 
-    ~CustomSection() = default;
+    ~CustomSection() { delete relocation_table; };
 
 private:
 
     std::vector<char> content;
     LiteralTable literal_table;
+    RelocationTable* relocation_table;
 
     static std::map<std::string, CustomSection*> all_sections;
 };

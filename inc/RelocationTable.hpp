@@ -2,8 +2,9 @@
 
 #include "Elf32.hpp"
 #include "Section.hpp"
-#include "CustomSection.hpp"
 #include <vector>
+
+class CustomSection;
 
 class RelocationTable : public Section {
 public:
@@ -14,9 +15,13 @@ public:
 
     void write(std::ofstream* _file) override;
 
-    void addRelocation(Elf32_Rela _rela_entry);
+    void add(Elf32_Rela _rela_entry);
+
+    void add(Elf32_Addr _offset, Elf32_Word _info, Elf32_SWord _addend);
 
 private:
+
+    CustomSection* parent_section;
 
     std::vector<Elf32_Rela> relocation_table;
 };

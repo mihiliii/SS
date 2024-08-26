@@ -48,43 +48,43 @@ CSRWR "csrwr"
 "#"[^\n]*\n                 { printf("%s", yytext); };
 ","                         { return ','; }
 ":"                         { return ':'; }
-{HALT}                      { yylval.sval = strdup(yytext); return HALT; }
-{INT}                       { yylval.sval = strdup(yytext); return INT; }
-{IRET}                      { yylval.sval = strdup(yytext); return IRET; }
-{CALL}                      { yylval.sval = strdup(yytext); return CALL; }
-{RET}                       { yylval.sval = strdup(yytext); return RET; }
-{JMP}                       { yylval.sval = strdup(yytext); return JMP; }
-{BEQ}                       { yylval.sval = strdup(yytext); return BEQ; }
-{BNE}                       { yylval.sval = strdup(yytext); return BNE; }
-{BGT}                       { yylval.sval = strdup(yytext); return BGT; }
-{PUSH}                      { yylval.sval = strdup(yytext); return PUSH; }
-{POP}                       { yylval.sval = strdup(yytext); return POP; }
-{XCHG}                      { yylval.sval = strdup(yytext); return XCHG; }
-{ADD}                       { yylval.sval = strdup(yytext); return ADD; }
-{SUB}                       { yylval.sval = strdup(yytext); return SUB; }
-{MUL}                       { yylval.sval = strdup(yytext); return MUL; }
-{DIV}                       { yylval.sval = strdup(yytext); return DIV; }      
-{NOT}                       { yylval.sval = strdup(yytext); return NOT; }
-{AND}                       { yylval.sval = strdup(yytext); return AND; }
-{OR}                        { yylval.sval = strdup(yytext); return OR; }
-{XOR}                       { yylval.sval = strdup(yytext); return XOR; }
-{SHL}                       { yylval.sval = strdup(yytext); return SHL; }
-{SHR}                       { yylval.sval = strdup(yytext); return SHR; }
-{LD}                        { yylval.sval = strdup(yytext); return LD; }
-{ST}                        { yylval.sval = strdup(yytext); return ST; }
-{CSSRD}                     { yylval.sval = strdup(yytext); return CSSRD; }
-{CSRWR}                     { yylval.sval = strdup(yytext); return CSRWR; }
+{HALT}                      { yylval.s_val = strdup(yytext); return HALT; }
+{INT}                       { yylval.s_val = strdup(yytext); return INT; }
+{IRET}                      { yylval.s_val = strdup(yytext); return IRET; }
+{CALL}                      { yylval.s_val = strdup(yytext); return CALL; }
+{RET}                       { yylval.s_val = strdup(yytext); return RET; }
+{JMP}                       { yylval.s_val = strdup(yytext); return JMP; }
+{BEQ}                       { yylval.s_val = strdup(yytext); return BEQ; }
+{BNE}                       { yylval.s_val = strdup(yytext); return BNE; }
+{BGT}                       { yylval.s_val = strdup(yytext); return BGT; }
+{PUSH}                      { yylval.s_val = strdup(yytext); return PUSH; }
+{POP}                       { yylval.s_val = strdup(yytext); return POP; }
+{XCHG}                      { yylval.s_val = strdup(yytext); return XCHG; }
+{ADD}                       { yylval.s_val = strdup(yytext); return ADD; }
+{SUB}                       { yylval.s_val = strdup(yytext); return SUB; }
+{MUL}                       { yylval.s_val = strdup(yytext); return MUL; }
+{DIV}                       { yylval.s_val = strdup(yytext); return DIV; }      
+{NOT}                       { yylval.s_val = strdup(yytext); return NOT; }
+{AND}                       { yylval.s_val = strdup(yytext); return AND; }
+{OR}                        { yylval.s_val = strdup(yytext); return OR; }
+{XOR}                       { yylval.s_val = strdup(yytext); return XOR; }
+{SHL}                       { yylval.s_val = strdup(yytext); return SHL; }
+{SHR}                       { yylval.s_val = strdup(yytext); return SHR; }
+{LD}                        { yylval.s_val = strdup(yytext); return LD; }
+{ST}                        { yylval.s_val = strdup(yytext); return ST; }
+{CSSRD}                     { yylval.s_val = strdup(yytext); return CSSRD; }
+{CSRWR}                     { yylval.s_val = strdup(yytext); return CSRWR; }
 
-{SECTION}                   { yylval.sval = strdup(yytext); return SECTION; }
-{SKIP}                      { yylval.sval = strdup(yytext); return SKIP; } 
-{WORD}                      { yylval.sval = strdup(yytext); return WORD; }
-{END}                       { yylval.sval = strdup(yytext); return END; }
-{GLOBAL}                    { yylval.sval = strdup(yytext); return GLOBAL; }
-{EXTERN}                    { yylval.sval = strdup(yytext); return EXTERN; }
+{SECTION}                   { yylval.s_val = strdup(yytext); return SECTION; }
+{SKIP}                      { yylval.s_val = strdup(yytext); return SKIP; } 
+{WORD}                      { yylval.s_val = strdup(yytext); return WORD; }
+{END}                       { yylval.s_val = strdup(yytext); return END; }
+{GLOBAL}                    { yylval.s_val = strdup(yytext); return GLOBAL; }
+{EXTERN}                    { yylval.s_val = strdup(yytext); return EXTERN; }
 
-%r[0-9]|%r1[0-5]            { yylval.ival = (int) strtol(yytext + 2, NULL, 10); return REGISTER; }
-0[xX][0-9a-fA-F]+|[0-9]+    { yylval.ival = (int) strtol(yytext, NULL, 0); return NUMBER; }
-[a-zA-Z0-9]+                { yylval.sval = strdup(yytext); return STRING; }
+%r[0-9]|%r1[0-5]            { yylval.uint_val = (uint32_t) strtol(yytext + 2, NULL, 10); return REGISTER; }
+0[xX][0-9a-fA-F]+|[0-9]+    { yylval.uint_val = (uint32_t) strtol(yytext, NULL, 0); return LITERAL; }
+[a-zA-Z0-9]+                { yylval.s_val = strdup(yytext); return STRING; }
 \n                          ;
 [ \t]+                      ;
 .                           { printf("Unknown character: %s\n", yytext); }
