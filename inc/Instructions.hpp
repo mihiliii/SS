@@ -5,7 +5,18 @@
 #include <string>
 #include <unordered_map>
 
-struct operand; 
+#define CREATE_INSTRUCTION(OP_CODE, MOD, RegA, RegB, RegC, disp)                                           \
+    ((((OP_CODE) & 0xF) << 28) | (((MOD) & 0xF) << 24) | (((RegA) & 0xF) << 20) | (((RegB) & 0xF) << 16) | \
+     (((RegC) & 0xF) << 12) | ((disp) & 0xFFF))
+
+#define INSTRUCTION_FORMAT_OP_CODE(instruction) ((instruction & 0xF0000000) >> 28)
+#define INSTRUCTION_FORMAT_MOD(instruction)     ((instruction & 0x0F000000) >> 24)
+#define INSTRUCTION_FORMAT_REGA(instruction)    ((instruction & 0x00F00000) >> 20)
+#define INSTRUCTION_FORMAT_REGB(instruction)    ((instruction & 0x000F0000) >> 16)
+#define INSTRUCTION_FORMAT_REGC(instruction)    ((instruction & 0x0000F000) >> 12)
+#define INSTRUCTION_FORMAT_DISP(instruction)    (instruction & 0x00000FFF)
+
+struct operand;
 
 enum struct OP_CODE {
     HALT = 0x0,
@@ -64,7 +75,7 @@ public:
     static void jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value);
 
     static void jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);
-    
+
     static void load(LD_ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value);
 
     static void load(LD_ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);

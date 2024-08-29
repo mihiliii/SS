@@ -15,7 +15,7 @@ public:
 
     Elf32_Shdr& getHeader() { return section_header; };
 
-    uint32_t getSectionHeaderTableIndex() const { return section_header_table_index; };
+    Elf32_Half getSectionHeaderTableIndex() const { return section_header_table_index; };
 
     std::string getName() const;
 
@@ -28,5 +28,5 @@ protected:
     Section(std::string _name);
 
     Elf32_Shdr section_header;
-    uint32_t section_header_table_index;
+    Elf32_Half section_header_table_index;
 };

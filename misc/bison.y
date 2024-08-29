@@ -123,14 +123,14 @@ instruction:
     | CALL REGISTER { cout << "CALL " << $2 << endl; free($1); }
     | CALL LITERAL { cout << "CALL " << $2 << endl; }
     | RET { cout << "RET " << endl; free($1); }
-    | JMP STRING { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 15, 0, 0, std::string($2)); }
-    | JMP LITERAL { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 15, 0, 0, (uint32_t) $2); }
-    | BEQ REGISTER ',' REGISTER ',' STRING { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
-    | BEQ REGISTER ',' REGISTER ',' LITERAL { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    | BNE REGISTER ',' REGISTER ',' STRING { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
-    | BNE REGISTER ',' REGISTER ',' LITERAL { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    | BGT REGISTER ',' REGISTER ',' STRING { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
-    | BGT REGISTER ',' REGISTER ',' LITERAL { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 15, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
+    | JMP STRING { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 0, 0, 0, std::string($2)); }
+    | JMP LITERAL { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 0, 0, 0, (uint32_t) $2); }
+    | BEQ REGISTER ',' REGISTER ',' STRING { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BEQ REGISTER ',' REGISTER ',' LITERAL { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
+    | BNE REGISTER ',' REGISTER ',' STRING { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BNE REGISTER ',' REGISTER ',' LITERAL { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
+    | BGT REGISTER ',' REGISTER ',' STRING { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BGT REGISTER ',' REGISTER ',' LITERAL { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
     | PUSH REGISTER { cout << "PUSH " << $2 << endl; }
     | POP REGISTER { cout << "POP " << $2 << endl; }
     | XCHG REGISTER ',' REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; }

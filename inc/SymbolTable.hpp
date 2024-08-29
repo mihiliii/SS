@@ -40,11 +40,15 @@ public:
 
     ~SymbolTable() = default;
 
+    void resolveLocalSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
+
 private:
 
+
     struct symbol_reference {
-        bool indirect;
-        Elf32_Addr address;
+        bool pc_rel;               // If true, symbol will be put in literal pool and last 12b are replaced as offset.
+        Elf32_Addr address;        // Address of the section that needs to be replaced with the symbol value.
+        Elf32_Half section_index;  // Index of the section that needs to be replaced with the symbol value.
     };
 
     std::vector<Elf32_Sym*> content;

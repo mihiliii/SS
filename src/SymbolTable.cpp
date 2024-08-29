@@ -3,6 +3,7 @@
 #include <iomanip>
 
 #include "../inc/Assembler.hpp"
+#include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
 
@@ -72,10 +73,40 @@ void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
 // NOTE: This method needs to be called instead of addLiteralReference for undefined symbols.
 void SymbolTable::addSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address, bool _indirect) {
     std::string symbol_name = Assembler::string_table->getString(_symbol_entry->st_name);
+
     if (symbol_bp_references.find(symbol_name) == symbol_bp_references.end()) {
         symbol_bp_references[symbol_name] = std::list<symbol_reference>();
     }
-    symbol_bp_references[symbol_name].push_back({_indirect, _address});
+
+    Elf32_Half current_section_index = Assembler::current_section->getSectionHeaderTableIndex();
+    symbol_bp_references[symbol_name].push_back({_indirect, _address, current_section_index});
+}
+
+void SymbolTable::resolveLocalSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {
+    uint32_t offset = _symbol_entry->st_value - _address - sizeof(instruction_format);
+    CustomSection* section = CustomSection::getSectionsMap()[Section::getName(_symbol_entry->st_shndx)];
+
+    instruction_format old_instruction = *(instruction_format*) section->getContent(_address);
+    instruction_format new_instruction;
+    MOD_JMP mod;
+
+    if (offset < 0xFFF) {
+        OP_CODE op_code = (OP_CODE) ((old_instruction & 0xF0000000) >> 28);
+
+        switch (op_code) {
+            case OP_CODE::JMP: {
+                mod = (MOD_JMP) INSTRUCTION_FORMAT_MOD(old_instruction);
+                if ((uint8_t) mod >= 0x8)
+                    mod = (MOD_JMP) ((uint8_t) mod - 0x8);
+                new_instruction = (old_instruction & 0xF0FFF000) | (offset & 0xFFF) | ((uint32_t) mod << 24);
+                break;
+            }
+            default:
+            break;
+        }
+    }
+
+    section->overwriteContent(&new_instruction, sizeof(instruction_format), _address);
 }
 
 void SymbolTable::resolveSymbolReferences() {
@@ -83,12 +114,28 @@ void SymbolTable::resolveSymbolReferences() {
         std::string symbol_name = entry.first;
         Elf32_Sym* symbol_entry = findSymbol(symbol_name);
 
-        CustomSection* section = CustomSection::getSectionsMap()[Section::getName(symbol_entry->st_shndx)];
+        CustomSection* resolving_section;
+
+        if (symbol_entry->st_defined == false && ELF32_ST_BIND(symbol_entry->st_info) == STB_LOCAL) {
+            std::cerr << "Symbol " << symbol_name << " is not defined." << std::endl;
+            exit(-1);
+        }
+
         for (symbol_reference& reference : entry.second) {
-            if (reference.indirect == false)
-                section->overwriteContent(&symbol_entry->st_value, sizeof(Elf32_Addr), reference.address);
-            else
-                section->getLiteralTable().addLiteralReference(symbol_entry->st_value, reference.address);
+            resolving_section = CustomSection::getSectionsMap()[Section::getName(reference.section_index)];
+
+            if (symbol_entry->st_defined == false && ELF32_ST_BIND(symbol_entry->st_info) == STB_GLOBAL) {
+                resolving_section->getLiteralTable().addUndefinedSymbolReference(symbol_entry, reference.address);
+            }
+            if (symbol_entry->st_defined == true && reference.pc_rel == false) {
+                resolving_section->overwriteContent(&symbol_entry->st_value, sizeof(Elf32_Addr), reference.address);
+            }
+            else if (symbol_entry->st_defined == true && reference.section_index == symbol_entry->st_shndx) {
+                resolveLocalSymbol(symbol_entry, reference.address);
+            }
+            else if (symbol_entry->st_defined == true && reference.pc_rel == true) {
+                resolving_section->getLiteralTable().addLiteralReference(symbol_entry->st_value, reference.address);
+            }
         }
     }
 }
@@ -98,7 +145,7 @@ void SymbolTable::print() const {
     std::cout << "  ";
     std::cout << std::left << std::setfill(' ');
     std::cout << std::setw(4) << "NUM";
-    std::cout << std::setw(33) << "NAME";
+    std::cout << std::setw(25) << "NAME";
     std::cout << std::setw(9) << "VALUE";
     std::cout << std::setw(9) << "SIZE";
     std::cout << std::setw(5) << "INFO";
@@ -112,7 +159,7 @@ void SymbolTable::print() const {
         std::cout << std::right << std::setfill(' ') << std::dec;
         std::cout << std::setw(3) << i << " ";
         std::cout << std::left;
-        std::cout << std::setw(32) << Assembler::string_table->getString(c->st_name) << " ";
+        std::cout << std::setw(24) << Assembler::string_table->getString(c->st_name) << " ";
         std::cout << std::right << std::setfill('0') << std::hex;
         std::cout << std::setw(8) << c->st_value << " ";
         std::cout << std::setw(8) << c->st_size << " ";

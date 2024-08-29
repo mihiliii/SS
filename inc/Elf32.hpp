@@ -102,6 +102,11 @@ struct Elf32_Sym {
     bool st_defined;         // True if the symbol is defined in the ELF file
 };
 
+#define ELF32_R_INFO(t, s) (((t) << 8) + ((s) & 0xff)) /* Symbol table index and relocation type */
+#define ELF32_R_TYPE(i)    ((i) >> 8)                  /* Relocation type */
+#define ELF32_R_SYM(i)     ((i) & 0xff)                /* Symbol table index */
+#define R_ABS32            0x0                         /* Absolute relocation */
+
 // Struct that represents the relocation table entry
 struct Elf32_Rela {
     Elf32_Addr r_offset;   // Offset in the section where the relocation should be applied

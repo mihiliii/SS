@@ -60,6 +60,7 @@ void Assembler::startBackpatching() {
     for (auto iterator : CustomSection::getSectionsMap()) {
         current_section = iterator.second;
         current_section->getLiteralTable().resolveLiteralReferences();
+        current_section->getLiteralTable().resolveUndefinedSymbolReferences();
     }
 }
 
@@ -131,7 +132,8 @@ void Assembler::readElfFile() {
                 for (size_t j = i - 15; j < i + 1; j++) {
                     if (buffer[j] < 32 || buffer[j] > 126) {
                         std::cout << ".";
-                    } else {
+                    }
+                    else {
                         std::cout << buffer[j];
                     }
                     if ((j + 1) % 16 == 0) {
@@ -153,13 +155,21 @@ void Assembler::readElfFile() {
             for (size_t i = s - s % 16; i < s; i++) {
                 if (buffer[i] < 32 || buffer[i] > 126) {
                     std::cout << ".";
-                } else {
+                }
+                else {
                     std::cout << buffer[i];
                 }
                 if (i == s - 1) {
                     std::cout << std::dec << "|\n";
                 }
             }
+        }
+    }
+
+    for (auto iterator : CustomSection::getSectionsMap()) {
+        RelocationTable* relocation_table = &iterator.second->getRelocationTable();
+        if (!relocation_table->isEmpty()) {
+            relocation_table->print();
         }
     }
 

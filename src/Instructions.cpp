@@ -6,9 +6,6 @@
 
 #include "../inc/Assembler.hpp"
 
-#define CREATE_INSTRUCTION(OP_CODE, MOD, RegA, RegB, RegC, disp)                                           \
-    ((((OP_CODE) & 0xF) << 28) | (((MOD) & 0xF) << 24) | (((RegA) & 0xF) << 20) | (((RegB) & 0xF) << 16) | \
-     (((RegC) & 0xF) << 12) | ((disp) & 0xFFF))
 
 typedef uint32_t instruction_format;
 
@@ -25,6 +22,8 @@ void Instructions::arithmetic_logic_shift(OP_CODE _op, MOD_ALU _mod, uint8_t _gp
 }
 
 void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
+    const uint8_t REG_PC = 15;
+
     if ((uint8_t) _mod < 0x8)
         _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
 
@@ -34,17 +33,22 @@ void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gpr
         symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
 
     Assembler::symbol_table->addSymbolReference(symbol_entry, Assembler::current_section->getLocationCounter(), true);
-    instruction_format instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, _gprA, _gprB, _gprC, 0);
+    instruction_format instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, REG_PC, _gprB, _gprC, 0);
 
     Assembler::current_section->appendContent(instruction);
 }
 
 void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _disp) {
-    if (_disp > 0xFFF)
-        _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
+    instruction_format instruction;
+    const uint8_t REG_PC = 15;
+    const uint8_t REG_0 = 0;
 
-    instruction_format instruction =
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, _gprA, _gprB, _gprC, _disp);
+    if (_disp > 0xFFF) {
+        _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
+        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, REG_PC, _gprB, _gprC, _disp);
+    } else {
+        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, REG_0, _gprB, _gprC, _disp);
+    }
 
     if ((uint8_t) _mod >= 0x8) {
         Assembler::current_section->getLiteralTable().addLiteralReference(
@@ -54,7 +58,6 @@ void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gpr
 
     Assembler::current_section->appendContent(instruction);
 }
-
 
 void Instructions::load(LD_ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value) {
     instruction_format instruction;
@@ -75,7 +78,7 @@ void Instructions::load(LD_ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gp
             break;
         }
         default:
-        break;
+            break;
     }
 
     Assembler::current_section->appendContent(instruction);

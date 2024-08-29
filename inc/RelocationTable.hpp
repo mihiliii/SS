@@ -19,6 +19,8 @@ public:
 
     void add(Elf32_Addr _offset, Elf32_Word _info, Elf32_SWord _addend);
 
+    bool isEmpty() const { return relocation_table.empty(); };
+
 private:
 
     CustomSection* parent_section;
