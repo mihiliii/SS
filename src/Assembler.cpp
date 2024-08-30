@@ -8,6 +8,7 @@
 #include "../inc/ElfHeader.hpp"
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
+#include "../inc/ForwardReferenceTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -22,6 +23,7 @@ ElfHeader* Assembler::elf_header;
 SectionHeaderTable* Assembler::section_header_table;
 StringTable* Assembler::string_table;
 SymbolTable* Assembler::symbol_table;
+ForwardReferenceTable* Assembler::forward_reference_table;
 
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,
  *  that's why it is private. It initializes the static variables of the Assembler class.
@@ -31,6 +33,7 @@ int Assembler::startAssembler() {
     section_header_table = new SectionHeaderTable();
     string_table = new StringTable();
     symbol_table = new SymbolTable();
+    forward_reference_table = new ForwardReferenceTable();
 
     // Open a file handle to a particular file:
     FILE* f_input = fopen("input.txt", "r");
@@ -55,12 +58,11 @@ int Assembler::startAssembler() {
 }
 
 void Assembler::startBackpatching() {
-    symbol_table->resolveSymbolReferences();
+    forward_reference_table->resolveSymbolForwardReferences();
 
     for (auto iterator : CustomSection::getSectionsMap()) {
         current_section = iterator.second;
-        current_section->getLiteralTable().resolveLiteralReferences();
-        current_section->getLiteralTable().resolveUndefinedSymbolReferences();
+        current_section->getLiteralTable().resolveReferences();
     }
 }
 

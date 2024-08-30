@@ -13,6 +13,7 @@ src/Assembler.cpp \
 src/CustomSection.cpp \
 src/Directives.cpp \
 src/ElfHeader.cpp \
+src/ForwardReferenceTable.cpp \
 src/Instructions.cpp \
 src/LiteralTable.cpp \
 src/main.cpp \

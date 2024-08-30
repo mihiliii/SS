@@ -31,11 +31,13 @@ void RelocationTable::print() const {
     int i = 0;
     for (Elf32_Rela relocation_table_entry : relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
-        std::string symbol_name = Section::getName(symbol_index);
+        Elf32_Sym* symbol = Assembler::symbol_table->getSymbol(symbol_index);
+
+        std::string symbol_name = Assembler::string_table->getString(symbol->st_name);
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(relocation_table_entry.r_info)) {
-            case R_ABS32:
+            case ELF32_R_ABS32:
                 relocation_type = "ABS32";
                 break;
             default:
@@ -59,6 +61,7 @@ void RelocationTable::write(std::ofstream* _file) {
     }
 
     section_header.sh_offset = _file->tellp();
+    section_header.sh_size = relocation_table.size() * sizeof(Elf32_Rela);
 
     for (Elf32_Rela& relocation_table_entry : relocation_table) {
         _file->write((char*) &relocation_table_entry, sizeof(Elf32_Rela));

@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "../inc/Assembler.hpp"
+#include "../inc/ForwardReferenceTable.hpp"
 
 
 typedef uint32_t instruction_format;
@@ -27,12 +28,12 @@ void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gpr
     if ((uint8_t) _mod < 0x8)
         _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
 
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->findSymbol(_symbol);
+    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
         symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
 
-    Assembler::symbol_table->addSymbolReference(symbol_entry, Assembler::current_section->getLocationCounter(), true);
+    Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter(), false);
     instruction_format instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, REG_PC, _gprB, _gprC, 0);
 
     Assembler::current_section->appendContent(instruction);
@@ -87,12 +88,12 @@ void Instructions::load(LD_ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gp
 void Instructions::load(LD_ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
     instruction_format instruction;
 
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->findSymbol(_symbol);
+    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
         symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
 
-    Assembler::symbol_table->addSymbolReference(symbol_entry, Assembler::current_section->getLocationCounter(), true);
+    Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter(), false);
     instruction =
         CREATE_INSTRUCTION((uint8_t) LD_ADDR::SYMBOL_GPR, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, 15, 0, 0);
 

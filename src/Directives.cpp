@@ -6,6 +6,7 @@
 #include "../inc/CustomSection.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/SymbolTable.hpp"
+#include "../inc/ForwardReferenceTable.hpp"
 
 void Directives::sectionDirective(const std::string& _section_name) {
     CustomSection* section = new CustomSection(_section_name);
@@ -26,27 +27,24 @@ void Directives::wordDirective(std::vector<operand>* _values) {
             current_section->appendContent(node.value, sizeof(int));
         if (node.type == typeid(char*).name()) {
             std::string symbol_name = std::string((char*) node.value);
-            Elf32_Sym* symbol_entry = symbol_table->findSymbol(symbol_name);
+            Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
 
             // if symbol is not in symbol table
             if (symbol_entry == nullptr) {
                 symbol_entry = symbol_table->addSymbol(symbol_name, 0, false);
-                symbol_table->addSymbolReference(symbol_entry, Assembler::current_section->getLocationCounter());
-                uint32_t zero = 0;
-                current_section->appendContent(&zero, sizeof(uint32_t));
             }
-            else {
-                // if symbol is in symbol table but not defined
-                if (symbol_entry->st_defined == false) {
-                    symbol_table->addSymbolReference(symbol_entry, current_section->getLocationCounter());
-                    uint32_t zero = 0;
-                    current_section->appendContent(&zero, sizeof(uint32_t));
-                }
-                // if symbol is in symbol table and defined
-                else if (symbol_entry->st_defined == true) {
-                    current_section->appendContent(&symbol_table->findSymbol(symbol_name)->st_value, sizeof(int));
-                }
-            }
+
+            uint32_t symbol_entry_index = symbol_table->getSymbolEntryIndex(symbol_entry);
+
+            current_section->getRelocationTable().add(
+                current_section->getLocationCounter(), ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index), 0
+            );
+
+            Assembler::forward_reference_table->add(
+                symbol_entry, current_section->getLocationCounter(), FRT_DIRECT 
+            );
+
+            current_section->appendContent((instruction_format) 0);
         }
     }
 }
@@ -55,7 +53,7 @@ void Directives::globalDirective(std::vector<operand>* _symbols) {
     SymbolTable* symbol_table = Assembler::symbol_table;
     for (operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
-        Elf32_Sym* symbol_entry = symbol_table->findSymbol(symbol_name);
+        Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
         // if symbol is not in symbol table
         if (symbol_entry == nullptr)
             symbol_entry = symbol_table->addSymbol(symbol_name, 0, false);
@@ -68,7 +66,7 @@ void Directives::externDirective(std::vector<operand>* _symbols) {
     SymbolTable* symbol_table = Assembler::symbol_table;
     for (operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
-        Elf32_Sym* symbol_entry = symbol_table->findSymbol(symbol_name);
+        Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
         // if symbol is not in symbol table
         if (symbol_entry == nullptr)
             symbol_entry = symbol_table->addSymbol(symbol_name, 0, false);
@@ -78,7 +76,7 @@ void Directives::externDirective(std::vector<operand>* _symbols) {
 }
 
 int Directives::defineLabel(std::string _label) {
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->findSymbol(_label);
+    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_label);
     Elf32_Off location_counter = Assembler::current_section->getLocationCounter();
     if (symbol_entry != nullptr)
         if (symbol_entry->st_defined == true) {
@@ -89,12 +87,8 @@ int Directives::defineLabel(std::string _label) {
             Assembler::symbol_table->defineSymbol(symbol_entry, location_counter);
         }
     else {
-        Assembler::symbol_table->addSymbol(_label, location_counter, true);
+        symbol_entry = Assembler::symbol_table->addSymbol(_label, location_counter, true);
     }
-
-    Assembler::current_section->getRelocationTable().add(
-        location_counter, Assembler::current_section->getSectionHeaderTableIndex(), 0
-    );
 
     return 0;
 }

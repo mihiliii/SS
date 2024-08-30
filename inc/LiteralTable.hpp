@@ -19,7 +19,7 @@ public:
 
     void addLiteralReference(int _literal, Elf32_Addr _address);
 
-    void addUndefinedSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
+    void addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
 
     Elf32_Off addLiteralToPool(int _literal);
 
@@ -31,9 +31,7 @@ public:
 
     void writePool(std::ofstream* _file);
 
-    void resolveLiteralReferences();
-
-    void resolveUndefinedSymbolReferences();
+    void resolveReferences();
 
 private:
 

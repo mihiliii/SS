@@ -9,9 +9,11 @@
 class Section {
 public:
 
-    virtual ~Section() = 0;
+    friend class SectionHeaderTable;
 
-    virtual void write(std::ofstream* _file) = 0;
+    virtual ~Section() {};
+
+    virtual void write(std::ofstream* _file) {};
 
     Elf32_Shdr& getHeader() { return section_header; };
 

@@ -9,6 +9,7 @@
 #include "SectionHeaderTable.hpp"
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
+#include "ForwardReferenceTable.hpp"
 
 struct operand {
     std::string type;
@@ -42,4 +43,5 @@ public:
     static SectionHeaderTable* section_header_table;
     static StringTable* string_table;
     static SymbolTable* symbol_table;
+    static ForwardReferenceTable* forward_reference_table;
 };

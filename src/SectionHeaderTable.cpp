@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "../inc/Assembler.hpp"
+#include "../inc/Section.hpp"
 
 uint32_t SectionHeaderTable::section_header_table_index = 0;
 
@@ -58,3 +59,4 @@ void SectionHeaderTable::print() {
         index++;
     }
 }
+

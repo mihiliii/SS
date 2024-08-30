@@ -4,14 +4,15 @@
 
 #include "StringTable.hpp"
 
+// Adds string to the string table and returns its offset
 Elf32_Off StringTable::addString(std::string _string) {
     Elf32_Off offset = section_header.sh_size;
     string_table.insert(std::make_pair(offset, _string));
     section_header.sh_size += _string.size() + 1;
-    section_header.sh_addralign = 1;
     return offset;
 }
 
+// Returns string from the string table by its offset
 std::string StringTable::getString(Elf32_Off _offset) {
     if (string_table.find(_offset) == string_table.end())
         return "";
@@ -19,12 +20,13 @@ std::string StringTable::getString(Elf32_Off _offset) {
         return string_table[_offset];
 }
 
+// Returns offset of the string in the string table if it exists, otherwise returns -1
 Elf32_Off StringTable::findString(std::string _string) {
     for (auto& pair : string_table) {
         if (pair.second == _string)
             return pair.first;
     }
-    return 0;
+    return -1;
 }
 
 void StringTable::write(std::ofstream* _file) {
@@ -39,4 +41,5 @@ StringTable::StringTable() : Section() {
     section_header.sh_name = addString(".strtab");
     section_header.sh_type = SHT_STRTAB;
     section_header.sh_entsize = 0;
+    section_header.sh_addralign = 1;
 }
