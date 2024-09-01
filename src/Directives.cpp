@@ -4,9 +4,9 @@
 
 #include "../inc/Assembler.hpp"
 #include "../inc/CustomSection.hpp"
+#include "../inc/ForwardReferenceTable.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "../inc/ForwardReferenceTable.hpp"
 
 void Directives::sectionDirective(const std::string& _section_name) {
     CustomSection* section = new CustomSection(_section_name);
@@ -40,10 +40,6 @@ void Directives::wordDirective(std::vector<operand>* _values) {
                 current_section->getLocationCounter(), ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index), 0
             );
 
-            Assembler::forward_reference_table->add(
-                symbol_entry, current_section->getLocationCounter(), FRT_DIRECT 
-            );
-
             current_section->appendContent((instruction_format) 0);
         }
     }
@@ -54,11 +50,14 @@ void Directives::globalDirective(std::vector<operand>* _symbols) {
     for (operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
-        // if symbol is not in symbol table
-        if (symbol_entry == nullptr)
-            symbol_entry = symbol_table->addSymbol(symbol_name, 0, false);
-        Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
-        symbol_table->setInfo(symbol_name, ELF32_ST_INFO(STB_GLOBAL, type));
+
+        if (symbol_entry == nullptr) {
+            symbol_table->addSymbol(symbol_name, 0, false, SHN_ABS, ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
+        }
+        else {
+            Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
+            symbol_table->setInfo(symbol_name, ELF32_ST_INFO(STB_GLOBAL, type));
+        }
     }
 }
 
@@ -67,11 +66,14 @@ void Directives::externDirective(std::vector<operand>* _symbols) {
     for (operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
-        // if symbol is not in symbol table
-        if (symbol_entry == nullptr)
-            symbol_entry = symbol_table->addSymbol(symbol_name, 0, false);
-        Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
-        symbol_table->setInfo(symbol_name, ELF32_ST_INFO(STB_GLOBAL, type));
+
+        if (symbol_entry == nullptr) {
+            symbol_table->addSymbol(symbol_name, 0, false, SHN_ABS, ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
+        }
+        else {
+            Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
+            symbol_table->setInfo(symbol_name, ELF32_ST_INFO(STB_GLOBAL, type));
+        }
     }
 }
 

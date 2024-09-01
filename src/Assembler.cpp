@@ -58,7 +58,7 @@ int Assembler::startAssembler() {
 }
 
 void Assembler::startBackpatching() {
-    forward_reference_table->resolveSymbolForwardReferences();
+    forward_reference_table->backpatch();
 
     for (auto iterator : CustomSection::getSectionsMap()) {
         current_section = iterator.second;

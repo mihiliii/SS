@@ -1,4 +1,3 @@
-
 %{
     #include "../inc/Directives.hpp"
     #include <cstdio>
@@ -17,6 +16,7 @@
  
     void yyerror(const char *s);
 
+    extern uint32_t line;
 %}
 
 %code requires {
@@ -45,6 +45,7 @@
 %token <s_val> STRING 
 
 %token <uint_val> REGISTER
+%token <uint_val> CSR
 %token <s_val> HALT
 %token <s_val> INT
 %token <s_val> IRET
@@ -69,7 +70,7 @@
 %token <s_val> SHR
 %token <s_val> LD
 %token <s_val> ST
-%token <s_val> CSSRD
+%token <s_val> CSRRD
 %token <s_val> CSRWR
 
 %token <s_val> SECTION
@@ -118,22 +119,21 @@ directive:
 
 instruction:
       HALT { Instructions::halt(); cout << $1 << endl; free($1); }
-    | INT  { cout << "INT " << endl; free($1); }
-    | IRET { cout << "IRET " << endl; free($1); }
-    | CALL REGISTER { cout << "CALL " << $2 << endl; free($1); }
-    | CALL LITERAL { cout << "CALL " << $2 << endl; }
-    | RET { cout << "RET " << endl; free($1); }
-    | JMP STRING { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 0, 0, 0, std::string($2)); }
+    | INT  { cout << "INT " << endl; Instructions::interrupt(); free($1); }
+    | IRET { cout << "IRET " << endl; Instructions::iret(); free($1); }
+    | CALL LITERAL { cout << "CALL " << $2 << endl; Instructions::call((uint32_t) $2); free($1); }
+    | CALL STRING { cout << "CALL " << $2 << endl; Instructions::call(std::string($2)); free($1); }
+    | RET { cout << "RET " << endl; Instructions::pop(15); free($1); }
     | JMP LITERAL { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 0, 0, 0, (uint32_t) $2); }
-    | BEQ REGISTER ',' REGISTER ',' STRING { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | JMP STRING { cout << "JMP " << $2 << endl; Instructions::jump(MOD_JMP::JMP, 0, 0, 0, std::string($2)); }
     | BEQ REGISTER ',' REGISTER ',' LITERAL { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    | BNE REGISTER ',' REGISTER ',' STRING { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BEQ REGISTER ',' REGISTER ',' STRING { cout << "BEQ " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BEQ, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
     | BNE REGISTER ',' REGISTER ',' LITERAL { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    | BGT REGISTER ',' REGISTER ',' STRING { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | BNE REGISTER ',' REGISTER ',' STRING { cout << "BNE " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BNE, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
     | BGT REGISTER ',' REGISTER ',' LITERAL { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    | PUSH REGISTER { cout << "PUSH " << $2 << endl; }
-    | POP REGISTER { cout << "POP " << $2 << endl; }
-    | XCHG REGISTER ',' REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; }
+    | BGT REGISTER ',' REGISTER ',' STRING { cout << "BGT " << $2 << ", " << $4 << ", " << $6 << endl; Instructions::jump(MOD_JMP::BGT, 0, (uint8_t) $2, (uint8_t) $4, std::string($6)); }
+    | PUSH REGISTER { cout << "PUSH " << $2 << endl; Instructions::push((uint8_t) $2); free($1); }
+    | POP REGISTER { cout << "POP " << $2 << endl; Instructions::pop((uint8_t) $2); free($1); }
     | ADD REGISTER ',' REGISTER { cout << "ADD " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::AR, MOD_ALU::ADD, (uint8_t) $2, (uint8_t) $4); free($1); }
     | SUB REGISTER ',' REGISTER { cout << "SUB " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::AR, MOD_ALU::SUB, (uint8_t) $2, (uint8_t) $4); free($1); }
     | MUL REGISTER ',' REGISTER { cout << "MUL " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::AR, MOD_ALU::MUL, (uint8_t) $2, (uint8_t) $4); free($1); }
@@ -144,16 +144,29 @@ instruction:
     | XOR REGISTER ',' REGISTER { cout << "XOR " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::LOG, MOD_ALU::XOR, (uint8_t) $2, (uint8_t) $4); free($1); }
     | SHL REGISTER ',' REGISTER { cout << "SHL " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::SHF, MOD_ALU::SHL, (uint8_t) $2, (uint8_t) $4); free($1); }
     | SHR REGISTER ',' REGISTER { cout << "SHR " << $2 << ", " << $4 << endl; Instructions::arithmetic_logic_shift(OP_CODE::SHF, MOD_ALU::SHR, (uint8_t) $2, (uint8_t) $4); free($1); }
-    | LD '$' LITERAL ',' REGISTER { cout << "LD " << $3 << ", " << $5 << endl; Instructions::load(LD_ADDR::LITERAL_GPR, (uint8_t) $5, 0, 0, (uint32_t) $3); }
-    | LD '$' STRING ',' REGISTER { cout << "LD " << $3 << ", " << $5 << endl; }
-    | ST REGISTER ',' REGISTER { cout << "ST " << $2 << ", " << $4 << endl; }
-    | ST REGISTER ',' LITERAL { cout << "ST " << $2 << ", " << $4 << endl; }
+    | LD '$' LITERAL ',' REGISTER { cout << "LD " << $3 << ", " << $5 << endl; Instructions::load(ADDR::IMMEDIATE, (uint8_t) $5, 0, 0, (uint32_t) $3); }
+    | LD '$' STRING ',' REGISTER { cout << "LD " << $3 << ", " << $5 << endl; Instructions::load(ADDR::IMMEDIATE, (uint8_t) $5, 0, 0, std::string($3));}
+    | LD LITERAL ',' REGISTER { cout << "LD " << $2 << ", " << $4 << endl; Instructions::load(ADDR::MEM_DIR, (uint8_t) $4, 0, 0, (uint32_t) $2); }
+    | LD STRING ',' REGISTER { cout << "LD " << $2 << ", " << $4 << endl; Instructions::load(ADDR::MEM_DIR, (uint8_t) $4, 0, 0, std::string($2)); }
+    | LD REGISTER ',' REGISTER { cout << "LD " << $2 << ", " << $4 << endl; Instructions::load(ADDR::REG_DIR, (uint8_t) $4, (uint8_t) $2, 0, 0); }
+    | LD '[' REGISTER ']' ',' REGISTER { cout << "LD " << $3 << ", " << $6 << endl; Instructions::load(ADDR::REG_IND, (uint8_t) $6, (uint8_t) $3, 0, 0); }
+    | LD '[' REGISTER '+' LITERAL ']' ',' REGISTER { cout << "LD " << $3 << ", " << $8 << endl; Instructions::load(ADDR::REG_IND_OFF, (uint8_t) $8, (uint8_t) $3, 0, (uint32_t) $5); }
+    | ST REGISTER ',' '$' LITERAL { cout << "ST " << $2 << ", " << $5 << endl; Instructions::store(ADDR::IMMEDIATE, 0, 0, (uint8_t) $2, (uint32_t) $5); }
+    | ST REGISTER ',' '$' STRING { cout << "ST " << $2 << ", " << $5 << endl; Instructions::store(ADDR::IMMEDIATE, 0, 0, (uint8_t) $2, std::string($5)); }
+    | ST REGISTER ',' LITERAL { cout << "ST " << $2 << ", " << $4 << endl; Instructions::store(ADDR::MEM_DIR, 0, 0, (uint8_t) $2, (uint32_t) $4); }
+    | ST REGISTER ',' STRING { cout << "ST " << $2 << ", " << $4 << endl; Instructions::store(ADDR::MEM_DIR, 0, 0, (uint8_t) $2, std::string($4)); }
+    | ST REGISTER ',' REGISTER { cout << "ST " << $2 << ", " << $4 << endl; Instructions::store(ADDR::REG_DIR, (uint8_t) $2, (uint8_t) $4, 0, 0); }
+    | ST REGISTER ',' '[' REGISTER ']' { cout << "ST " << $2 << ", " << $5 << endl; Instructions::store(ADDR::REG_IND, (uint8_t) $5, 0, (uint8_t) $2, 0); }
+    | ST REGISTER ',' '[' REGISTER '+' LITERAL ']' { cout << "ST " << $2 << ", " << $5 << endl; Instructions::store(ADDR::REG_IND_OFF, (uint8_t) $5, 0, (uint8_t) $2, (uint32_t) $7); }
+    | CSRRD CSR ',' REGISTER { cout << "CSRRD " << $2 << ", " << $4 << endl; Instructions::csr_load((uint8_t) $2, (uint8_t) $4); }
+    | CSRWR REGISTER ',' CSR { cout << "CSRWR " << $2 << ", " << $4 << endl; Instructions::csr_store((uint8_t) $2, (uint8_t) $4); }
+    | XCHG REGISTER ',' REGISTER { cout << "XCHG " << $2 << ", " << $4 << endl; Instructions::exchange((uint8_t) $2, (uint8_t) $4); }
 ;
 
 %%
 
 void yyerror(const char *s) {
-    cout << "Parse error! Message: " << s << endl;
+    cout << std::dec << "Error at line " << line << ": " << s << endl;
     // might as well halt now:
     exit(-1);
 }

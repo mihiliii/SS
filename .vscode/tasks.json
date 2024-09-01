@@ -4,7 +4,7 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++ build project (makefile)",
-            "command": "make run",
+            "command": "make clean run",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"

@@ -24,8 +24,7 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
     if (symbol_value_table.find(_symbol_entry) == symbol_value_table.end()) {
         symbol_value_table[_symbol_entry] = std::make_pair(literal_pool.size() * sizeof(int), std::list<Elf32_Addr>());
 
-        Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(Assembler::current_section->getName());
-        uint32_t symbol_entry_index = Assembler::symbol_table->getSymbolEntryIndex(symbol_entry);
+        uint32_t symbol_entry_index = Assembler::symbol_table->getSymbolEntryIndex(_symbol_entry);
 
         parent_section->getRelocationTable().add(
             parent_section->getLocationCounter() + literal_pool.size() * sizeof(int),

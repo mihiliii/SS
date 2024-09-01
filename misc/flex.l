@@ -1,8 +1,10 @@
 %{  
     #include "bison.tab.h"
     #include "../inc/Assembler.hpp"
+    #include "../inc/Instructions.hpp"
     
     extern int yyerror(const char* s);
+    uint32_t line = 1;
 %}
 %option noyywrap
 %option nounput
@@ -40,14 +42,20 @@ SHL "shl"
 SHR "shr"
 LD "ld"
 ST "st"
-CSSRD "cssrd"
+CSRRD "csrrd"
 CSRWR "csrwr"
+
+/* Control status registers: */
+STATUS "%status"
+HANDLER "%handler"
+CAUSE "%cause"
 
 %%
 
-"#"[^\n]*\n                 { printf("%s", yytext); };
+"#"[^\n]*                   { printf("%s\n", yytext); };
 ","                         { return ','; }
 ":"                         { return ':'; }
+"$"                         { return '$'; }
 {HALT}                      { yylval.s_val = strdup(yytext); return HALT; }
 {INT}                       { yylval.s_val = strdup(yytext); return INT; }
 {IRET}                      { yylval.s_val = strdup(yytext); return IRET; }
@@ -72,7 +80,7 @@ CSRWR "csrwr"
 {SHR}                       { yylval.s_val = strdup(yytext); return SHR; }
 {LD}                        { yylval.s_val = strdup(yytext); return LD; }
 {ST}                        { yylval.s_val = strdup(yytext); return ST; }
-{CSSRD}                     { yylval.s_val = strdup(yytext); return CSSRD; }
+{CSRRD}                     { yylval.s_val = strdup(yytext); return CSRRD; }
 {CSRWR}                     { yylval.s_val = strdup(yytext); return CSRWR; }
 
 {SECTION}                   { yylval.s_val = strdup(yytext); return SECTION; }
@@ -82,10 +90,14 @@ CSRWR "csrwr"
 {GLOBAL}                    { yylval.s_val = strdup(yytext); return GLOBAL; }
 {EXTERN}                    { yylval.s_val = strdup(yytext); return EXTERN; }
 
+{STATUS}                    { yylval.uint_val = (uint32_t) CSR::STATUS; return CSR; }
+{HANDLER}                   { yylval.uint_val = (uint32_t) CSR::HANDLER; return CSR; }
+{CAUSE}                     { yylval.uint_val = (uint32_t) CSR::CAUSE; return CSR; }
+
 %r[0-9]|%r1[0-5]            { yylval.uint_val = (uint32_t) strtol(yytext + 2, NULL, 10); return REGISTER; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.uint_val = (uint32_t) strtol(yytext, NULL, 0); return LITERAL; }
 [a-zA-Z0-9]+                { yylval.s_val = strdup(yytext); return STRING; }
-\n                          ;
+\n                          { line++; }
 [ \t]+                      ;
 .                           { printf("Unknown character: %s\n", yytext); }
 

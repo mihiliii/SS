@@ -95,7 +95,6 @@ void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
     _symbol_entry->st_defined = true;
 }
 
-
 void SymbolTable::print() const {
     std::cout << "Symbol Table:" << std::endl;
     std::cout << "  ";
@@ -112,8 +111,19 @@ void SymbolTable::print() const {
     std::cout << std::endl;
     uint32_t i = 0;
     for (Elf32_Sym* c : content) {
-        std::string bind;
-        std::string type;
+        std::string bind, type, section_index;
+        switch (c->st_shndx) {
+            case SHN_UNDEF:
+                section_index = "UND";
+                break;
+            case SHN_ABS:
+                section_index = "ABS";
+                break;
+            default:
+                section_index = std::to_string(c->st_shndx);
+                break;
+        }
+
         switch (ELF32_ST_BIND(c->st_info)) {
             case STB_LOCAL:
                 bind = "LOC";
@@ -128,7 +138,7 @@ void SymbolTable::print() const {
                 bind = "UNK";
                 break;
         }
-        switch (ELF32_ST_TYPE(c->st_info)){
+        switch (ELF32_ST_TYPE(c->st_info)) {
             case STT_NOTYPE:
                 type = "NOTYPE";
                 break;
@@ -154,7 +164,7 @@ void SymbolTable::print() const {
         std::cout << std::setw(8) << type << " ";
         std::cout << std::setw(5) << bind << " ";
         std::cout << std::setw(5) << (int) c->st_other << " ";
-        std::cout << std::setw(7) << c->st_shndx << " ";
+        std::cout << std::setw(7) << section_index << " ";
         std::cout << (c->st_defined ? "true" : "false");
         std::cout << std::endl;
         i += 1;
