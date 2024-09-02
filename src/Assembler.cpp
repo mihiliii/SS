@@ -6,9 +6,9 @@
 #include <iostream>
 
 #include "../inc/ElfHeader.hpp"
+#include "../inc/ForwardReferenceTable.hpp"
 #include "../inc/Instructions.hpp"
 #include "../inc/Section.hpp"
-#include "../inc/ForwardReferenceTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -16,8 +16,6 @@ extern int yyparse();
 extern FILE* yyin;
 
 CustomSection* Assembler::current_section;
-
-std::ofstream Assembler::f_output;
 
 ElfHeader* Assembler::elf_header;
 SectionHeaderTable* Assembler::section_header_table;
@@ -28,7 +26,7 @@ ForwardReferenceTable* Assembler::forward_reference_table;
 /** Function initAssembler should only be called once, at the beginning of the startAssembler,
  *  that's why it is private. It initializes the static variables of the Assembler class.
  */
-int Assembler::startAssembler() {
+int Assembler::startAssembler(const char* _input_file_name) {
     elf_header = new ElfHeader();
     section_header_table = new SectionHeaderTable();
     string_table = new StringTable();
@@ -36,10 +34,10 @@ int Assembler::startAssembler() {
     forward_reference_table = new ForwardReferenceTable();
 
     // Open a file handle to a particular file:
-    FILE* f_input = fopen("input.txt", "r");
+    FILE* f_input = fopen(_input_file_name, "r");
     // Make sure it is valid:
     if (!f_input) {
-        std::cout << "I can't open input.txt!" << std::endl;
+        std::cerr << "Error: can't open file " << std::string(_input_file_name) << std::endl;
         return -1;
     }
     // Set Flex to read from it instead of defaulting to STDIN:
@@ -66,11 +64,11 @@ void Assembler::startBackpatching() {
     }
 }
 
-int Assembler::writeToFile() {
-    f_output.open("output.o", std::ios::out | std::ios::binary);
+int Assembler::writeToFile(const char* _output_file_name) {
+    std::ofstream f_output(_output_file_name, std::ios::out | std::ios::binary);
 
     if (!f_output.is_open()) {
-        std::cout << "I can't open output.o!" << std::endl;
+        std::cerr << "Error: can't open file " << std::string(_output_file_name) << std::endl;
         return -1;
     }
 
@@ -89,8 +87,8 @@ int Assembler::writeToFile() {
 
     // Set section header table offset and number of entries in the ELF header:
     std::streampos section_header_table_offset = f_output.tellp();
-    elf_header->setField(ElfHeaderField::SH_OFFSET, section_header_table_offset);
-    elf_header->setField(ElfHeaderField::SH_NUM, section_header_table->getSize());
+    elf_header->setField(Elf32_Ehdr_Field::e_shoff, section_header_table_offset);
+    elf_header->setField(Elf32_Ehdr_Field::e_shnum, section_header_table->getSize() / sizeof(Elf32_Shdr));
 
     // Write the section header table:
     section_header_table->write(&f_output);
@@ -104,42 +102,64 @@ int Assembler::writeToFile() {
     return 0;
 }
 
-void Assembler::readElfFile() {
-    std::ifstream f_input("output.o", std::ios::in | std::ios::binary);
+void Assembler::readElfFile(const char* _input_file_name) {
+    std::ifstream f_input(_input_file_name, std::ios::in | std::ios::binary);
+    std::ofstream f_output("readelf.txt", std::ios::out);
 
     if (!f_input.is_open()) {
-        std::cout << "I can't open output.o!" << std::endl;
+        std::cout << "Error: can't open " << _input_file_name << std::endl;
+        return;
+    }
+    else if (!f_output.is_open()) {
+        std::cout << "Error: can't open readelf.txt" << std::endl;
         return;
     }
 
     size_t bufferSize = 1024;
     std::vector<char> buffer(bufferSize);
 
-    std::cout << "Content of output.o:\n";
+    int len = (90 - (std::string(_input_file_name).length() + 9)) / 2;
 
+    f_output << std::setw(len) << std::setfill('*') << "   " << "ELFREAD: " << _input_file_name << std::setw(len)
+             << std::setfill('*') << std::left << "   " << std::endl;
+
+    elf_header->print(f_output);
+    section_header_table->print(f_output);
+
+    for (auto iterator : CustomSection::getSectionsMap()) {
+        RelocationTable& relocation_table = iterator.second->getRelocationTable();
+        if (!relocation_table.isEmpty()) {
+            relocation_table.print(f_output);
+        }
+        iterator.second->getLiteralTable().print(f_output);
+    }
+
+    symbol_table->print(f_output);
+
+    f_output << std::endl << "Content of file: " << _input_file_name << ":\n";
     while (!f_input.eof()) {
         f_input.read(buffer.data(), bufferSize);
         size_t s = f_input.gcount();
         for (size_t i = 0; i < s; i++) {
             if (i % 16 == 0)
-                std::cout << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
+                f_output << std::right << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
             else if (i % 8 == 0)
-                std::cout << std::dec << " ";
+                f_output << std::dec << " ";
 
-            std::cout << std::hex << std::setw(2) << std::setfill('0') << (unsigned int) (unsigned char) buffer[i]
-                      << " ";
+            f_output << std::hex << std::setw(2) << std::setfill('0') << (unsigned int) (unsigned char) buffer[i]
+                     << " ";
 
             if ((i + 1) % 16 == 0) {
-                std::cout << std::dec << " |";
+                f_output << std::dec << " |";
                 for (size_t j = i - 15; j < i + 1; j++) {
                     if (buffer[j] < 32 || buffer[j] > 126) {
-                        std::cout << ".";
+                        f_output << ".";
                     }
                     else {
-                        std::cout << buffer[j];
+                        f_output << buffer[j];
                     }
                     if ((j + 1) % 16 == 0) {
-                        std::cout << std::dec << "|\n";
+                        f_output << std::dec << "|\n";
                     }
                 }
             }
@@ -147,38 +167,29 @@ void Assembler::readElfFile() {
 
         if (s % 16 != 0) {
             for (size_t i = 0; i < 16 - s % 16; i++) {
-                std::cout << "   ";
+                f_output << "   ";
                 // adding another blank space after 8th byte
                 if ((s + i) % 8 == 0) {
-                    std::cout << " ";
+                    f_output << " ";
                 }
             }
-            std::cout << std::dec << " |";
+            f_output << std::dec << " |";
             for (size_t i = s - s % 16; i < s; i++) {
                 if (buffer[i] < 32 || buffer[i] > 126) {
-                    std::cout << ".";
+                    f_output << ".";
                 }
                 else {
-                    std::cout << buffer[i];
+                    f_output << buffer[i];
                 }
                 if (i == s - 1) {
-                    std::cout << std::dec << "|\n";
+                    f_output << std::dec << "|\n";
                 }
             }
         }
     }
 
-    for (auto iterator : CustomSection::getSectionsMap()) {
-        RelocationTable* relocation_table = &iterator.second->getRelocationTable();
-        if (!relocation_table->isEmpty()) {
-            relocation_table->print();
-        }
-    }
-
-    symbol_table->print();
-    section_header_table->print();
-
-    std::cout << std::dec << std::endl;
+    f_output << std::dec << std::endl;
 
     f_input.close();
+    f_output.close();
 }

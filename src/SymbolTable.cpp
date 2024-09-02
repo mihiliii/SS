@@ -95,20 +95,20 @@ void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
     _symbol_entry->st_defined = true;
 }
 
-void SymbolTable::print() const {
-    std::cout << "Symbol Table:" << std::endl;
-    std::cout << "  ";
-    std::cout << std::left << std::setfill(' ');
-    std::cout << std::setw(4) << "NUM";
-    std::cout << std::setw(25) << "NAME";
-    std::cout << std::setw(9) << "VALUE";
-    std::cout << std::setw(9) << "SIZE";
-    std::cout << std::setw(9) << "TYPE";
-    std::cout << std::setw(6) << "BIND";
-    std::cout << std::setw(6) << "OTHER";
-    std::cout << std::setw(8) << "SHINDEX";
-    std::cout << "DEFINED";
-    std::cout << std::endl;
+void SymbolTable::print(std::ofstream& _file) const {
+    _file << std::endl <<  "Symbol Table:" << std::endl;
+    _file << "  ";
+    _file << std::left << std::setfill(' ');
+    _file << std::setw(4) << "NUM";
+    _file << std::setw(25) << "NAME";
+    _file << std::setw(9) << "VALUE";
+    _file << std::setw(9) << "SIZE";
+    _file << std::setw(9) << "TYPE";
+    _file << std::setw(6) << "BIND";
+    _file << std::setw(6) << "OTHER";
+    _file << std::setw(8) << "SHINDEX";
+    _file << "DEFINED";
+    _file << std::endl;
     uint32_t i = 0;
     for (Elf32_Sym* c : content) {
         std::string bind, type, section_index;
@@ -152,21 +152,21 @@ void SymbolTable::print() const {
                 type = "UNK";
                 break;
         }
-        std::cout << "  ";
-        std::cout << std::right << std::setfill(' ') << std::dec;
-        std::cout << std::setw(3) << i << " ";
-        std::cout << std::left;
-        std::cout << std::setw(24) << Assembler::string_table->getString(c->st_name) << " ";
-        std::cout << std::right << std::setfill('0') << std::hex;
-        std::cout << std::setw(8) << c->st_value << " ";
-        std::cout << std::setw(8) << c->st_size << " ";
-        std::cout << std::setfill(' ') << std::dec << std::left;
-        std::cout << std::setw(8) << type << " ";
-        std::cout << std::setw(5) << bind << " ";
-        std::cout << std::setw(5) << (int) c->st_other << " ";
-        std::cout << std::setw(7) << section_index << " ";
-        std::cout << (c->st_defined ? "true" : "false");
-        std::cout << std::endl;
+        _file << "  ";
+        _file << std::right << std::setfill(' ') << std::dec;
+        _file << std::setw(3) << i << " ";
+        _file << std::left;
+        _file << std::setw(24) << Assembler::string_table->getString(c->st_name) << " ";
+        _file << std::right << std::setfill('0') << std::hex;
+        _file << std::setw(8) << c->st_value << " ";
+        _file << std::setw(8) << c->st_size << " ";
+        _file << std::setfill(' ') << std::dec << std::left;
+        _file << std::setw(8) << type << " ";
+        _file << std::setw(5) << bind << " ";
+        _file << std::setw(5) << (int) c->st_other << " ";
+        _file << std::setw(7) << section_index << " ";
+        _file << (c->st_defined ? "true" : "false");
+        _file << std::endl;
         i += 1;
     }
 }

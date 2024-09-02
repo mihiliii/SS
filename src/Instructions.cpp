@@ -31,7 +31,6 @@ void Instructions::iret() {
 
 void Instructions::call(uint32_t _value) {
     instruction_format instruction;
-    const uint8_t REG_PC = 15;
 
     if (_value < 0xFFF) {
         instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL, 0, 0, 0, _value);
@@ -41,15 +40,14 @@ void Instructions::call(uint32_t _value) {
             _value, Assembler::current_section->getLocationCounter()
         );
 
-        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL_IND, REG_PC, 0, 0, 0);
+        instruction =
+            CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL_IND, (uint8_t) GPR::PC, 0, 0, 0);
     }
 
     Assembler::current_section->appendContent(instruction);
 }
 
 void Instructions::call(std::string _symbol) {
-    const uint8_t REG_PC = 15;
-
     Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
@@ -57,7 +55,7 @@ void Instructions::call(std::string _symbol) {
 
     Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
     Assembler::current_section->appendContent(
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL_IND, REG_PC, 0, 0, 0)
+        CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL_IND, (uint8_t) GPR::PC, 0, 0, 0)
     );
 }
 
@@ -68,26 +66,23 @@ void Instructions::arithmetic_logic_shift(OP_CODE _op, MOD_ALU _mod, uint8_t _gp
 
 void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _disp) {
     instruction_format instruction;
-    const uint8_t REG_PC = 15;
-    const uint8_t REG_0 = 0;
 
     if (_disp > 0xFFF) {
         _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
         Assembler::current_section->getLiteralTable().addLiteralReference(
             _disp, Assembler::current_section->getLocationCounter()
         );
-        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, REG_PC, _gprB, _gprC, 0);
+        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, (uint8_t) GPR::PC, _gprB, _gprC, 0);
     }
     else {
-        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, REG_0, _gprB, _gprC, _disp);
+        instruction =
+            CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, (uint8_t) GPR::R0, _gprB, _gprC, _disp);
     }
 
     Assembler::current_section->appendContent(instruction);
 }
 
 void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
-    const uint8_t REG_PC = 15;
-
     if ((uint8_t) _mod < 0x8)
         _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
 
@@ -98,30 +93,25 @@ void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gpr
 
     Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
     instruction_format instruction =
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, REG_PC, _gprB, _gprC, 0);
+        CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, (uint32_t) GPR::PC, _gprB, _gprC, 0);
 
     Assembler::current_section->appendContent(instruction);
 }
 
 void Instructions::push(uint8_t _gpr) {
-    const uint8_t REG_SP = 14;
-
     Assembler::current_section->appendContent(
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::PUSH, REG_SP, 0, _gpr, -4)
+        CREATE_INSTRUCTION((uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::PUSH, (uint32_t) GPR::SP, 0, _gpr, -4)
     );
 }
 
 void Instructions::pop(uint8_t _gpr) {
-    const uint8_t REG_SP = 14;
-
     Assembler::current_section->appendContent(
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::POP, _gpr, REG_SP, 0, 4)
+        CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::POP, _gpr, (uint32_t) GPR::SP, 0, 4)
     );
 }
 
-void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value) {
+void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint32_t _value) {
     instruction_format instruction;
-    const uint8_t REG_PC = 15;
 
     switch (_addr) {
         case ADDR::IMMEDIATE: {
@@ -135,7 +125,7 @@ void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC,
                 );
 
                 instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, REG_PC, 0, 0
+                    (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
                 );
             }
             break;
@@ -152,7 +142,7 @@ void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC,
                 );
 
                 instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, REG_PC, 0, 0
+                    (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
                 );
 
                 Assembler::current_section->appendContent(instruction);
@@ -188,9 +178,8 @@ void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC,
     Assembler::current_section->appendContent(instruction);
 }
 
-void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
+void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, std::string _symbol) {
     instruction_format instruction;
-    const uint8_t REG_PC = 15;
 
     Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
@@ -200,14 +189,16 @@ void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC,
     switch (_addr) {
         case ADDR::IMMEDIATE: {
             Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
-            instruction =
-                CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, REG_PC, 0, 0);
+            instruction = CREATE_INSTRUCTION(
+                (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
+            );
             break;
         }
         case ADDR::MEM_DIR: {
             Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
-            instruction =
-                CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, REG_PC, 0, 0);
+            instruction = CREATE_INSTRUCTION(
+                (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
+            );
 
             Assembler::current_section->appendContent(instruction);
 
@@ -230,7 +221,6 @@ void Instructions::csr_load(uint8_t _csr, uint8_t _gpr) {
 
 void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value) {
     instruction_format instruction;
-    const uint8_t REG_PC = 15;
 
     switch (_addr) {
         case ADDR::IMMEDIATE: {
@@ -251,7 +241,7 @@ void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC
                 );
 
                 instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_MEM_GPRA_GPRB_DISP, REG_PC, 0, _gprC, 0
+                    (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_MEM_GPRA_GPRB_DISP, (uint32_t) GPR::PC, 0, _gprC, 0
                 );
             }
             break;
@@ -285,7 +275,6 @@ void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC
 
 void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
     instruction_format instruction;
-    const uint8_t REG_PC = 15;
 
     Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
@@ -302,7 +291,7 @@ void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC
         case ADDR::MEM_DIR: {
             Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
             instruction = CREATE_INSTRUCTION(
-                (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_MEM_GPRA_GPRB_DISP, REG_PC, 0, _gprC, 0
+                (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_MEM_GPRA_GPRB_DISP, (uint32_t) GPR::PC, 0, _gprC, 0
             );
             break;
         }

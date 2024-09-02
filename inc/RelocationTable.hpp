@@ -11,7 +11,7 @@ public:
 
     RelocationTable(CustomSection* _linked_section);
 
-    void print() const;
+    void print(std::ofstream& _file) const;
 
     void write(std::ofstream* _file) override;
 

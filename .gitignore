@@ -1,3 +1,5 @@
 /build
-executable
-output.o
+assembler
+test.s
+test.o
+readelf.txt

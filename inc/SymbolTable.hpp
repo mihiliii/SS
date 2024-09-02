@@ -38,7 +38,7 @@ public:
 
     void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value);
 
-    void print() const;
+    void print(std::ofstream& _file) const;
 
     SymbolTable(const SymbolTable&) = delete;
     SymbolTable& operator=(const SymbolTable&) = delete;

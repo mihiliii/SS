@@ -1,5 +1,7 @@
 BUILD_DIR = build
-PROGRAM_NAME = executable
+PROGRAM_NAME = assembler 
+
+DEBUG_MODE = 0
 
 BISON_FILE = misc/bison.y
 FLEX_FILE = misc/flex.l
@@ -25,18 +27,26 @@ src/SymbolTable.cpp \
 
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a
+FLEXFLAGS =
+BISONFLAGS = -d
+
+ARGS = -o test.o test.s
+
+ifeq ($(DEBUG_MODE), 1)
+	FLEXFLAGS += -d
+endif
 
 run: all
-	./$(PROGRAM_NAME)
+	./$(PROGRAM_NAME) $(ARGS)
 
 all: $(CPP_FILES) $(C_FILES) 
 	g++ $(CXXFLAGS) -o $(PROGRAM_NAME) $(^) -lfl
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)
-	bison -o $(@) -d $(<)
+	bison $(BISONFLAGS) -o $(@) $(<)
 
 $(BUILD_DIR)/lex.yy.c: $(FLEX_FILE) Makefile | $(BUILD_DIR)
-	flex -o $(@) $(<)
+	flex $(FLEXFLAGS) -o $(@) $(<)
 
 $(BUILD_DIR):
 	mkdir $(@)

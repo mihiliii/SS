@@ -16,7 +16,7 @@
 #define INSTRUCTION_FORMAT_REG_C(instruction)   ((instruction & 0x0000F000) >> 12)
 #define INSTRUCTION_FORMAT_DISP(instruction)    (instruction & 0x00000FFF)
 
-struct operand;
+struct Operand;
 
 enum struct CSR {
     STATUS = 0x0,
@@ -40,7 +40,10 @@ enum struct GPR {
     R12 = 0xC,
     R13 = 0xD,
     R14 = 0xE,
-    R15 = 0xF
+    R15 = 0xF,
+    ZERO = 0x0,
+    SP = 0xE,
+    PC = 0xF
 };
 
 enum struct OP_CODE {
@@ -134,9 +137,9 @@ public:
 
     static void pop(uint8_t _gpr);
 
-    static void load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value);
+    static void load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint32_t _value);
 
-    static void load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);
+    static void load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, std::string _symbol);
 
     static void csr_load(uint8_t _csr, uint8_t _gpr);
 

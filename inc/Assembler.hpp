@@ -11,7 +11,7 @@
 #include "SymbolTable.hpp"
 #include "ForwardReferenceTable.hpp"
 
-struct operand {
+struct Operand {
     std::string type;
     void* value;
 };
@@ -23,21 +23,19 @@ public:
 
     friend class Directives;
 
-    static int startAssembler();
+    static int startAssembler(const char* _input_file_name);
+
+    static int writeToFile(const char* _output_file_name);
+
+    static void readElfFile(const char* _input_file_name);
 
     static void startBackpatching();
-
-    static int writeToFile();
-
-    static void readElfFile();
 
     Assembler() = delete;
 
     ~Assembler() = delete;
 
     static CustomSection* current_section;
-
-    static std::ofstream f_output;
 
     static ElfHeader* elf_header;
     static SectionHeaderTable* section_header_table;

@@ -4,6 +4,7 @@
 
 #include "../inc/Assembler.hpp"
 #include "../inc/CustomSection.hpp"
+#include "LiteralTable.hpp"
 
 bool LiteralTable::isEmpty() {
     return literal_table.empty();
@@ -34,6 +35,10 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
         literal_pool.emplace_back(0);
     }
     symbol_value_table[_symbol_entry].second.push_back(_address);
+}
+
+void LiteralTable::print(std::ofstream& _file) {
+
 }
 
 void LiteralTable::writePool(std::ofstream* _file) {

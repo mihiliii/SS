@@ -18,11 +18,11 @@ void Directives::skipDirective(int _bytes) {
     Assembler::current_section->appendContent(vector.data(), _bytes);
 }
 
-void Directives::wordDirective(std::vector<operand>* _values) {
+void Directives::wordDirective(std::vector<Operand>* _values) {
     CustomSection* current_section = Assembler::current_section;
     SymbolTable* symbol_table = Assembler::symbol_table;
 
-    for (operand& node : *_values) {
+    for (Operand& node : *_values) {
         if (node.type == typeid(uint32_t).name())
             current_section->appendContent(node.value, sizeof(int));
         if (node.type == typeid(char*).name()) {
@@ -45,9 +45,9 @@ void Directives::wordDirective(std::vector<operand>* _values) {
     }
 }
 
-void Directives::globalDirective(std::vector<operand>* _symbols) {
+void Directives::globalDirective(std::vector<Operand>* _symbols) {
     SymbolTable* symbol_table = Assembler::symbol_table;
-    for (operand& node : *_symbols) {
+    for (Operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
 
@@ -61,9 +61,9 @@ void Directives::globalDirective(std::vector<operand>* _symbols) {
     }
 }
 
-void Directives::externDirective(std::vector<operand>* _symbols) {
+void Directives::externDirective(std::vector<Operand>* _symbols) {
     SymbolTable* symbol_table = Assembler::symbol_table;
-    for (operand& node : *_symbols) {
+    for (Operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
 

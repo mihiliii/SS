@@ -6,7 +6,7 @@
 
 #include "Assembler.hpp"
 
-struct operand;
+struct Operand;
 
 class Directives {
 public:
@@ -17,11 +17,11 @@ public:
 
     static void skipDirective(int _bytes);
 
-    static void wordDirective(std::vector<operand>* _values);
+    static void wordDirective(std::vector<Operand>* _values);
 
-    static void globalDirective(std::vector<operand>* _symbols);
+    static void globalDirective(std::vector<Operand>* _symbols);
 
-    static void externDirective(std::vector<operand>* _symbols);
+    static void externDirective(std::vector<Operand>* _symbols);
 
     static int defineLabel(std::string _label);
 };

@@ -23,39 +23,39 @@ void SectionHeaderTable::write(std::ofstream* _file) {
     }
 }
 
-void SectionHeaderTable::print() {
-    std::cout << "Section Header Table:" << std::endl;
-    std::cout << "  ";
-    std::cout << std::left << std::setfill(' ');
-    std::cout << std::setw(4) << "NUM";
-    std::cout << std::setw(25) << "NAME";
-    std::cout << std::setw(5) << "TYPE";
-    std::cout << std::setw(9) << "ADDRESS";
-    std::cout << std::setw(9) << "OFFSET";
-    std::cout << std::setw(9) << "SIZE";
-    std::cout << std::setw(9) << "FLAGS";
-    std::cout << std::setw(5) << "LINK";
-    std::cout << std::setw(5) << "INFO";
-    std::cout << std::setw(6) << "ALIGN";
-    std::cout << std::setw(9) << "ENTSIZE";
-    std::cout << std::endl;
+void SectionHeaderTable::print(std::ofstream& _file) {
+    _file << std::endl << "Section Header Table:" << std::endl;
+    _file << "  ";
+    _file << std::left << std::setfill(' ');
+    _file << std::setw(4) << "NUM";
+    _file << std::setw(25) << "NAME";
+    _file << std::setw(5) << "TYPE";
+    _file << std::setw(9) << "ADDRESS";
+    _file << std::setw(9) << "OFFSET";
+    _file << std::setw(9) << "SIZE";
+    _file << std::setw(9) << "FLAGS";
+    _file << std::setw(5) << "LINK";
+    _file << std::setw(5) << "INFO";
+    _file << std::setw(6) << "ALIGN";
+    _file << std::setw(9) << "ENTSIZE";
+    _file << std::endl;
     uint32_t index = 0;
     for (auto& iterator : section_header_table) {
         Elf32_Shdr* section = iterator.second;
-        std::cout << "  ";
-        std::cout << std::setw(3) << std::right << std::dec << std::setfill(' ') << index << " ";
-        std::cout << std::left;
-        std::cout << std::setw(24) << Assembler::string_table->getString(section->sh_name) << " ";
-        std::cout << std::right << std::hex << std::setfill('0');
-        std::cout << std::setw(4) << section->sh_type << " ";
-        std::cout << std::setw(8) << section->sh_addr << " ";
-        std::cout << std::setw(8) << section->sh_offset << " ";
-        std::cout << std::setw(8) << section->sh_size << " ";
-        std::cout << std::setw(8) << section->sh_flags << " ";
-        std::cout << std::setw(4) << section->sh_link << " ";
-        std::cout << std::setw(4) << section->sh_info << " ";
-        std::cout << std::setw(5) << std::dec << std::setfill(' ') << std::left << section->sh_addralign << " ";
-        std::cout << std::setw(8) << section->sh_entsize << std::endl;
+        _file << "  ";
+        _file << std::setw(3) << std::right << std::dec << std::setfill(' ') << index << " ";
+        _file << std::left;
+        _file << std::setw(24) << Assembler::string_table->getString(section->sh_name) << " ";
+        _file << std::right << std::hex << std::setfill('0');
+        _file << std::setw(4) << section->sh_type << " ";
+        _file << std::setw(8) << section->sh_addr << " ";
+        _file << std::setw(8) << section->sh_offset << " ";
+        _file << std::setw(8) << section->sh_size << " ";
+        _file << std::setw(8) << section->sh_flags << " ";
+        _file << std::setw(4) << section->sh_link << " ";
+        _file << std::setw(4) << section->sh_info << " ";
+        _file << std::setw(5) << std::dec << std::setfill(' ') << std::left << section->sh_addralign << " ";
+        _file << std::setw(8) << section->sh_entsize << std::endl;
         index++;
     }
 }

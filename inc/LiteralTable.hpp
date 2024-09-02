@@ -27,7 +27,7 @@ public:
 
     size_t getSize() const { return literal_pool.size(); };
 
-    void printTable() const;
+    void print(std::ofstream& _file);
 
     void writePool(std::ofstream* _file);
 

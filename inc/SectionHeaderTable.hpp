@@ -13,7 +13,7 @@ public:
 
     void write(std::ofstream* _file);
 
-    void print();
+    void print(std::ofstream& _file);
 
     uint32_t insert(Elf32_Shdr* _section_entry);
 

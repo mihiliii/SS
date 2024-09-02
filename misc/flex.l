@@ -52,53 +52,53 @@ CAUSE "%cause"
 
 %%
 
-"#"[^\n]*                   { printf("%s\n", yytext); };
+"#"[^\n]*\n                 { line++; }
 ","                         { return ','; }
 ":"                         { return ':'; }
 "$"                         { return '$'; }
-{HALT}                      { yylval.s_val = strdup(yytext); return HALT; }
-{INT}                       { yylval.s_val = strdup(yytext); return INT; }
-{IRET}                      { yylval.s_val = strdup(yytext); return IRET; }
-{CALL}                      { yylval.s_val = strdup(yytext); return CALL; }
-{RET}                       { yylval.s_val = strdup(yytext); return RET; }
-{JMP}                       { yylval.s_val = strdup(yytext); return JMP; }
-{BEQ}                       { yylval.s_val = strdup(yytext); return BEQ; }
-{BNE}                       { yylval.s_val = strdup(yytext); return BNE; }
-{BGT}                       { yylval.s_val = strdup(yytext); return BGT; }
-{PUSH}                      { yylval.s_val = strdup(yytext); return PUSH; }
-{POP}                       { yylval.s_val = strdup(yytext); return POP; }
-{XCHG}                      { yylval.s_val = strdup(yytext); return XCHG; }
-{ADD}                       { yylval.s_val = strdup(yytext); return ADD; }
-{SUB}                       { yylval.s_val = strdup(yytext); return SUB; }
-{MUL}                       { yylval.s_val = strdup(yytext); return MUL; }
-{DIV}                       { yylval.s_val = strdup(yytext); return DIV; }      
-{NOT}                       { yylval.s_val = strdup(yytext); return NOT; }
-{AND}                       { yylval.s_val = strdup(yytext); return AND; }
-{OR}                        { yylval.s_val = strdup(yytext); return OR; }
-{XOR}                       { yylval.s_val = strdup(yytext); return XOR; }
-{SHL}                       { yylval.s_val = strdup(yytext); return SHL; }
-{SHR}                       { yylval.s_val = strdup(yytext); return SHR; }
-{LD}                        { yylval.s_val = strdup(yytext); return LD; }
-{ST}                        { yylval.s_val = strdup(yytext); return ST; }
-{CSRRD}                     { yylval.s_val = strdup(yytext); return CSRRD; }
-{CSRWR}                     { yylval.s_val = strdup(yytext); return CSRWR; }
+{HALT}                      { return HALT; }
+{INT}                       { return INT; }
+{IRET}                      { return IRET; }
+{CALL}                      { return CALL; }
+{RET}                       { return RET; }
+{JMP}                       { return JMP; }
+{BEQ}                       { return BEQ; }
+{BNE}                       { return BNE; }
+{BGT}                       { return BGT; }
+{PUSH}                      { return PUSH; }
+{POP}                       { return POP; }
+{XCHG}                      { return XCHG; }
+{ADD}                       { return ADD; }
+{SUB}                       { return SUB; }
+{MUL}                       { return MUL; }
+{DIV}                       { return DIV; }      
+{NOT}                       { return NOT; }
+{AND}                       { return AND; }
+{OR}                        { return OR; }
+{XOR}                       { return XOR; }
+{SHL}                       { return SHL; }
+{SHR}                       { return SHR; }
+{LD}                        { return LD; }
+{ST}                        { return ST; }
+{CSRRD}                     { return CSRRD; }
+{CSRWR}                     { return CSRWR; }
 
-{SECTION}                   { yylval.s_val = strdup(yytext); return SECTION; }
-{SKIP}                      { yylval.s_val = strdup(yytext); return SKIP; } 
-{WORD}                      { yylval.s_val = strdup(yytext); return WORD; }
-{END}                       { yylval.s_val = strdup(yytext); return END; }
-{GLOBAL}                    { yylval.s_val = strdup(yytext); return GLOBAL; }
-{EXTERN}                    { yylval.s_val = strdup(yytext); return EXTERN; }
+{SECTION}                   { return SECTION; }
+{SKIP}                      { return SKIP; } 
+{WORD}                      { return WORD; }
+{END}                       { return END; }
+{GLOBAL}                    { return GLOBAL; }
+{EXTERN}                    { return EXTERN; }
 
 {STATUS}                    { yylval.uint_val = (uint32_t) CSR::STATUS; return CSR; }
 {HANDLER}                   { yylval.uint_val = (uint32_t) CSR::HANDLER; return CSR; }
 {CAUSE}                     { yylval.uint_val = (uint32_t) CSR::CAUSE; return CSR; }
 
-%r[0-9]|%r1[0-5]            { yylval.uint_val = (uint32_t) strtol(yytext + 2, NULL, 10); return REGISTER; }
+%r[0-9]|%r1[0-5]            { yylval.uint_val = (uint32_t) strtol(yytext + 2, NULL, 10); return GPR; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.uint_val = (uint32_t) strtol(yytext, NULL, 0); return LITERAL; }
-[a-zA-Z0-9]+                { yylval.s_val = strdup(yytext); return STRING; }
-\n                          { line++; }
+[a-zA-Z_][a-zA-Z0-9_]*      { yylval.s_val = strdup(yytext); return SYMBOL; }
+\n                          { line++; return EOL; }
 [ \t]+                      ;
-.                           { printf("Unknown character: %s\n", yytext); }
+.                           { printf("Syntax error, unknown character: %s\n", yytext); }
 
 %%

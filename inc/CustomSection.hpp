@@ -28,7 +28,7 @@ public:
 
     RelocationTable& getRelocationTable();
 
-    void print() const;
+    void print(std::ofstream& _file) const;
 
     void write(std::ofstream* _file) override;
 
