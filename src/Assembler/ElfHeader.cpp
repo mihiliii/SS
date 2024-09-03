@@ -1,8 +1,8 @@
-#include "../inc/ElfHeader.hpp"
+#include "../inc/Assembler/ElfHeader.hpp"
 
 #include <fstream>
 
-#include "../inc/Assembler.hpp"
+#include "../inc/Assembler/Assembler.hpp"
 
 ElfHeader::ElfHeader() {
     elf_header.e_shentsize = sizeof(Elf32_Shdr);

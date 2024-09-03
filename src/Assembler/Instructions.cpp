@@ -1,11 +1,11 @@
-#include "../inc/Instructions.hpp"
+#include "../inc/Assembler/Instructions.hpp"
 
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 
-#include "../inc/Assembler.hpp"
-#include "../inc/ForwardReferenceTable.hpp"
+#include "../inc/Assembler/Assembler.hpp"
+#include "../inc/Assembler/ForwardReferenceTable.hpp"
 
 typedef uint32_t instruction_format;
 

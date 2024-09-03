@@ -1,14 +1,14 @@
-#include "../inc/Assembler.hpp"
+#include "../inc/Assembler/Assembler.hpp"
 
 #include <cstddef>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/ElfHeader.hpp"
-#include "../inc/ForwardReferenceTable.hpp"
-#include "../inc/Instructions.hpp"
-#include "../inc/Section.hpp"
+#include "../inc/Assembler/ElfHeader.hpp"
+#include "../inc/Assembler/ForwardReferenceTable.hpp"
+#include "../inc/Assembler/Instructions.hpp"
+#include "../inc/Assembler/Section.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();

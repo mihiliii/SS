@@ -1,5 +1,5 @@
 BUILD_DIR = build
-PROGRAM_NAME = assembler 
+ASSEMBLER_PROGRAM_NAME = assembler 
 
 DEBUG_MODE = 0
 
@@ -11,19 +11,19 @@ $(BUILD_DIR)/bison.tab.c \
 $(BUILD_DIR)/lex.yy.c
 
 CPP_FILES = \
-src/Assembler.cpp \
-src/CustomSection.cpp \
-src/Directives.cpp \
-src/ElfHeader.cpp \
-src/ForwardReferenceTable.cpp \
-src/Instructions.cpp \
-src/LiteralTable.cpp \
-src/main.cpp \
-src/RelocationTable.cpp \
-src/Section.cpp \
-src/SectionHeaderTable.cpp \
-src/StringTable.cpp \
-src/SymbolTable.cpp \
+src/Assembler/Assembler.cpp \
+src/Assembler/CustomSection.cpp \
+src/Assembler/Directives.cpp \
+src/Assembler/ElfHeader.cpp \
+src/Assembler/ForwardReferenceTable.cpp \
+src/Assembler/Instructions.cpp \
+src/Assembler/LiteralTable.cpp \
+src/Assembler/main.cpp \
+src/Assembler/RelocationTable.cpp \
+src/Assembler/Section.cpp \
+src/Assembler/SectionHeaderTable.cpp \
+src/Assembler/StringTable.cpp \
+src/Assembler/SymbolTable.cpp \
 
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a
@@ -37,10 +37,10 @@ ifeq ($(DEBUG_MODE), 1)
 endif
 
 run: all
-	./$(PROGRAM_NAME) $(ARGS)
+	./$(ASSEMBLER_PROGRAM_NAME) $(ARGS)
 
 all: $(CPP_FILES) $(C_FILES) 
-	g++ $(CXXFLAGS) -o $(PROGRAM_NAME) $(^) -lfl
+	g++ $(CXXFLAGS) -o $(ASSEMBLER_PROGRAM_NAME) $(^) -lfl
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)
 	bison $(BISONFLAGS) -o $(@) $(<)
@@ -52,4 +52,4 @@ $(BUILD_DIR):
 	mkdir $(@)
 
 clean:
-	rm -rf $(BUILD_DIR) $(PROGRAM_NAME)
+	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME)

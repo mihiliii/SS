@@ -1,12 +1,12 @@
-#include "../inc/Directives.hpp"
+#include "../inc/Assembler/Directives.hpp"
 
 #include <exception>
 
-#include "../inc/Assembler.hpp"
-#include "../inc/CustomSection.hpp"
-#include "../inc/ForwardReferenceTable.hpp"
-#include "../inc/Section.hpp"
-#include "../inc/SymbolTable.hpp"
+#include "../inc/Assembler/Assembler.hpp"
+#include "../inc/Assembler/CustomSection.hpp"
+#include "../inc/Assembler/ForwardReferenceTable.hpp"
+#include "../inc/Assembler/Section.hpp"
+#include "../inc/Assembler/SymbolTable.hpp"
 
 void Directives::sectionDirective(const std::string& _section_name) {
     CustomSection* section = new CustomSection(_section_name);

@@ -1,12 +1,12 @@
-#include "../inc/RelocationTable.hpp"
+#include "../inc/Assembler/RelocationTable.hpp"
 
 #include <iomanip>
 
-#include "../inc/Assembler.hpp"
-#include "../inc/CustomSection.hpp"
-#include "../inc/Elf32.hpp"
-#include "../inc/Section.hpp"
-#include "../inc/StringTable.hpp"
+#include "../inc/Assembler/Assembler.hpp"
+#include "../inc/Assembler/CustomSection.hpp"
+#include "../inc/Assembler/Elf32.hpp"
+#include "../inc/Assembler/Section.hpp"
+#include "../inc/Assembler/StringTable.hpp"
 
 RelocationTable::RelocationTable(CustomSection* _linked_section) : Section(), parent_section(_linked_section) {
     section_header.sh_name = Assembler::string_table->addString(std::string(".rela") + _linked_section->getName());

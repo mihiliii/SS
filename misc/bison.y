@@ -2,10 +2,10 @@
     #include <cstdio>
     #include <iostream>
     #include <cmath>
-    #include "../inc/Assembler.hpp"
-    #include "../inc/Instructions.hpp"
-    #include "../inc/SymbolTable.hpp"
-    #include "../inc/Directives.hpp"
+    #include "../inc/Assembler/Assembler.hpp"
+    #include "../inc/Assembler/Instructions.hpp"
+    #include "../inc/Assembler/SymbolTable.hpp"
+    #include "../inc/Assembler/Directives.hpp"
 
     using namespace std;
 

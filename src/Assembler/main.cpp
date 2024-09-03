@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "../inc/Assembler.hpp"
+#include "../inc/Assembler/Assembler.hpp"
 
 int main(int argc, char* argv[]) {
     const char* input_file_name = nullptr;

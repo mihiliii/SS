@@ -1,8 +1,8 @@
-#include "../inc/ForwardReferenceTable.hpp"
+#include "../inc/Assembler/ForwardReferenceTable.hpp"
 
-#include "../inc/Assembler.hpp"
-#include "../inc/CustomSection.hpp"
-#include "../inc/Instructions.hpp"
+#include "../inc/Assembler/Assembler.hpp"
+#include "../inc/Assembler/CustomSection.hpp"
+#include "../inc/Assembler/Instructions.hpp"
 
 // Adds a symbol reference of the symbol that will be resolved in backpatching phase.
 void ForwardReferenceTable::add(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {

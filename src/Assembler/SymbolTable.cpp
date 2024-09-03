@@ -1,11 +1,11 @@
-#include "../inc/SymbolTable.hpp"
+#include "../inc/Assembler/SymbolTable.hpp"
 
 #include <iomanip>
 
-#include "../inc/Assembler.hpp"
-#include "../inc/Instructions.hpp"
-#include "../inc/Section.hpp"
-#include "../inc/StringTable.hpp"
+#include "../inc/Assembler/Assembler.hpp"
+#include "../inc/Assembler/Instructions.hpp"
+#include "../inc/Assembler/Section.hpp"
+#include "../inc/Assembler/StringTable.hpp"
 
 SymbolTable::SymbolTable() : Section() {
     section_header.sh_name = Assembler::string_table->addString(".symtab");
@@ -96,7 +96,7 @@ void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
 }
 
 void SymbolTable::print(std::ofstream& _file) const {
-    _file << std::endl <<  "Symbol Table:" << std::endl;
+    _file << std::endl << "Symbol Table:" << std::endl;
     _file << "  ";
     _file << std::left << std::setfill(' ');
     _file << std::setw(4) << "NUM";

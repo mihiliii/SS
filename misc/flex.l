@@ -1,7 +1,7 @@
 %{  
     #include "bison.tab.h"
-    #include "../inc/Assembler.hpp"
-    #include "../inc/Instructions.hpp"
+    #include "../inc/Assembler/Assembler.hpp"
+    #include "../inc/Assembler/Instructions.hpp"
     
     extern int yyerror(const char* s);
     uint32_t line = 1;

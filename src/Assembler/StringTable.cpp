@@ -1,8 +1,6 @@
-#include "../inc/StringTable.hpp"
+#include "../inc/Assembler/StringTable.hpp"
 
 #include <iomanip>
-
-#include "StringTable.hpp"
 
 // Adds string to the string table and returns its offset
 Elf32_Off StringTable::addString(std::string _string) {

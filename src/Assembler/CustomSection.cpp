@@ -1,14 +1,14 @@
-#include "../inc/CustomSection.hpp"
+#include "../inc/Assembler/CustomSection.hpp"
 
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/Assembler.hpp"
-#include "CustomSection.hpp"
+#include "../inc/Assembler/Assembler.hpp"
 
 std::map<std::string, CustomSection*> CustomSection::all_sections;
 
-CustomSection::CustomSection(const std::string& _name) : Section(_name), literal_table(this), relocation_table(nullptr) {
+CustomSection::CustomSection(const std::string& _name)
+    : Section(_name), literal_table(this), relocation_table(nullptr) {
     section_header.sh_type = SHT_CUSTOM;
     section_header.sh_entsize = 4;
     section_header.sh_addralign = 4;
@@ -53,14 +53,13 @@ RelocationTable& CustomSection::getRelocationTable() {
 }
 
 void CustomSection::print(std::ofstream& _file) const {
-
     _file << std::endl << "Content of section " << getName() << ":\n";
     for (uint32_t location_counter = 0; location_counter < content.size(); location_counter++) {
         if (location_counter % 16 == 0) {
             _file << std::hex << std::setw(8) << std::setfill('0') << location_counter << ": ";
         }
         _file << std::hex << std::setw(2) << std::setfill('0')
-                  << (unsigned int) (unsigned char) content[location_counter] << " ";
+              << (unsigned int) (unsigned char) content[location_counter] << " ";
         if ((location_counter + 1) % 16 == 0) {
             _file << std::dec << "\n";
         }

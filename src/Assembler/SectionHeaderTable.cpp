@@ -1,11 +1,11 @@
-#include "../inc/SectionHeaderTable.hpp"
+#include "../inc/Assembler/SectionHeaderTable.hpp"
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/Assembler.hpp"
-#include "../inc/Section.hpp"
+#include "../inc/Assembler/Assembler.hpp"
+#include "../inc/Assembler/Section.hpp"
 
 uint32_t SectionHeaderTable::section_header_table_index = 0;
 
@@ -59,4 +59,3 @@ void SectionHeaderTable::print(std::ofstream& _file) {
         index++;
     }
 }
-

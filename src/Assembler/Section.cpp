@@ -1,9 +1,10 @@
-#include "../inc/Section.hpp"
+#include "../inc/Assembler/Section.hpp"
 
-#include "../inc/Assembler.hpp"
-#include "Section.hpp"
+#include "../inc/Assembler/Assembler.hpp"
 
-std::string Section::getName() const { return std::string(Assembler::string_table->getString(section_header.sh_name)); }
+std::string Section::getName() const {
+    return std::string(Assembler::string_table->getString(section_header.sh_name));
+}
 
 std::string Section::getName(uint32_t _index) {
     Elf32_Shdr* section_header = Assembler::section_header_table->getSectionHeader(_index);
