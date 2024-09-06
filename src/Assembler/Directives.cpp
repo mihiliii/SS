@@ -3,10 +3,10 @@
 #include <exception>
 
 #include "../inc/Assembler/Assembler.hpp"
-#include "../inc/Assembler/CustomSection.hpp"
 #include "../inc/Assembler/ForwardReferenceTable.hpp"
-#include "../inc/Assembler/Section.hpp"
-#include "../inc/Assembler/SymbolTable.hpp"
+#include "../inc/CustomSection.hpp"
+#include "../inc/Section.hpp"
+#include "../inc/SymbolTable.hpp"
 
 void Directives::sectionDirective(const std::string& _section_name) {
     CustomSection* section = new CustomSection(_section_name);
@@ -20,7 +20,7 @@ void Directives::skipDirective(int _bytes) {
 
 void Directives::wordDirective(std::vector<Operand>* _values) {
     CustomSection* current_section = Assembler::current_section;
-    SymbolTable* symbol_table = Assembler::symbol_table;
+    SymbolTable* symbol_table = &SymbolTable::getInstance();
 
     for (Operand& node : *_values) {
         if (node.type == typeid(uint32_t).name())
@@ -46,7 +46,7 @@ void Directives::wordDirective(std::vector<Operand>* _values) {
 }
 
 void Directives::globalDirective(std::vector<Operand>* _symbols) {
-    SymbolTable* symbol_table = Assembler::symbol_table;
+    SymbolTable* symbol_table = &SymbolTable::getInstance();
     for (Operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
@@ -62,7 +62,7 @@ void Directives::globalDirective(std::vector<Operand>* _symbols) {
 }
 
 void Directives::externDirective(std::vector<Operand>* _symbols) {
-    SymbolTable* symbol_table = Assembler::symbol_table;
+    SymbolTable* symbol_table = &SymbolTable::getInstance();
     for (Operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->getSymbol(symbol_name);
@@ -78,7 +78,7 @@ void Directives::externDirective(std::vector<Operand>* _symbols) {
 }
 
 int Directives::defineLabel(std::string _label) {
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_label);
+    Elf32_Sym* symbol_entry = SymbolTable::getInstance().getSymbol(_label);
     Elf32_Off location_counter = Assembler::current_section->getLocationCounter();
     if (symbol_entry != nullptr)
         if (symbol_entry->st_defined == true) {
@@ -86,10 +86,10 @@ int Directives::defineLabel(std::string _label) {
             return -1;
         }
         else {
-            Assembler::symbol_table->defineSymbol(symbol_entry, location_counter);
+            SymbolTable::getInstance().defineSymbol(symbol_entry, location_counter);
         }
     else {
-        symbol_entry = Assembler::symbol_table->addSymbol(_label, location_counter, true);
+        symbol_entry = SymbolTable::getInstance().addSymbol(_label, location_counter, true);
     }
 
     return 0;

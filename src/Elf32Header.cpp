@@ -1,14 +1,17 @@
-#include "../inc/Assembler/ElfHeader.hpp"
+#include "../inc/Elf32Header.hpp"
 
 #include <fstream>
 
-#include "../inc/Assembler/Assembler.hpp"
-
-ElfHeader::ElfHeader() {
+Elf32Header::Elf32Header() {
     elf_header.e_shentsize = sizeof(Elf32_Shdr);
 }
 
-void ElfHeader::setField(Elf32_Ehdr_Field _field, uint32_t _value) {
+Elf32Header& Elf32Header::getInstance() {
+    static Elf32Header instance;
+    return instance;
+}
+
+void Elf32Header::setField(Elf32_Ehdr_Field _field, uint32_t _value) {
     switch (_field) {
         case Elf32_Ehdr_Field::e_type:
             elf_header.e_type = _value;
@@ -42,11 +45,11 @@ void ElfHeader::setField(Elf32_Ehdr_Field _field, uint32_t _value) {
     }
 }
 
-void ElfHeader::write(std::ofstream* _file) {
+void Elf32Header::write(std::ofstream* _file) {
     _file->write(reinterpret_cast<char*>(&elf_header), sizeof(Elf32_Ehdr));
 }
 
-void ElfHeader::print(std::ofstream& _file) {
+void Elf32Header::print(std::ofstream& _file) {
     _file << std::endl << "Elf Header:" << std::endl;
     _file << "  Identification: ";
     for (int i = 0; i < EI_NIDENT; i++) {

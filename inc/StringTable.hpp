@@ -1,14 +1,15 @@
 #pragma once
 
+#include <fstream>
+#include <vector>
+
 #include "Elf32.hpp"
 #include "Section.hpp"
-#include <vector>
-#include <fstream>
 
 class StringTable : public Section {
 public:
 
-    StringTable();
+    static StringTable& getInstance();
 
     Elf32_Off addString(std::string _string);
 
@@ -24,6 +25,8 @@ public:
     ~StringTable() = default;
 
 private:
+
+    StringTable();
 
     std::map<Elf32_Off, std::string> string_table;
 };

@@ -3,17 +3,18 @@
 #include <iomanip>
 
 #include "../inc/Assembler/Assembler.hpp"
-#include "../inc/Assembler/CustomSection.hpp"
-#include "../inc/Assembler/Elf32.hpp"
-#include "../inc/Assembler/Section.hpp"
-#include "../inc/Assembler/StringTable.hpp"
+#include "../inc/CustomSection.hpp"
+#include "../inc/Elf32.hpp"
+#include "../inc/Section.hpp"
+#include "../inc/StringTable.hpp"
+#include "../inc/SymbolTable.hpp"
 
 RelocationTable::RelocationTable(CustomSection* _linked_section) : Section(), parent_section(_linked_section) {
-    section_header.sh_name = Assembler::string_table->addString(std::string(".rela") + _linked_section->getName());
+    section_header.sh_name = StringTable::getInstance().addString(std::string(".rela") + _linked_section->getName());
     section_header.sh_type = SHT_RELA;
     section_header.sh_entsize = sizeof(Elf32_Rela);
     section_header.sh_info = _linked_section->getSectionHeaderTableIndex();
-    section_header.sh_link = Assembler::symbol_table->getSectionHeaderTableIndex();
+    section_header.sh_link = SymbolTable::getInstance().getSectionHeaderTableIndex();
     section_header.sh_addralign = 4;
     section_header.sh_size = 0;
 }
@@ -31,9 +32,9 @@ void RelocationTable::print(std::ofstream& _file) const {
     int i = 0;
     for (Elf32_Rela relocation_table_entry : relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
-        Elf32_Sym* symbol = Assembler::symbol_table->getSymbol(symbol_index);
+        Elf32_Sym* symbol = SymbolTable::getInstance().getSymbol(symbol_index);
 
-        std::string symbol_name = Assembler::string_table->getString(symbol->st_name);
+        std::string symbol_name = StringTable::getInstance().getString(symbol->st_name);
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(relocation_table_entry.r_info)) {

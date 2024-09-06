@@ -1,14 +1,14 @@
-#include "../inc/Assembler/SymbolTable.hpp"
+#include "../inc/SymbolTable.hpp"
 
 #include <iomanip>
 
 #include "../inc/Assembler/Assembler.hpp"
 #include "../inc/Assembler/Instructions.hpp"
-#include "../inc/Assembler/Section.hpp"
-#include "../inc/Assembler/StringTable.hpp"
+#include "../inc/Section.hpp"
+#include "../inc/StringTable.hpp"
 
 SymbolTable::SymbolTable() : Section() {
-    section_header.sh_name = Assembler::string_table->addString(".symtab");
+    section_header.sh_name = StringTable::getInstance().addString(".symtab");
     section_header.sh_type = SHT_SYMTAB;
     section_header.sh_entsize = sizeof(Elf32_Sym);
     section_header.sh_addralign = 4;
@@ -33,9 +33,8 @@ Elf32_Sym* SymbolTable::addSymbol(
         ((short) _section_index == -1) ? Assembler::current_section->getSectionHeaderTableIndex() : _section_index;
 
     Elf32_Sym* symbol_entry = new Elf32_Sym(
-        {.st_name = Assembler::string_table->addString(_name),
+        {.st_name = StringTable::getInstance().addString(_name),
          .st_info = _info,
-         .st_other = 0,
          .st_shndx = section_index,
          .st_value = _value,
          .st_size = 0,
@@ -58,7 +57,7 @@ void SymbolTable::setInfo(Elf32_Sym* _symbol, Elf32_Half _info) {
 
 Elf32_Sym* SymbolTable::getSymbol(std::string _name) {
     for (Elf32_Sym* symbol : content) {
-        if (Assembler::string_table->getString(symbol->st_name) == _name)
+        if (StringTable::getInstance().getString(symbol->st_name) == _name)
             return symbol;
     }
     return nullptr;
@@ -74,7 +73,7 @@ Elf32_Sym* SymbolTable::getSymbol(uint32_t _entry_index) {
 
 uint32_t SymbolTable::getSymbolEntryIndex(std::string _name) {
     for (uint32_t i = 0; i < content.size(); i++) {
-        if (Assembler::string_table->getString(content[i]->st_name) == _name)
+        if (StringTable::getInstance().getString(content[i]->st_name) == _name)
             return i;
     }
     std::cerr << "Symbol " << _name << " not found." << std::endl;
@@ -86,7 +85,7 @@ uint32_t SymbolTable::getSymbolEntryIndex(Elf32_Sym* _symbol_entry) {
         if (content[i] == _symbol_entry)
             return i;
     }
-    std::cerr << "Symbol " << Assembler::string_table->getString(_symbol_entry->st_name) << " not found." << std::endl;
+    std::cerr << "Symbol " << StringTable::getInstance().getString(_symbol_entry->st_name) << " not found." << std::endl;
     return -1;
 }
 
@@ -105,7 +104,6 @@ void SymbolTable::print(std::ofstream& _file) const {
     _file << std::setw(9) << "SIZE";
     _file << std::setw(9) << "TYPE";
     _file << std::setw(6) << "BIND";
-    _file << std::setw(6) << "OTHER";
     _file << std::setw(8) << "SHINDEX";
     _file << "DEFINED";
     _file << std::endl;
@@ -156,19 +154,23 @@ void SymbolTable::print(std::ofstream& _file) const {
         _file << std::right << std::setfill(' ') << std::dec;
         _file << std::setw(3) << i << " ";
         _file << std::left;
-        _file << std::setw(24) << Assembler::string_table->getString(c->st_name) << " ";
+        _file << std::setw(24) << StringTable::getInstance().getString(c->st_name) << " ";
         _file << std::right << std::setfill('0') << std::hex;
         _file << std::setw(8) << c->st_value << " ";
         _file << std::setw(8) << c->st_size << " ";
         _file << std::setfill(' ') << std::dec << std::left;
         _file << std::setw(8) << type << " ";
         _file << std::setw(5) << bind << " ";
-        _file << std::setw(5) << (int) c->st_other << " ";
         _file << std::setw(7) << section_index << " ";
         _file << (c->st_defined ? "true" : "false");
         _file << std::endl;
         i += 1;
     }
+}
+
+SymbolTable& SymbolTable::getInstance() {
+    static SymbolTable instance;
+    return instance;
 }
 
 void SymbolTable::write(std::ofstream* _file) {

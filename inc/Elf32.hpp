@@ -36,7 +36,7 @@ struct Elf32_Ehdr {
     Elf32_Half e_shstrndx;          // Section header string table index entry
 
     Elf32_Ehdr()
-        : e_ident{'C', 'U', 'S', 'T', 'O', 'M', ' ', 'E', 'L', 'F', ' ', 'F', 'I', 'L', 'E', ' '},
+        : e_ident {'C', 'U', 'S', 'T', 'O', 'M', ' ', 'E', 'L', 'F', ' ', 'F', 'I', 'L', 'E', ' '},
           e_type(ET_NONE),
           e_entry(0),
           e_phoff(0),
@@ -57,10 +57,12 @@ struct Elf32_Ehdr {
 #define SHN_ABS   0xfff1 /* Associated symbol is absolute */
 
 // Makros used in sh_type in Elf32_Shdr (Section header table entry)
-#define SHT_SYMTAB 0x1 /* Symbol table */
-#define SHT_STRTAB 0x2 /* Section header string table */
-#define SHT_CUSTOM 0x3 /* Custom section */
-#define SHT_RELA   0x4 /* Relocation entries with addends */
+#define SHT_NULL     0x0 /* Unused section */
+#define SHT_SYMTAB   0x1 /* Symbol table */
+#define SHT_STRTAB   0x2 /* Section header string table */
+#define SHT_CUSTOM   0x3 /* Custom section */
+#define SHT_RELA     0x4 /* Relocation entries with addends */
+#define SHT_PROGBITS 0x5 /* Program data */
 
 // Struct that represents the section table entry
 struct Elf32_Shdr {
@@ -102,7 +104,6 @@ struct Elf32_Shdr {
 struct Elf32_Sym {
     Elf32_Word st_name;   // Offset in the symbol string name table that matches that symbol name
     Elf32_Byte st_info;   // Type attributes
-    Elf32_Byte st_other;  // Symbol visibility
     Elf32_Half st_shndx;  // Section index which the symbol is defined
     Elf32_Addr st_value;  // Symbol value
     Elf32_Word st_size;   // Size of the symbol
@@ -120,4 +121,23 @@ struct Elf32_Rela {
     Elf32_Addr r_offset;   // Offset in the section where the relocation should be applied
     Elf32_Word r_info;     // Symbol table index that is used to determine whose value should be used in the relocation
     Elf32_SWord r_addend;  // Constant addend used to compute the value to be stored
+};
+
+// ****************************************************************************
+// *                           PROGRAM HEADER TABLE                           *
+// ****************************************************************************
+
+#define PT_NULL 0 /* Unused entry */
+#define PT_LOAD 1 /* Loadable segment */
+
+// Struct that represents the program header table entry
+struct Elf32_Phdr {
+    Elf32_Word p_type;  // Type of the segment
+    // Elf32_Word p_flags;  // Segment attributes
+    Elf32_Off p_offset;   // Offset of the segment in the ELF file
+    Elf32_Addr p_vaddr;   // Virtual address of the segment in memory
+    Elf32_Addr p_paddr;   // Physical address of the segment in memory
+    Elf32_Word p_filesz;  // Size of the segment in the ELF file
+    Elf32_Word p_memsz;   // Size of the segment in memory
+    Elf32_Word p_align;   // Required alignment of the segment
 };

@@ -64,7 +64,6 @@ enum struct MOD_CALL {
     CALL_IND = 0x1
 };
 
-
 enum struct MOD_JMP {
     JMP = 0x0,
     BEQ = 0x1,
@@ -155,4 +154,3 @@ private:
 
     static std::unordered_map<std::string, std::function<void()>> instruction_map;
 };
-

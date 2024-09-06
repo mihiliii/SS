@@ -5,10 +5,12 @@
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/Assembler/ElfHeader.hpp"
 #include "../inc/Assembler/ForwardReferenceTable.hpp"
 #include "../inc/Assembler/Instructions.hpp"
-#include "../inc/Assembler/Section.hpp"
+#include "../inc/Elf32Header.hpp"
+#include "../inc/Section.hpp"
+#include "../inc/SectionHeaderTable.hpp"
+#include "../inc/StringTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -17,21 +19,7 @@ extern FILE* yyin;
 
 CustomSection* Assembler::current_section;
 
-ElfHeader* Assembler::elf_header;
-SectionHeaderTable* Assembler::section_header_table;
-StringTable* Assembler::string_table;
-SymbolTable* Assembler::symbol_table;
-ForwardReferenceTable* Assembler::forward_reference_table;
-
-/** Function initAssembler should only be called once, at the beginning of the startAssembler,
- *  that's why it is private. It initializes the static variables of the Assembler class.
- */
 int Assembler::startAssembler(const char* _input_file_name) {
-    elf_header = new ElfHeader();
-    section_header_table = new SectionHeaderTable();
-    string_table = new StringTable();
-    symbol_table = new SymbolTable();
-    forward_reference_table = new ForwardReferenceTable();
 
     // Open a file handle to a particular file:
     FILE* f_input = fopen(_input_file_name, "r");
@@ -56,7 +44,7 @@ int Assembler::startAssembler(const char* _input_file_name) {
 }
 
 void Assembler::startBackpatching() {
-    forward_reference_table->backpatch();
+    ForwardReferenceTable::getInstance().backpatch();
 
     for (auto iterator : CustomSection::getSectionsMap()) {
         current_section = iterator.second;
@@ -80,22 +68,23 @@ int Assembler::writeToFile(const char* _output_file_name) {
     }
 
     // Write the string table:
-    string_table->write(&f_output);
+    StringTable::getInstance().write(&f_output);
 
     // Write the symbol table:
-    symbol_table->write(&f_output);
+    SymbolTable::getInstance().write(&f_output);
 
     // Set section header table offset and number of entries in the ELF header:
     std::streampos section_header_table_offset = f_output.tellp();
-    elf_header->setField(Elf32_Ehdr_Field::e_shoff, section_header_table_offset);
-    elf_header->setField(Elf32_Ehdr_Field::e_shnum, section_header_table->getSize() / sizeof(Elf32_Shdr));
+    Elf32Header::getInstance().setField(Elf32_Ehdr_Field::e_type, ET_REL);
+    Elf32Header::getInstance().setField(Elf32_Ehdr_Field::e_shoff, section_header_table_offset);
+    Elf32Header::getInstance().setField(Elf32_Ehdr_Field::e_shnum, SectionHeaderTable::getInstance().getSize() / sizeof(Elf32_Shdr));
 
     // Write the section header table:
-    section_header_table->write(&f_output);
+    SectionHeaderTable::getInstance().write(&f_output);
 
     // Write the ELF header at the beginning of the file:
     f_output.seekp(0, std::ios::beg);
-    elf_header->write(&f_output);
+    Elf32Header::getInstance().write(&f_output);
 
     f_output.close();
 
@@ -123,8 +112,8 @@ void Assembler::readElfFile(const char* _input_file_name) {
     f_output << std::setw(len) << std::setfill('*') << "   " << "ELFREAD: " << _input_file_name << std::setw(len)
              << std::setfill('*') << std::left << "   " << std::endl;
 
-    elf_header->print(f_output);
-    section_header_table->print(f_output);
+    Elf32Header::getInstance().print(f_output);
+    SectionHeaderTable::getInstance().print(f_output);
 
     for (auto iterator : CustomSection::getSectionsMap()) {
         RelocationTable& relocation_table = iterator.second->getRelocationTable();
@@ -134,7 +123,7 @@ void Assembler::readElfFile(const char* _input_file_name) {
         iterator.second->getLiteralTable().print(f_output);
     }
 
-    symbol_table->print(f_output);
+    SymbolTable::getInstance().print(f_output);
 
     f_output << std::endl << "Content of file: " << _input_file_name << ":\n";
     while (!f_input.eof()) {

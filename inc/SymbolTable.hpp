@@ -8,12 +8,11 @@
 #include "Elf32.hpp"
 #include "Section.hpp"
 
-
 class SymbolTable : public Section {
 public:
 
-    SymbolTable();
-    
+    static SymbolTable& getInstance();
+
     friend class ForwardReferenceTable;
 
     void write(std::ofstream* _file) override;
@@ -47,6 +46,7 @@ public:
 
 private:
 
+    SymbolTable();
 
     std::vector<Elf32_Sym*> content;
 };

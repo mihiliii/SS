@@ -1,19 +1,29 @@
-#include "../inc/Assembler/SectionHeaderTable.hpp"
+#include "../inc/SectionHeaderTable.hpp"
+#include "../inc/StringTable.hpp"
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/Assembler/Assembler.hpp"
-#include "../inc/Assembler/Section.hpp"
+#include "../inc/Section.hpp"
+#include "SectionHeaderTable.hpp"
 
 uint32_t SectionHeaderTable::section_header_table_index = 0;
 
 SectionHeaderTable::SectionHeaderTable() : section_header_table() {}
 
+SectionHeaderTable& SectionHeaderTable::getInstance() {
+    static SectionHeaderTable instance;
+    return instance;
+}
+
 uint32_t SectionHeaderTable::insert(Elf32_Shdr* _section_entry) {
     section_header_table.emplace(section_header_table_index, _section_entry);
     return section_header_table_index++;
+}
+
+Elf32_Shdr* SectionHeaderTable::getSectionHeader(std::string _section_name) {
+    return nullptr;
 }
 
 void SectionHeaderTable::write(std::ofstream* _file) {
@@ -45,7 +55,7 @@ void SectionHeaderTable::print(std::ofstream& _file) {
         _file << "  ";
         _file << std::setw(3) << std::right << std::dec << std::setfill(' ') << index << " ";
         _file << std::left;
-        _file << std::setw(24) << Assembler::string_table->getString(section->sh_name) << " ";
+        _file << std::setw(24) << StringTable::getInstance().getString(section->sh_name) << " ";
         _file << std::right << std::hex << std::setfill('0');
         _file << std::setw(4) << section->sh_type << " ";
         _file << std::setw(8) << section->sh_addr << " ";

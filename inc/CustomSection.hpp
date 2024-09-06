@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include "LiteralTable.hpp"
-#include "RelocationTable.hpp"
+#include "./Assembler/LiteralTable.hpp"
+#include "./Assembler/RelocationTable.hpp"
 #include "Section.hpp"
 
 typedef uint32_t instruction_format;

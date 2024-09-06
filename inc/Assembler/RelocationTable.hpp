@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Elf32.hpp"
+#include "../Elf32.hpp"
 #include "Section.hpp"
 #include <vector>
 

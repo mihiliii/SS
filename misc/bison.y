@@ -4,8 +4,8 @@
     #include <cmath>
     #include "../inc/Assembler/Assembler.hpp"
     #include "../inc/Assembler/Instructions.hpp"
-    #include "../inc/Assembler/SymbolTable.hpp"
     #include "../inc/Assembler/Directives.hpp"
+    #include "../inc/SymbolTable.hpp"
 
     using namespace std;
 

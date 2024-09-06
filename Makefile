@@ -1,5 +1,6 @@
 BUILD_DIR = build
-ASSEMBLER_PROGRAM_NAME = assembler 
+ASSEMBLER_PROGRAM_NAME = assembler
+LINKER_PROGRAM_NAME = linker
 
 DEBUG_MODE = 0
 
@@ -10,20 +11,25 @@ C_FILES = \
 $(BUILD_DIR)/bison.tab.c \
 $(BUILD_DIR)/lex.yy.c
 
-CPP_FILES = \
+ASSEMBLER_FILES =\
 src/Assembler/Assembler.cpp \
-src/Assembler/CustomSection.cpp \
 src/Assembler/Directives.cpp \
-src/Assembler/ElfHeader.cpp \
 src/Assembler/ForwardReferenceTable.cpp \
 src/Assembler/Instructions.cpp \
 src/Assembler/LiteralTable.cpp \
 src/Assembler/main.cpp \
 src/Assembler/RelocationTable.cpp \
-src/Assembler/Section.cpp \
-src/Assembler/SectionHeaderTable.cpp \
-src/Assembler/StringTable.cpp \
-src/Assembler/SymbolTable.cpp \
+src/CustomSection.cpp \
+src/Elf32Header.cpp \
+src/Section.cpp \
+src/SectionHeaderTable.cpp \
+src/StringTable.cpp \
+src/SymbolTable.cpp \
+
+LINKER_FILES =\
+src/Linker/Linker.cpp \
+src/Linker/main.cpp \
+
 
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a
@@ -39,17 +45,22 @@ endif
 run: all
 	./$(ASSEMBLER_PROGRAM_NAME) $(ARGS)
 
-all: $(CPP_FILES) $(C_FILES) 
+all: assembler linker
+
+linker: $(LINKER_FILES)
+	g++ $(CXXFLAGS) -o $(LINKER_PROGRAM_NAME) $(^)
+
+assembler: $(ASSEMBLER_FILES) $(C_FILES) 
 	g++ $(CXXFLAGS) -o $(ASSEMBLER_PROGRAM_NAME) $(^) -lfl
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)
 	bison $(BISONFLAGS) -o $(@) $(<)
 
 $(BUILD_DIR)/lex.yy.c: $(FLEX_FILE) Makefile | $(BUILD_DIR)
-	flex $(FLEXFLAGS) -o $(@) $(<)
+	flex -o $(@) $(FLEXFLAGS) $(<)
 
 $(BUILD_DIR):
 	mkdir $(@)
 
 clean:
-	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME)
+	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME)

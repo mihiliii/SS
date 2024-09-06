@@ -48,12 +48,12 @@ void Instructions::call(uint32_t _value) {
 }
 
 void Instructions::call(std::string _symbol) {
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
+    Elf32_Sym* symbol_entry = SymbolTable::getInstance().getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = SymbolTable::getInstance().addSymbol(_symbol, 0, false);
 
-    Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
+    ForwardReferenceTable::getInstance().add(symbol_entry, Assembler::current_section->getLocationCounter());
     Assembler::current_section->appendContent(
         CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL_IND, (uint8_t) GPR::PC, 0, 0, 0)
     );
@@ -86,12 +86,12 @@ void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gpr
     if ((uint8_t) _mod < 0x8)
         _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
 
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
+    Elf32_Sym* symbol_entry = SymbolTable::getInstance().getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = SymbolTable::getInstance().addSymbol(_symbol, 0, false);
 
-    Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
+    ForwardReferenceTable::getInstance().add(symbol_entry, Assembler::current_section->getLocationCounter());
     instruction_format instruction =
         CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, (uint32_t) GPR::PC, _gprB, _gprC, 0);
 
@@ -181,21 +181,21 @@ void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint32_t _valu
 void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, std::string _symbol) {
     instruction_format instruction;
 
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
+    Elf32_Sym* symbol_entry = SymbolTable::getInstance().getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = SymbolTable::getInstance().addSymbol(_symbol, 0, false);
 
     switch (_addr) {
         case ADDR::IMMEDIATE: {
-            Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
+            ForwardReferenceTable::getInstance().add(symbol_entry, Assembler::current_section->getLocationCounter());
             instruction = CREATE_INSTRUCTION(
                 (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
             );
             break;
         }
         case ADDR::MEM_DIR: {
-            Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
+            ForwardReferenceTable::getInstance().add(symbol_entry, Assembler::current_section->getLocationCounter());
             instruction = CREATE_INSTRUCTION(
                 (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
             );
@@ -276,10 +276,10 @@ void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC
 void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
     instruction_format instruction;
 
-    Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
+    Elf32_Sym* symbol_entry = SymbolTable::getInstance().getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = SymbolTable::getInstance().addSymbol(_symbol, 0, false);
 
     switch (_addr) {
         case ADDR::IMMEDIATE: {
@@ -289,7 +289,7 @@ void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC
             break;
         }
         case ADDR::MEM_DIR: {
-            Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
+            ForwardReferenceTable::getInstance().add(symbol_entry, Assembler::current_section->getLocationCounter());
             instruction = CREATE_INSTRUCTION(
                 (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_MEM_GPRA_GPRB_DISP, (uint32_t) GPR::PC, 0, _gprC, 0
             );

@@ -4,15 +4,23 @@
 
 #include "SymbolTable.hpp"
 
-
 class ForwardReferenceTable {
 public:
+
+    static ForwardReferenceTable& getInstance();
 
     void add(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
 
     void backpatch();
 
+    ForwardReferenceTable(const ForwardReferenceTable&) = delete;
+    ForwardReferenceTable& operator=(const ForwardReferenceTable&) = delete;
+
+    ~ForwardReferenceTable() = default;
+
 private:
+
+    ForwardReferenceTable() = default;
 
     struct symbol_reference {
         Elf32_Addr address;        // Address of the section that needs to be replaced with the symbol value.

@@ -3,13 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#include "CustomSection.hpp"
-#include "ElfHeader.hpp"
-#include "Section.hpp"
-#include "SectionHeaderTable.hpp"
-#include "StringTable.hpp"
-#include "SymbolTable.hpp"
-#include "ForwardReferenceTable.hpp"
+#include "../CustomSection.hpp"
 
 struct Operand {
     std::string type;
@@ -37,9 +31,4 @@ public:
 
     static CustomSection* current_section;
 
-    static ElfHeader* elf_header;
-    static SectionHeaderTable* section_header_table;
-    static StringTable* string_table;
-    static SymbolTable* symbol_table;
-    static ForwardReferenceTable* forward_reference_table;
 };

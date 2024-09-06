@@ -1,4 +1,6 @@
-#include "../inc/Assembler/CustomSection.hpp"
+#include "../inc/CustomSection.hpp"
+#include "../inc/StringTable.hpp"
+#include "../inc/SymbolTable.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -13,7 +15,7 @@ CustomSection::CustomSection(const std::string& _name)
     section_header.sh_entsize = 4;
     section_header.sh_addralign = 4;
     all_sections[_name] = this;
-    Assembler::symbol_table->addSymbol(
+    SymbolTable::getInstance().addSymbol(
         _name, 0, true, section_header_table_index, ELF32_ST_INFO(STB_LOCAL, STT_SECTION)
     );
 }

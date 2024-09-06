@@ -6,10 +6,10 @@
 
 #include "Elf32.hpp"
 
+class SectionHeaderTable;
+
 class Section {
 public:
-
-    friend class SectionHeaderTable;
 
     virtual ~Section() {};
 
@@ -31,4 +31,5 @@ protected:
 
     Elf32_Shdr section_header;
     Elf32_Half section_header_table_index;
+
 };
