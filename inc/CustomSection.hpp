@@ -12,7 +12,7 @@ typedef uint32_t instruction_format;
 class CustomSection : public Section {
 public:
 
-    CustomSection(const std::string& _name);
+    CustomSection(SectionHeaderTable* _sht, const std::string& _name);
 
     void appendContent(void* _content, size_t _content_size);
 

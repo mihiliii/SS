@@ -5,12 +5,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/Assembler/ForwardReferenceTable.hpp"
-#include "../inc/Assembler/Instructions.hpp"
-#include "../inc/Elf32Header.hpp"
-#include "../inc/Section.hpp"
-#include "../inc/SectionHeaderTable.hpp"
-#include "../inc/StringTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -19,7 +13,18 @@ extern FILE* yyin;
 
 CustomSection* Assembler::current_section;
 
+Elf32Header* Assembler::elf32_header = nullptr;
+SectionHeaderTable* Assembler::section_header_table = nullptr;
+StringTable* Assembler::string_table = nullptr;
+SymbolTable* Assembler::symbol_table = nullptr;
+ForwardReferenceTable* Assembler::forward_reference_table = nullptr;
+
 int Assembler::startAssembler(const char* _input_file_name) {
+    elf32_header = new Elf32Header();
+    section_header_table = new SectionHeaderTable();
+    string_table = new StringTable(section_header_table);
+    symbol_table = new SymbolTable(section_header_table);
+    forward_reference_table = new ForwardReferenceTable();
 
     // Open a file handle to a particular file:
     FILE* f_input = fopen(_input_file_name, "r");
@@ -32,8 +37,8 @@ int Assembler::startAssembler(const char* _input_file_name) {
     yyin = f_input;
 
     // Parse through the input:
-    if (yyparse())
-        exit(0);
+    if (yyparse()) 
+        return -1;
 
     // Close the file handle:
     fclose(f_input);
@@ -43,8 +48,16 @@ int Assembler::startAssembler(const char* _input_file_name) {
     return 0;
 }
 
+void Assembler::closeAssembler() {
+    delete elf32_header;
+    delete section_header_table;
+    delete string_table;
+    delete symbol_table;
+    delete forward_reference_table;
+}
+
 void Assembler::startBackpatching() {
-    ForwardReferenceTable::getInstance().backpatch();
+    forward_reference_table->backpatch();
 
     for (auto iterator : CustomSection::getSectionsMap()) {
         current_section = iterator.second;
@@ -52,7 +65,7 @@ void Assembler::startBackpatching() {
     }
 }
 
-int Assembler::writeToFile(const char* _output_file_name) {
+int Assembler::writeToBinFile(const char* _output_file_name) {
     std::ofstream f_output(_output_file_name, std::ios::out | std::ios::binary);
 
     if (!f_output.is_open()) {
@@ -68,40 +81,40 @@ int Assembler::writeToFile(const char* _output_file_name) {
     }
 
     // Write the string table:
-    StringTable::getInstance().write(&f_output);
+    string_table->write(&f_output);
 
     // Write the symbol table:
-    SymbolTable::getInstance().write(&f_output);
+    symbol_table->write(&f_output);
 
     // Set section header table offset and number of entries in the ELF header:
     std::streampos section_header_table_offset = f_output.tellp();
-    Elf32Header::getInstance().setField(Elf32_Ehdr_Field::e_type, ET_REL);
-    Elf32Header::getInstance().setField(Elf32_Ehdr_Field::e_shoff, section_header_table_offset);
-    Elf32Header::getInstance().setField(Elf32_Ehdr_Field::e_shnum, SectionHeaderTable::getInstance().getSize() / sizeof(Elf32_Shdr));
+    elf32_header->setField(Elf32_Ehdr_Field::e_type, ET_REL);
+    elf32_header->setField(Elf32_Ehdr_Field::e_shoff, section_header_table_offset);
+    elf32_header->setField(Elf32_Ehdr_Field::e_shnum, section_header_table->getSize() / sizeof(Elf32_Shdr));
 
     // Write the section header table:
-    SectionHeaderTable::getInstance().write(&f_output);
+    section_header_table->write(&f_output);
 
     // Write the ELF header at the beginning of the file:
     f_output.seekp(0, std::ios::beg);
-    Elf32Header::getInstance().write(&f_output);
+    elf32_header->write(&f_output);
 
     f_output.close();
 
     return 0;
 }
 
-void Assembler::readElfFile(const char* _input_file_name) {
+int Assembler::writeToTxtFile(const char* _input_file_name) {
     std::ifstream f_input(_input_file_name, std::ios::in | std::ios::binary);
     std::ofstream f_output("readelf.txt", std::ios::out);
 
     if (!f_input.is_open()) {
         std::cout << "Error: can't open " << _input_file_name << std::endl;
-        return;
+        return -1;
     }
     else if (!f_output.is_open()) {
         std::cout << "Error: can't open readelf.txt" << std::endl;
-        return;
+        return -1;
     }
 
     size_t bufferSize = 1024;
@@ -112,8 +125,8 @@ void Assembler::readElfFile(const char* _input_file_name) {
     f_output << std::setw(len) << std::setfill('*') << "   " << "ELFREAD: " << _input_file_name << std::setw(len)
              << std::setfill('*') << std::left << "   " << std::endl;
 
-    Elf32Header::getInstance().print(f_output);
-    SectionHeaderTable::getInstance().print(f_output);
+    elf32_header->print(f_output);
+    section_header_table->print(f_output);
 
     for (auto iterator : CustomSection::getSectionsMap()) {
         RelocationTable& relocation_table = iterator.second->getRelocationTable();
@@ -123,7 +136,7 @@ void Assembler::readElfFile(const char* _input_file_name) {
         iterator.second->getLiteralTable().print(f_output);
     }
 
-    SymbolTable::getInstance().print(f_output);
+    symbol_table->print(f_output);
 
     f_output << std::endl << "Content of file: " << _input_file_name << ":\n";
     while (!f_input.eof()) {
@@ -181,4 +194,6 @@ void Assembler::readElfFile(const char* _input_file_name) {
 
     f_input.close();
     f_output.close();
+
+    return 0;
 }

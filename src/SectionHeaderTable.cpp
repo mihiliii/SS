@@ -1,28 +1,40 @@
 #include "../inc/SectionHeaderTable.hpp"
-#include "../inc/StringTable.hpp"
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
 #include "../inc/Section.hpp"
-#include "SectionHeaderTable.hpp"
+#include "../inc/StringTable.hpp"
+#include "../inc/SymbolTable.hpp"
 
-uint32_t SectionHeaderTable::section_header_table_index = 0;
+SectionHeaderTable::SectionHeaderTable() : section_header_table(), section_header_table_index(0) {}
 
-SectionHeaderTable::SectionHeaderTable() : section_header_table() {}
-
-SectionHeaderTable& SectionHeaderTable::getInstance() {
-    static SectionHeaderTable instance;
-    return instance;
+SectionHeaderTable::SectionHeaderTable(std::vector<Elf32_Shdr> _section_header_table)
+    : section_header_table(), section_header_table_index(0) {
+    for (auto& section : _section_header_table) {
+        section_header_table.emplace(section_header_table_index, new Elf32_Shdr(section));
+        section_header_table_index++;
+    }
 }
 
-uint32_t SectionHeaderTable::insert(Elf32_Shdr* _section_entry) {
-    section_header_table.emplace(section_header_table_index, _section_entry);
+uint32_t SectionHeaderTable::add() {
+    section_header_table.emplace(section_header_table_index, new Elf32_Shdr());
+    return section_header_table_index++;
+}
+
+uint32_t SectionHeaderTable::add(Elf32_Shdr** _section_header_handle) {
+    *_section_header_handle = new Elf32_Shdr();
+    section_header_table.emplace(section_header_table_index, *_section_header_handle);
     return section_header_table_index++;
 }
 
 Elf32_Shdr* SectionHeaderTable::getSectionHeader(std::string _section_name) {
+    for (auto& iterator : section_header_table) {
+        Elf32_Shdr* section = iterator.second;
+        if (str_table->getString(section->sh_name) == _section_name)
+            return section;
+    }
     return nullptr;
 }
 
@@ -55,7 +67,7 @@ void SectionHeaderTable::print(std::ofstream& _file) {
         _file << "  ";
         _file << std::setw(3) << std::right << std::dec << std::setfill(' ') << index << " ";
         _file << std::left;
-        _file << std::setw(24) << StringTable::getInstance().getString(section->sh_name) << " ";
+        _file << std::setw(24) << str_table->getString(section->sh_name) << " ";
         _file << std::right << std::hex << std::setfill('0');
         _file << std::setw(4) << section->sh_type << " ";
         _file << std::setw(8) << section->sh_addr << " ";
@@ -67,5 +79,11 @@ void SectionHeaderTable::print(std::ofstream& _file) {
         _file << std::setw(5) << std::dec << std::setfill(' ') << std::left << section->sh_addralign << " ";
         _file << std::setw(8) << section->sh_entsize << std::endl;
         index++;
+    }
+}
+
+SectionHeaderTable::~SectionHeaderTable() {
+    for (auto& iterator : section_header_table) {
+        delete iterator.second;
     }
 }

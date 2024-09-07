@@ -18,8 +18,9 @@ enum struct Elf32_Ehdr_Field {
 
 class Elf32Header {
 public:
+    Elf32Header();
 
-    static Elf32Header& getInstance();
+    Elf32Header(Elf32_Ehdr _elf_header);
 
     Elf32_Ehdr& getElfHeader() { return elf_header; }
 
@@ -29,13 +30,9 @@ public:
 
     void print(std::ofstream& _file);
 
-    Elf32Header(const Elf32Header&) = delete;
-    Elf32Header& operator=(const Elf32Header&) = delete;
-
     ~Elf32Header() = default;
 
 private:
-    Elf32Header();
 
     Elf32_Ehdr elf_header;
 };

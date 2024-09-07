@@ -5,8 +5,8 @@
 #include <string>
 
 #include "Elf32.hpp"
+#include "SectionHeaderTable.hpp"
 
-class SectionHeaderTable;
 
 class Section {
 public:
@@ -15,21 +15,19 @@ public:
 
     virtual void write(std::ofstream* _file) {};
 
-    Elf32_Shdr& getHeader() { return section_header; };
+    Elf32_Shdr* getHeader() { return sht->getSectionHeader(sht_index); };
 
-    Elf32_Half getSectionHeaderTableIndex() const { return section_header_table_index; };
+    Elf32_Half getSectionHeaderTableIndex() const { return sht_index; };
 
     std::string getName() const;
 
-    static std::string getName(uint32_t _index);
-
 protected:
 
-    Section();
+    Section(SectionHeaderTable* _sht);
 
-    Section(std::string _name);
+    Section(SectionHeaderTable* _sht, std::string _name);
 
-    Elf32_Shdr section_header;
-    Elf32_Half section_header_table_index;
-
+    SectionHeaderTable* sht;
+    Elf32_Shdr* section_header;
+    Elf32_Half sht_index;
 };

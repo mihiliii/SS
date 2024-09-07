@@ -7,17 +7,22 @@
 #include "Elf32.hpp"
 
 class StringTable;
+class SymbolTable;
 
 class SectionHeaderTable {
 public:
 
-    static SectionHeaderTable& getInstance();
+    SectionHeaderTable();
+
+    SectionHeaderTable(std::vector<Elf32_Shdr> _section_header_table);
 
     void write(std::ofstream* _file);
 
     void print(std::ofstream& _file);
 
-    uint32_t insert(Elf32_Shdr* _section_entry);
+    uint32_t add();
+
+    uint32_t add(Elf32_Shdr** _section_header);
 
     std::map<uint32_t, Elf32_Shdr*> getSectionHeaderTable() { return section_header_table; }
 
@@ -27,15 +32,22 @@ public:
 
     size_t getSize() const { return section_header_table.size() * sizeof(Elf32_Shdr); }
 
-    SectionHeaderTable(const SectionHeaderTable&) = delete;
-    SectionHeaderTable& operator=(const SectionHeaderTable&) = delete;
+    StringTable* getStringTable() { return str_table; }
 
-    ~SectionHeaderTable() = default;
+    SymbolTable* getSymbolTable() { return sym_table; }
+
+    void setStringTable(StringTable* _str_table) { str_table = _str_table; }
+
+    void setSymbolTable(SymbolTable* _sym_table) { sym_table = _sym_table; }
+
+    ~SectionHeaderTable();
 
 private:
 
-    SectionHeaderTable();
-
     std::map<uint32_t, Elf32_Shdr*> section_header_table;
-    static uint32_t section_header_table_index;
+    uint32_t section_header_table_index;
+
+    StringTable* str_table;
+    SymbolTable* sym_table;
+
 };

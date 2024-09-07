@@ -1,13 +1,15 @@
 #pragma once
 
 #include <map>
+#include <list>
+#include <string>
 
-#include "SymbolTable.hpp"
+#include "../Elf32.hpp"
 
 class ForwardReferenceTable {
 public:
 
-    static ForwardReferenceTable& getInstance();
+    ForwardReferenceTable() = default;
 
     void add(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
 
@@ -19,8 +21,6 @@ public:
     ~ForwardReferenceTable() = default;
 
 private:
-
-    ForwardReferenceTable() = default;
 
     struct symbol_reference {
         Elf32_Addr address;        // Address of the section that needs to be replaced with the symbol value.

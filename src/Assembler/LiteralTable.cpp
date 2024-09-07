@@ -4,7 +4,11 @@
 
 #include "../inc/Assembler/Assembler.hpp"
 #include "../inc/CustomSection.hpp"
+#include "../inc/SectionHeaderTable.hpp"
 #include "../inc/SymbolTable.hpp"
+
+LiteralTable::LiteralTable(SectionHeaderTable* _sht, CustomSection* _parent_section)
+    : sht(_sht), parent_section(_parent_section) {};
 
 bool LiteralTable::isEmpty() {
     return literal_table.empty();
@@ -25,7 +29,7 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
     if (symbol_value_table.find(_symbol_entry) == symbol_value_table.end()) {
         symbol_value_table[_symbol_entry] = std::make_pair(literal_pool.size() * sizeof(int), std::list<Elf32_Addr>());
 
-        uint32_t symbol_entry_index = SymbolTable::getInstance().getSymbolEntryIndex(_symbol_entry);
+        uint32_t symbol_entry_index = sht->getSymbolTable()->getSymbolEntryIndex(_symbol_entry);
 
         parent_section->getRelocationTable().add(
             parent_section->getLocationCounter() + literal_pool.size() * sizeof(int),

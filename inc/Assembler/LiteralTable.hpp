@@ -6,12 +6,13 @@
 
 #include "../Elf32.hpp"
 
+class SectionHeaderTable;
 class CustomSection;
 
 class LiteralTable {
 public:
 
-    LiteralTable(CustomSection* _parent_section) : parent_section(_parent_section) {};
+    LiteralTable(SectionHeaderTable* _sht, CustomSection* _parent_section);
 
     ~LiteralTable() = default;
 
@@ -35,6 +36,7 @@ public:
 
 private:
 
+    SectionHeaderTable* sht;
     CustomSection* parent_section;
 
     // literal -> offset in literal pool, list of addresses in section where literal is used

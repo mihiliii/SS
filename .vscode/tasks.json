@@ -4,7 +4,7 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++ build project (makefile)",
-            "command": "make clean linker",
+            "command": "make clean assembler",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"

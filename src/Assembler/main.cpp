@@ -41,16 +41,17 @@ int main(int argc, char* argv[]) {
 
     if (Assembler::startAssembler(input_file_name) == -1) {
         std::cerr << "Error: assembler failed to start. \n";
+        Assembler::closeAssembler();
         return -1;
     }
 
-    if (Assembler::writeToFile(output_file_name) == -1) {
+    if (Assembler::writeToBinFile(output_file_name) == -1) {
         std::cerr << "Error: assembler failed to write to file. \n";
-        return -1;
     }
     else {
-        Assembler::readElfFile(output_file_name);
+        Assembler::writeToTxtFile(output_file_name);
     }
+    Assembler::closeAssembler();
 
     return 0;
 }

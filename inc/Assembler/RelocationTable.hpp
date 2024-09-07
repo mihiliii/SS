@@ -9,7 +9,7 @@ class CustomSection;
 class RelocationTable : public Section {
 public:
 
-    RelocationTable(CustomSection* _linked_section);
+    RelocationTable(SectionHeaderTable* _sht, CustomSection* _linked_section);
 
     void print(std::ofstream& _file) const;
 

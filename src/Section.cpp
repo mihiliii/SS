@@ -3,20 +3,15 @@
 #include "../inc/SectionHeaderTable.hpp"
 #include "../inc/StringTable.hpp"
 
-Section::Section() : section_header(), section_header_table_index() {
-    section_header_table_index = SectionHeaderTable::getInstance().insert(&section_header);
+Section::Section(SectionHeaderTable* _sht) : sht(_sht), section_header(nullptr), sht_index(0) {
+    sht_index = sht->add(&section_header);
+}
+
+Section::Section(SectionHeaderTable* _sht, std::string _name) : sht(_sht), section_header(nullptr), sht_index(0) {
+    sht_index = sht->add(&section_header);
+    section_header->sh_name = sht->getStringTable()->addString(_name);
 }
 
 std::string Section::getName() const {
-    return std::string(StringTable::getInstance().getString(section_header.sh_name));
-}
-
-std::string Section::getName(uint32_t _index) {
-    Elf32_Shdr* section_header = SectionHeaderTable::getInstance().getSectionHeader(_index);
-    return StringTable::getInstance().getString(section_header->sh_name);
-}
-
-Section::Section(std::string _name) : section_header(), section_header_table_index() {
-    section_header.sh_name = StringTable::getInstance().addString(_name);
-    section_header_table_index = SectionHeaderTable::getInstance().insert(&section_header);
+    return std::string(sht->getStringTable()->getString(section_header->sh_name));
 }

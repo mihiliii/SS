@@ -11,7 +11,7 @@
 class SymbolTable : public Section {
 public:
 
-    static SymbolTable& getInstance();
+    SymbolTable(SectionHeaderTable* _sht);
 
     friend class ForwardReferenceTable;
 
@@ -39,14 +39,9 @@ public:
 
     void print(std::ofstream& _file) const;
 
-    SymbolTable(const SymbolTable&) = delete;
-    SymbolTable& operator=(const SymbolTable&) = delete;
-
     ~SymbolTable() = default;
 
 private:
-
-    SymbolTable();
 
     std::vector<Elf32_Sym*> content;
 };

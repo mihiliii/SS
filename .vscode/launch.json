@@ -5,11 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C/C++: g++ build and debug project (makefile)",
+            "name": "C/C++: g++ build and debug linker (makefile)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/linker",
-            "args": ["-hex"],
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "C/C++: g++ build and debug assembler (makefile)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/assembler",
+            "args": ["-o", "test.o", "test.s"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

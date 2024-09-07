@@ -6,10 +6,7 @@ Elf32Header::Elf32Header() {
     elf_header.e_shentsize = sizeof(Elf32_Shdr);
 }
 
-Elf32Header& Elf32Header::getInstance() {
-    static Elf32Header instance;
-    return instance;
-}
+Elf32Header::Elf32Header(Elf32_Ehdr _elf_header) : elf_header(_elf_header) {}
 
 void Elf32Header::setField(Elf32_Ehdr_Field _field, uint32_t _value) {
     switch (_field) {

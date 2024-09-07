@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Elf32.hpp"
+#include "Elf32Header.hpp"
 
 class ParseElf32 {
 public:
@@ -30,4 +31,9 @@ public:
 private:
 
     std::ifstream* elf32_file;
+    Elf32Header elf32_header;
+    SectionHeaderTable section_header_table;
+    SymbolTable symbol_table;
+    StringTable string_table;
+
 };

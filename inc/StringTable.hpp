@@ -9,7 +9,7 @@
 class StringTable : public Section {
 public:
 
-    static StringTable& getInstance();
+    StringTable(SectionHeaderTable* _sht);
 
     Elf32_Off addString(std::string _string);
 
@@ -19,14 +19,9 @@ public:
 
     void write(std::ofstream* _file) override;
 
-    StringTable(const StringTable&) = delete;
-    StringTable& operator=(const StringTable&) = delete;
-
     ~StringTable() = default;
 
 private:
-
-    StringTable();
 
     std::map<Elf32_Off, std::string> string_table;
 };
