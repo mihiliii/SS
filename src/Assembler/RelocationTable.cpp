@@ -6,11 +6,22 @@
 #include "../inc/CustomSection.hpp"
 #include "../inc/Elf32.hpp"
 #include "../inc/Section.hpp"
+#include "../inc/SectionHeaderTable.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "../inc/SectionHeaderTable.hpp"
 
-RelocationTable::RelocationTable(SectionHeaderTable* _sht, CustomSection* _linked_section) : Section(_sht), parent_section(_linked_section) {
+RelocationTable::RelocationTable(
+    SectionHeaderTable* _sht,
+    CustomSection* _linked_section,
+    Elf32_Shdr* _section_header,
+    std::vector<Elf32_Rela> _relocation_table
+)
+    : Section(_sht, _section_header), parent_section(_linked_section), relocation_table(_relocation_table) {
+    parent_section->setRelocationTable(this);
+}
+
+RelocationTable::RelocationTable(SectionHeaderTable* _sht, CustomSection* _linked_section)
+    : Section(_sht), parent_section(_linked_section) {
     section_header->sh_name = sht->getStringTable()->addString(std::string(".rela") + _linked_section->getName());
     section_header->sh_type = SHT_RELA;
     section_header->sh_entsize = sizeof(Elf32_Rela);
@@ -18,6 +29,7 @@ RelocationTable::RelocationTable(SectionHeaderTable* _sht, CustomSection* _linke
     section_header->sh_link = sht->getSymbolTable()->getSectionHeaderTableIndex();
     section_header->sh_addralign = 4;
     section_header->sh_size = 0;
+    parent_section->setRelocationTable(this);
 }
 
 void RelocationTable::print(std::ofstream& _file) const {

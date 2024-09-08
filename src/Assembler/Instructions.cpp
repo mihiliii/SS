@@ -51,7 +51,7 @@ void Instructions::call(std::string _symbol) {
     Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false, Assembler::current_section->getSectionHeaderTableIndex());
 
     Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
     Assembler::current_section->appendContent(
@@ -89,7 +89,7 @@ void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gpr
     Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false, Assembler::current_section->getSectionHeaderTableIndex());
 
     Assembler::forward_reference_table->add(symbol_entry, Assembler::current_section->getLocationCounter());
     instruction_format instruction =
@@ -184,7 +184,7 @@ void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, std::string _s
     Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false, Assembler::current_section->getSectionHeaderTableIndex());
 
     switch (_addr) {
         case ADDR::IMMEDIATE: {
@@ -279,7 +279,7 @@ void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC
     Elf32_Sym* symbol_entry = Assembler::symbol_table->getSymbol(_symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false);
+        symbol_entry = Assembler::symbol_table->addSymbol(_symbol, 0, false, Assembler::current_section->getSectionHeaderTableIndex());
 
     switch (_addr) {
         case ADDR::IMMEDIATE: {

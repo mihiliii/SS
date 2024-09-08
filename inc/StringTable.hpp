@@ -9,6 +9,10 @@
 class StringTable : public Section {
 public:
 
+    // Used in linker
+    StringTable(SectionHeaderTable* _sht, Elf32_Shdr* _section_header, std::vector<char> _str_table_data);
+
+    // Used in assembler
     StringTable(SectionHeaderTable* _sht);
 
     Elf32_Off addString(std::string _string);

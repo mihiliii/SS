@@ -5,7 +5,6 @@
 #include <iomanip>
 #include <iostream>
 
-
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
 extern int yyparse();
@@ -37,7 +36,7 @@ int Assembler::startAssembler(const char* _input_file_name) {
     yyin = f_input;
 
     // Parse through the input:
-    if (yyparse()) 
+    if (yyparse())
         return -1;
 
     // Close the file handle:
@@ -133,7 +132,9 @@ int Assembler::writeToTxtFile(const char* _input_file_name) {
         if (!relocation_table.isEmpty()) {
             relocation_table.print(f_output);
         }
-        iterator.second->getLiteralTable().print(f_output);
+        if (!iterator.second->getLiteralTable().isEmpty()) {
+            iterator.second->getLiteralTable().print(f_output);
+        }
     }
 
     symbol_table->print(f_output);

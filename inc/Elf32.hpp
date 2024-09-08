@@ -10,6 +10,9 @@ typedef int32_t Elf32_SWord;
 typedef uint8_t Elf32_Byte;
 typedef int8_t Elf32_SByte;
 
+#define ELF_WRITE 0x0  // Object is used for writing
+#define ELF_READ  0x1  // Object is used for reading
+
 // ****************************************************************************
 // *                                ELF HEADER                                *
 // ****************************************************************************
@@ -33,7 +36,6 @@ struct Elf32_Ehdr {
     Elf32_Half e_phnum;             // Program header table entry count
     Elf32_Half e_shentsize;         // Section header table entry size
     Elf32_Half e_shnum;             // Section header table entry count
-    Elf32_Half e_shstrndx;          // Section header string table index entry
 
     Elf32_Ehdr()
         : e_ident {'C', 'U', 'S', 'T', 'O', 'M', ' ', 'E', 'L', 'F', ' ', 'F', 'I', 'L', 'E', ' '},
@@ -44,8 +46,7 @@ struct Elf32_Ehdr {
           e_phentsize(0),
           e_phnum(0),
           e_shentsize(0),
-          e_shnum(0),
-          e_shstrndx(0) {}
+          e_shnum(0) {}
 };
 
 // ****************************************************************************
@@ -67,7 +68,7 @@ struct Elf32_Ehdr {
 // Struct that represents the section table entry
 struct Elf32_Shdr {
     Elf32_Word sh_name;       // Section name (string table index)
-    Elf32_Word sh_type;       // Section type, not used
+    Elf32_Word sh_type;       // Section type
     Elf32_Word sh_flags;      // Section attributes, not used
     Elf32_Addr sh_addr;       // Virtual address in memory
     Elf32_Off sh_offset;      // Offset of the section from start of ELF file

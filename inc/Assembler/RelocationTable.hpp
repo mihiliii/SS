@@ -9,6 +9,8 @@ class CustomSection;
 class RelocationTable : public Section {
 public:
 
+    RelocationTable(SectionHeaderTable* _sht, CustomSection* _linked_section, Elf32_Shdr* _section_header, std::vector<Elf32_Rela> _relocation_table);
+
     RelocationTable(SectionHeaderTable* _sht, CustomSection* _linked_section);
 
     void print(std::ofstream& _file) const;

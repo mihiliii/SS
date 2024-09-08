@@ -13,7 +13,6 @@ enum struct Elf32_Ehdr_Field {
     e_phnum,      // Program header table entry count
     e_shentsize,  // Section header table entry size
     e_shnum,      // Section header table entry count
-    e_shstrndx,   // Section header string table index entry
 };
 
 class Elf32Header {

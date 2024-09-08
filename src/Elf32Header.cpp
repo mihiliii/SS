@@ -34,9 +34,6 @@ void Elf32Header::setField(Elf32_Ehdr_Field _field, uint32_t _value) {
         case Elf32_Ehdr_Field::e_shnum:
             elf_header.e_shnum = _value;
             break;
-        case Elf32_Ehdr_Field::e_shstrndx:
-            elf_header.e_shstrndx = _value;
-            break;
         default:
             break;
     }
@@ -74,7 +71,6 @@ void Elf32Header::print(std::ofstream& _file) {
     _file << std::dec;
     _file << "  Section header entry size: " << elf_header.e_shentsize << " (bytes)" << std::endl;
     _file << "  Number of section headers: " << elf_header.e_shnum << std::endl;
-    _file << "  Section header string table index: " << elf_header.e_shstrndx << std::endl;
     _file << std::hex;
     _file << "  Page header offset: 0x" << elf_header.e_phoff << std::endl;
     _file << std::dec;

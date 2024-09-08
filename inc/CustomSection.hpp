@@ -12,7 +12,9 @@ typedef uint32_t instruction_format;
 class CustomSection : public Section {
 public:
 
-    CustomSection(SectionHeaderTable* _sht, const std::string& _name);
+    CustomSection(SectionHeaderTable* _sht, std::string _name, Elf32_Shdr* _section_header, std::vector<char> _section_data);
+
+    CustomSection(SectionHeaderTable* _sht, std::string _name);
 
     void appendContent(void* _content, size_t _content_size);
 
@@ -27,6 +29,8 @@ public:
     LiteralTable& getLiteralTable() { return literal_table; };
 
     RelocationTable& getRelocationTable();
+
+    void setRelocationTable(RelocationTable* _relocation_table);
 
     void print(std::ofstream& _file) const;
 

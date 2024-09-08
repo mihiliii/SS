@@ -24,7 +24,11 @@ public:
 
     uint32_t add(Elf32_Shdr** _section_header);
 
+    uint32_t addExisting(Elf32_Shdr _section_header);
+
     std::map<uint32_t, Elf32_Shdr*> getSectionHeaderTable() { return section_header_table; }
+
+    void setSectionHeaderTable(std::vector<Elf32_Shdr> _section_header_table); 
 
     Elf32_Shdr* getSectionHeader(uint32_t _index) { return section_header_table[_index]; }
 

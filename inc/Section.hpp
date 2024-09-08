@@ -7,9 +7,12 @@
 #include "Elf32.hpp"
 #include "SectionHeaderTable.hpp"
 
+class ParseElf32;
 
 class Section {
 public:
+
+    friend class ParseElf32;
 
     virtual ~Section() {};
 
@@ -23,9 +26,9 @@ public:
 
 protected:
 
-    Section(SectionHeaderTable* _sht);
+    Section(SectionHeaderTable* _sht, Elf32_Shdr* _section_header = nullptr);
 
-    Section(SectionHeaderTable* _sht, std::string _name);
+    Section(SectionHeaderTable* _sht, std::string _name, Elf32_Shdr* _section_header = nullptr);
 
     SectionHeaderTable* sht;
     Elf32_Shdr* section_header;

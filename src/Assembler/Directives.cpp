@@ -31,7 +31,7 @@ void Directives::wordDirective(std::vector<Operand>* _values) {
 
             // if symbol is not in symbol table
             if (symbol_entry == nullptr) {
-                symbol_entry = symbol_table->addSymbol(symbol_name, 0, false);
+                symbol_entry = symbol_table->addSymbol(symbol_name, 0, false, Assembler::current_section->getSectionHeaderTableIndex());
             }
 
             uint32_t symbol_entry_index = symbol_table->getSymbolEntryIndex(symbol_entry);
@@ -89,7 +89,7 @@ int Directives::defineLabel(std::string _label) {
             Assembler::symbol_table->defineSymbol(symbol_entry, location_counter);
         }
     else {
-        symbol_entry = Assembler::symbol_table->addSymbol(_label, location_counter, true);
+        symbol_entry = Assembler::symbol_table->addSymbol(_label, location_counter, true, Assembler::current_section->getSectionHeaderTableIndex());
     }
 
     return 0;

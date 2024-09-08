@@ -2,6 +2,22 @@
 
 #include <iomanip>
 
+#include "StringTable.hpp"
+
+StringTable::StringTable(SectionHeaderTable* _sht, Elf32_Shdr* _section_header, std::vector<char> _str_table_data)
+    : Section(_sht, _section_header) {
+    for (int i = 0; i < (int) _str_table_data.size(); i++) {
+        uint32_t offset = i;
+        std::string str;
+        while (_str_table_data[i] != '\0') {
+            str += _str_table_data[i];
+            i++;
+        }
+        string_table.insert(std::make_pair(offset, str));
+    }
+    _sht->setStringTable(this);
+}
+
 StringTable::StringTable(SectionHeaderTable* _sht) : Section(_sht) {
     section_header->sh_name = addString(".strtab");
     section_header->sh_type = SHT_STRTAB;
@@ -42,4 +58,3 @@ void StringTable::write(std::ofstream* _file) {
         _file->write(pair.second.c_str(), pair.second.size() + 1);
     }
 }
-

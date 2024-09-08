@@ -23,6 +23,19 @@ uint32_t SectionHeaderTable::add() {
     return section_header_table_index++;
 }
 
+uint32_t SectionHeaderTable::addExisting(Elf32_Shdr _section_header) {
+    Elf32_Shdr* new_section_header = new Elf32_Shdr(_section_header);
+    section_header_table.emplace(section_header_table_index, new_section_header);
+    return section_header_table_index++;
+}
+
+void SectionHeaderTable::setSectionHeaderTable(std::vector<Elf32_Shdr> _section_header_table) {
+    for (auto& section : _section_header_table) {
+        section_header_table.emplace(section_header_table_index, new Elf32_Shdr(section));
+        section_header_table_index++;
+    }
+}
+
 uint32_t SectionHeaderTable::add(Elf32_Shdr** _section_header_handle) {
     *_section_header_handle = new Elf32_Shdr();
     section_header_table.emplace(section_header_table_index, *_section_header_handle);

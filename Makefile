@@ -29,7 +29,15 @@ src/SymbolTable.cpp \
 LINKER_FILES =\
 src/Linker/Linker.cpp \
 src/Linker/main.cpp \
-
+src/Linker/ParseElf32.cpp \
+src/CustomSection.cpp \
+src/Elf32Header.cpp \
+src/Section.cpp \
+src/SectionHeaderTable.cpp \
+src/StringTable.cpp \
+src/SymbolTable.cpp \
+src/Assembler/LiteralTable.cpp \
+src/Assembler/RelocationTable.cpp \
 
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a

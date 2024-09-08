@@ -11,6 +11,10 @@
 class SymbolTable : public Section {
 public:
 
+    // Used in linker
+    SymbolTable(SectionHeaderTable* _sht, Elf32_Shdr* _section_header, std::vector<Elf32_Sym> _symbol_table);
+
+    // Used in assembler
     SymbolTable(SectionHeaderTable* _sht);
 
     friend class ForwardReferenceTable;
@@ -20,7 +24,7 @@ public:
     Elf32_Sym* addSymbol(Elf32_Sym& _symbol_entry);
 
     Elf32_Sym* addSymbol(
-        std::string _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index = -1, unsigned char _info = 0
+        std::string _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index, unsigned char _info = 0
     );
 
     Elf32_Sym* getSymbol(std::string _name);
@@ -39,7 +43,7 @@ public:
 
     void print(std::ofstream& _file) const;
 
-    ~SymbolTable() = default;
+    ~SymbolTable();
 
 private:
 

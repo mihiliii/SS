@@ -7,10 +7,16 @@
 #include "../inc/SectionHeaderTable.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
+#include "CustomSection.hpp"
 
 std::map<std::string, CustomSection*> CustomSection::all_sections;
 
-CustomSection::CustomSection(SectionHeaderTable* _sht, const std::string& _name)
+CustomSection::CustomSection(SectionHeaderTable* _sht, std::string _name, Elf32_Shdr* _section_header, std::vector<char> _section_data)
+    : Section(_sht, _section_header), content(_section_data), literal_table(_sht, this), relocation_table(nullptr) {
+    all_sections[_name] = this;
+}
+
+CustomSection::CustomSection(SectionHeaderTable* _sht, std::string _name)
     : Section(_sht, _name), literal_table(_sht, this), relocation_table(nullptr) {
     section_header->sh_type = SHT_CUSTOM;
     section_header->sh_entsize = 4;
@@ -51,6 +57,10 @@ RelocationTable& CustomSection::getRelocationTable() {
         relocation_table = new RelocationTable(sht, this);
     }
     return *relocation_table;
+}
+
+void CustomSection::setRelocationTable(RelocationTable* _relocation_table) {
+    relocation_table = _relocation_table;
 }
 
 void CustomSection::print(std::ofstream& _file) const {

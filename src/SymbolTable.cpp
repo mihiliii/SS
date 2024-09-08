@@ -5,8 +5,17 @@
 #include "../inc/Assembler/Assembler.hpp"
 #include "../inc/Assembler/Instructions.hpp"
 #include "../inc/Section.hpp"
-#include "../inc/StringTable.hpp"
 #include "../inc/SectionHeaderTable.hpp"
+#include "../inc/StringTable.hpp"
+
+SymbolTable::SymbolTable(SectionHeaderTable* _sht, Elf32_Shdr* _section_header, std::vector<Elf32_Sym> _symbol_table)
+    : Section(_sht, _section_header) {
+    for (Elf32_Sym& symbol_entry : _symbol_table) {
+        Elf32_Sym* symbol = new Elf32_Sym(symbol_entry);
+        content.emplace_back(symbol);
+    }
+    _sht->setSymbolTable(this);
+}
 
 SymbolTable::SymbolTable(SectionHeaderTable* _sht) : Section(_sht) {
     section_header->sh_name = _sht->getStringTable()->addString(".symtab");
@@ -31,13 +40,10 @@ Elf32_Sym* SymbolTable::addSymbol(
         return nullptr;
     }
 
-    Elf32_Half section_index =
-        ((short) _section_index == -1) ? Assembler::current_section->getSectionHeaderTableIndex() : _section_index;
-
     Elf32_Sym* symbol_entry = new Elf32_Sym(
         {.st_name = sht->getStringTable()->addString(_name),
          .st_info = _info,
-         .st_shndx = section_index,
+         .st_shndx = _section_index,
          .st_value = _value,
          .st_size = 0,
          .st_defined = _defined}
@@ -182,4 +188,11 @@ void SymbolTable::write(std::ofstream* _file) {
     for (Elf32_Sym* symbol_entry : content) {
         _file->write((char*) symbol_entry, sizeof(Elf32_Sym));
     }
+}
+
+SymbolTable::~SymbolTable() {
+    for (Elf32_Sym* symbol_entry : content) {
+        delete symbol_entry;
+    }
+    content.clear();
 }

@@ -3,7 +3,7 @@
 	"tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: g++ build project (makefile)",
+            "label": "C/C++: g++ build assembler (makefile)",
             "command": "make clean assembler",
             "args": [],
             "options": {
@@ -17,6 +17,24 @@
                 "isDefault": true
             },
             "detail": "compiler: /usr/bin/g++"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++ build linker (makefile)",
+            "command": "make clean linker",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "compiler: /usr/bin/g++"
         }
-    ]
+    ],
+
 }

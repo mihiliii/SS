@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/linker",
-            "args": [],
+            "args": ["-hex", "-o", "temp.hex", "test.o"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -26,7 +26,9 @@
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "preLaunchTask": "C/C++: g++ build linker (makefile)",
+            "miDebuggerPath": "/usr/bin/gdb"
         },
         {
             "name": "C/C++: g++ build and debug assembler (makefile)",
@@ -51,11 +53,8 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: g++ build project (makefile)",
+            "preLaunchTask": "C/C++: g++ build assembler (makefile)",
             "miDebuggerPath": "/usr/bin/gdb"
         }
-
-
-
     ]
 }
