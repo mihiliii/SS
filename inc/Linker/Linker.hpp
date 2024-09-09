@@ -6,6 +6,8 @@
 
 #include "../Elf32.hpp"
 
+class SectionHeaderTable;
+
 struct Place_arg {
     std::string section;
     Elf32_Addr address;
@@ -14,9 +16,9 @@ struct Place_arg {
 class Linker {
 public:
 
-    Linker();
+    Linker() = default;
 
-    ~Linker();
+    ~Linker() = default;
 
     void addArgument(Place_arg place_arg);
 
@@ -26,8 +28,9 @@ public:
 
 private:
 
+    SectionHeaderTable* linker_sht;
+
     std::vector<Place_arg> place_arguments;
     std::ofstream output_file;
-
         
 };

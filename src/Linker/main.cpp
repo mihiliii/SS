@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     int opt_val;
     int option_index;
     int is_hex = 0;
-    Linker linker = Linker();
+    Linker linker {};
     const char* output_file_name = nullptr;
 
     while ((opt_val = getopt_long_only(argc, argv, "o:", long_options, &option_index)) != -1) {

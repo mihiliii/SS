@@ -17,6 +17,9 @@ public:
     // Used in assembler
     SymbolTable(SectionHeaderTable* _sht);
 
+    // Creates empty symbol table
+    SymbolTable() = default;
+
     friend class ForwardReferenceTable;
 
     void write(std::ofstream* _file) override;

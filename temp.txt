@@ -3,7 +3,7 @@ Elf Header:
   Identification: C U S T O M   E L F   F I L E   
   Type: Relocatable file
   Entry point address: 0x0
-  Section header offset: 0xf4
+  Section header offset: 0xf0
   Section header entry size: 40 (bytes)
   Number of section headers: 4
   Page header offset: 0x0
@@ -12,10 +12,10 @@ Elf Header:
 
 Section Header Table:
   NUM NAME                     TYPE ADDRESS  OFFSET   SIZE     FLAGS    LINK INFO ALIGN ENTSIZE  
-    0 .strtab                  0002 00000000 0000005c 00000048 00000000 0000 0000 1     0       
-    1 .symtab                  0001 00000000 000000a4 00000050 00000000 0000 0000 4     20      
-    2 sekcija1                 0003 00000000 0000002c 0000001c 00000000 0000 0000 4     4       
-    3 .relasekcija1            0004 00000000 00000050 0000000c 00000000 0001 0002 4     12      
+    0 .strtab                  0002 00000000 00000058 00000048 00000000 0000 0000 1     0       
+    1 .symtab                  0001 00000000 000000a0 00000050 00000000 0000 0000 4     20      
+    2 sekcija1                 0003 00000000 00000028 0000001c 00000000 0000 0000 4     4       
+    3 .relasekcija1            0004 00000000 0000004c 0000000c 00000000 0001 0002 4     12      
 
 Symbol Table:
   NUM NAME                     VALUE    SIZE     TYPE     BIND  SHINDEX DEFINED
@@ -31,3 +31,6 @@ Content of section sekcija1:
 Relocation table .relasekcija1:
   NUM OFFSET   TYPE     SYMBOL                   ADDEND   
     0 00000020 ABS32    3 (labela2)              0       
+
+Section Header Table:
+  NUM NAME                     TYPE ADDRESS  OFFSET   SIZE     FLAGS    LINK INFO ALIGN ENTSIZE  

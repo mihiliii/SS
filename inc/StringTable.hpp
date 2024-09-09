@@ -15,6 +15,9 @@ public:
     // Used in assembler
     StringTable(SectionHeaderTable* _sht);
 
+    // Creates empty string table
+    StringTable() = default;
+
     Elf32_Off addString(std::string _string);
 
     std::string getString(Elf32_Off _offset);
