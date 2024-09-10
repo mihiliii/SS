@@ -3,48 +3,44 @@
 #include <string>
 #include <vector>
 
-#include "./Assembler/LiteralTable.hpp"
-#include "./Assembler/RelocationTable.hpp"
 #include "Section.hpp"
 
+class LiteralTable;
+class RelocationTable;
 typedef uint32_t instruction_format;
 
 class CustomSection : public Section {
 public:
 
-    CustomSection(SectionHeaderTable* _sht, std::string _name, Elf32_Shdr* _section_header, std::vector<char> _section_data);
+    CustomSection(Elf32_File* _elf32_file, std::string _name);
+    CustomSection(Elf32_File* _elf32_file, std::string _name, Elf32_Shdr _section_header, std::vector<char> _data);
 
-    CustomSection(SectionHeaderTable* _sht, std::string _name);
+    void append(void* _content, size_t _content_size);
+    void append(instruction_format _content);
 
-    void appendContent(void* _content, size_t _content_size);
-
-    void appendContent(instruction_format _content);
-
-    void overwriteContent(void* _content, size_t _content_size, Elf32_Off _offset);
+    void overwrite(void* _content, size_t _content_size, Elf32_Off _offset);
 
     char* getContent(Elf32_Off _offset);
 
-    Elf32_Off getLocationCounter() const { return content.size(); };
+    size_t size() const;
 
-    LiteralTable& getLiteralTable() { return literal_table; };
-
+    LiteralTable& getLiteralTable();
     RelocationTable& getRelocationTable();
 
     void setRelocationTable(RelocationTable* _relocation_table);
+    void setLiteralTable(LiteralTable* _literal_table);
 
     void print(std::ofstream& _file) const;
-
     void write(std::ofstream* _file) override;
 
-    static std::map<std::string, CustomSection*> getSectionsMap() { return all_sections; };
-
-    ~CustomSection() { delete relocation_table; };
+    ~CustomSection() {
+        delete relocation_table;
+        delete literal_table;
+    };
 
 private:
 
     std::vector<char> content;
-    LiteralTable literal_table;
+    LiteralTable* literal_table;
     RelocationTable* relocation_table;
-
-    static std::map<std::string, CustomSection*> all_sections;
 };

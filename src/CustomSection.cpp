@@ -3,45 +3,45 @@
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/Assembler/Assembler.hpp"
-#include "../inc/SectionHeaderTable.hpp"
+#include "../inc/Elf32_File.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "CustomSection.hpp"
+#include "../inc/RelocationTable.hpp"
+#include "../inc/LiteralTable.hpp"
 
-std::map<std::string, CustomSection*> CustomSection::all_sections;
-
-CustomSection::CustomSection(SectionHeaderTable* _sht, std::string _name, Elf32_Shdr* _section_header, std::vector<char> _section_data)
-    : Section(_sht, _section_header), content(_section_data), literal_table(_sht, this), relocation_table(nullptr) {
-    all_sections[_name] = this;
+CustomSection::CustomSection(Elf32_File* _elf32_file, std::string _name)
+    : Section(_elf32_file), literal_table(nullptr), relocation_table(nullptr) {
+    section_header.sh_type = SHT_CUSTOM;
+    section_header.sh_entsize = 4;
+    section_header.sh_addralign = 4;
+    elf32_file->getCustomSections().insert(std::pair<std::string, CustomSection*>(_name, this));
+    // elf32_file->getSymbolTable().add(_name, 0, true, sh_table_index, ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
 }
 
-CustomSection::CustomSection(SectionHeaderTable* _sht, std::string _name)
-    : Section(_sht, _name), literal_table(_sht, this), relocation_table(nullptr) {
-    section_header->sh_type = SHT_CUSTOM;
-    section_header->sh_entsize = 4;
-    section_header->sh_addralign = 4;
-    all_sections[_name] = this;
-    sht->getSymbolTable()->addSymbol(_name, 0, true, sht_index, ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
+CustomSection::CustomSection(
+    Elf32_File* _elf32_file, std::string _name, Elf32_Shdr _section_header, std::vector<char> _data
+)
+    : Section(_elf32_file, _section_header), content(_data), literal_table(_sht, this), relocation_table(nullptr) {
+    elf32_file->getCustomSections().insert(std::pair<std::string, CustomSection*>(_name, this));
 }
 
-void CustomSection::appendContent(void* _content, size_t _content_size) {
+void CustomSection::append(void* _content, size_t _content_size) {
     char* char_content = (char*) _content;
     for (size_t i = 0; i < _content_size; i++) {
         content.push_back(char_content[i]);
     }
-    section_header->sh_size += sizeof(char) * _content_size;
+    section_header.sh_size += sizeof(char) * _content_size;
 }
 
-void CustomSection::appendContent(instruction_format _content) {
+void CustomSection::append(instruction_format _content) {
     uint32_t instruction = (uint32_t) _content;
     for (size_t i = 0; i < sizeof(_content); i++) {
         content.push_back((char) ((instruction >> (8 * i)) & 0xFF));
     }
-    section_header->sh_size += sizeof(_content);
+    section_header.sh_size += sizeof(_content);
 }
 
-void CustomSection::overwriteContent(void* _content, size_t _content_size, Elf32_Off _offset) {
+void CustomSection::overwrite(void* _content, size_t _content_size, Elf32_Off _offset) {
     char* char_content = (char*) _content;
     for (size_t i = 0; i < _content_size; i++) {
         content[_offset + i] = char_content[i];
@@ -50,6 +50,17 @@ void CustomSection::overwriteContent(void* _content, size_t _content_size, Elf32
 
 char* CustomSection::getContent(Elf32_Off _offset) {
     return &content[_offset];
+}
+
+size_t CustomSection::size() const {
+    return content.size();
+}
+
+LiteralTable& CustomSection::getLiteralTable() {
+    if (literal_table == nullptr) {
+        literal_table = new LiteralTable(sht, this);
+    }
+    return *literal_table;
 }
 
 RelocationTable& CustomSection::getRelocationTable() {
@@ -61,6 +72,10 @@ RelocationTable& CustomSection::getRelocationTable() {
 
 void CustomSection::setRelocationTable(RelocationTable* _relocation_table) {
     relocation_table = _relocation_table;
+}
+
+void CustomSection::setLiteralTable(LiteralTable* _literal_table) {
+    literal_table = _literal_table;
 }
 
 void CustomSection::print(std::ofstream& _file) const {

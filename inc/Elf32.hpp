@@ -36,6 +36,11 @@ struct Elf32_Ehdr {
     Elf32_Half e_phnum;             // Program header table entry count
     Elf32_Half e_shentsize;         // Section header table entry size
     Elf32_Half e_shnum;             // Section header table entry count
+    Elf32_Addr e_stroff;            // String table offset
+    Elf32_Word e_strsize;           // String table size
+    Elf32_Addr e_symoff;            // Symbol table offset
+    Elf32_Word e_symsize;           // Symbol table size
+    Elf32_Word e_symallign;         // Symbol table alignment
 
     Elf32_Ehdr()
         : e_ident {'C', 'U', 'S', 'T', 'O', 'M', ' ', 'E', 'L', 'F', ' ', 'F', 'I', 'L', 'E', ' '},
@@ -46,7 +51,12 @@ struct Elf32_Ehdr {
           e_phentsize(0),
           e_phnum(0),
           e_shentsize(0),
-          e_shnum(0) {}
+          e_shnum(0),
+          e_stroff(0),
+          e_strsize(0),
+          e_symoff(0),
+          e_symsize(0),
+          e_symallign(4) {}
 };
 
 // ****************************************************************************

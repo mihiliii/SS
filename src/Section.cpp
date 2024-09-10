@@ -1,20 +1,23 @@
 #include "../inc/Section.hpp"
 
-#include "../inc/SectionHeaderTable.hpp"
-#include "../inc/StringTable.hpp"
+#include "../inc/Elf32_File.hpp"
 
-Section::Section(SectionHeaderTable* _sht, Elf32_Shdr* _section_header) : sht(_sht), section_header(_section_header), sht_index(0) {
-    if (_section_header == nullptr)
-        sht_index = sht->add(&section_header);
-}
+Section::Section(Elf32_File* _elf32_file)
+    : elf32_file(_elf32_file), section_header(), sh_table_index(_elf32_file->getSectionHeaderTable().size()) {}
 
-Section::Section(SectionHeaderTable* _sht, std::string _name, Elf32_Shdr* _section_header) : sht(_sht), section_header(_section_header), sht_index(0) {
-    if (_section_header == nullptr) {
-        sht_index = sht->add(&section_header);
-        section_header->sh_name = sht->getStringTable()->addString(_name);
-    }
-}
+Section::Section(Elf32_File* _elf32_file, Elf32_Shdr _section_header)
+    : elf32_file(_elf32_file),
+      section_header(_section_header),
+      sh_table_index(_elf32_file->getSectionHeaderTable().size()) {}
 
 std::string Section::getName() const {
-    return sht->getStringTable()->getString(section_header->sh_name);
+    return elf32_file->getStringTable().get(section_header.sh_name);
+}
+
+Elf32_Half Section::getIndex() const {
+    return sh_table_index;
+}
+
+Elf32_Shdr& Section::getHeader() {
+    return section_header;
 }

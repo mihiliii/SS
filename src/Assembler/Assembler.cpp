@@ -87,9 +87,9 @@ int Assembler::writeToBinFile(const char* _output_file_name) {
 
     // Set section header table offset and number of entries in the ELF header:
     std::streampos section_header_table_offset = f_output.tellp();
-    elf32_header->setField(Elf32_Ehdr_Field::e_type, ET_REL);
-    elf32_header->setField(Elf32_Ehdr_Field::e_shoff, section_header_table_offset);
-    elf32_header->setField(Elf32_Ehdr_Field::e_shnum, section_header_table->getSize() / sizeof(Elf32_Shdr));
+    elf32_header->set(Elf32_Ehdr_Field::e_type, ET_REL);
+    elf32_header->set(Elf32_Ehdr_Field::e_shoff, section_header_table_offset);
+    elf32_header->set(Elf32_Ehdr_Field::e_shnum, section_header_table->getSize() / sizeof(Elf32_Shdr));
 
     // Write the section header table:
     section_header_table->write(&f_output);

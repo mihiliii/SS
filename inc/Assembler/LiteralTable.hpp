@@ -12,31 +12,23 @@ class CustomSection;
 class LiteralTable {
 public:
 
-    LiteralTable(SectionHeaderTable* _sht, CustomSection* _parent_section);
-
-    ~LiteralTable() = default;
-
-    bool isEmpty();
+    LiteralTable(Elf32_File* _elf32_file, CustomSection* _parent_section);
 
     void addLiteralReference(int _literal, Elf32_Addr _address);
-
     void addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
-
-    Elf32_Off addLiteralToPool(int _literal);
-
-    Elf32_Off getLiteralOffset(int _literal);
 
     size_t getSize() const { return literal_pool.size(); };
 
     void print(std::ofstream& _file);
-
     void writePool(std::ofstream* _file);
 
     void resolveReferences();
 
+    ~LiteralTable() = default;
+
 private:
 
-    SectionHeaderTable* sht;
+    Elf32_File* elf32_file;
     CustomSection* parent_section;
 
     // literal -> offset in literal pool, list of addresses in section where literal is used

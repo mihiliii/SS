@@ -38,10 +38,7 @@ public:
 
     static CustomSection* current_section;
 
-    static Elf32Header* elf32_header;
-    static SectionHeaderTable* section_header_table;
-    static StringTable* string_table;
-    static SymbolTable* symbol_table;
+    static Elf32_File elf32_file;
     static ForwardReferenceTable* forward_reference_table;
 
 };

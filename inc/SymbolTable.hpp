@@ -8,39 +8,29 @@
 #include "Elf32.hpp"
 #include "Section.hpp"
 
-class SymbolTable : public Section {
+class Elf32_File;
+
+class SymbolTable {
 public:
-
-    // Used in linker
-    SymbolTable(SectionHeaderTable* _sht, Elf32_Shdr* _section_header, std::vector<Elf32_Sym> _symbol_table);
-
-    // Used in assembler
-    SymbolTable(SectionHeaderTable* _sht);
-
-    // Creates empty symbol table
-    SymbolTable() = default;
 
     friend class ForwardReferenceTable;
 
-    void write(std::ofstream* _file) override;
+    SymbolTable(Elf32_File* _elf32_file, std::map<std::string, Elf32_Sym> _symbol_table);
+    SymbolTable(Elf32_File* _elf32_file);
+    SymbolTable() = default;
 
-    Elf32_Sym* addSymbol(Elf32_Sym& _symbol_entry);
+    void write(std::ofstream* _file);
 
-    Elf32_Sym* addSymbol(
+    Elf32_Sym* add(std::string _name, Elf32_Sym _symbol_entry);
+    Elf32_Sym* add(
         std::string _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index, unsigned char _info = 0
     );
 
-    Elf32_Sym* getSymbol(std::string _name);
+    Elf32_Sym* get(std::string _name);
+    Elf32_Sym* get(uint32_t _entry_index);
 
-    Elf32_Sym* getSymbol(uint32_t _entry_index);
-
-    uint32_t getSymbolEntryIndex(std::string _name);
-
-    uint32_t getSymbolEntryIndex(Elf32_Sym* _symbol_entry);
-
-    void setInfo(std::string _name, Elf32_Half _info);
-
-    void setInfo(Elf32_Sym* _symbol, Elf32_Half _info);
+    uint32_t getIndex(std::string _name);
+    uint32_t getIndex(Elf32_Sym* _symbol_entry);
 
     void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value);
 
@@ -50,5 +40,6 @@ public:
 
 private:
 
-    std::vector<Elf32_Sym*> content;
+    Elf32_File* elf32_file;
+    std::vector<Elf32_Sym*> symbol_table;
 };

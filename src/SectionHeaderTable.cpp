@@ -8,53 +8,27 @@
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
 
-SectionHeaderTable::SectionHeaderTable() : section_header_table(), section_header_table_index(0) {}
+SectionHeaderTable::SectionHeaderTable() : section_header_table() {}
 
-SectionHeaderTable::SectionHeaderTable(std::vector<Elf32_Shdr> _section_header_table)
-    : section_header_table(), section_header_table_index(0) {
-    for (auto& section : _section_header_table) {
-        section_header_table.emplace(section_header_table_index, new Elf32_Shdr(section));
-        section_header_table_index++;
-    }
-}
+SectionHeaderTable::SectionHeaderTable(SHT_t _section_header_table) : section_header_table(_section_header_table) {}
 
 uint32_t SectionHeaderTable::add() {
-    section_header_table.emplace(section_header_table_index, new Elf32_Shdr());
-    return section_header_table_index++;
+    section_header_table.emplace_back(Elf32_Shdr {});
+    return section_header_table.size() - 1;
 }
 
-uint32_t SectionHeaderTable::addExisting(Elf32_Shdr _section_header) {
-    Elf32_Shdr* new_section_header = new Elf32_Shdr(_section_header);
-    section_header_table.emplace(section_header_table_index, new_section_header);
-    return section_header_table_index++;
+uint32_t SectionHeaderTable::add(Elf32_Shdr _section_header) {
+    section_header_table.emplace_back(_section_header);
+    return section_header_table.size() - 1;
 }
 
-void SectionHeaderTable::setSectionHeaderTable(std::vector<Elf32_Shdr> _section_header_table) {
-    for (auto& section : _section_header_table) {
-        section_header_table.emplace(section_header_table_index, new Elf32_Shdr(section));
-        section_header_table_index++;
-    }
-}
-
-uint32_t SectionHeaderTable::add(Elf32_Shdr** _section_header_handle) {
-    *_section_header_handle = new Elf32_Shdr();
-    section_header_table.emplace(section_header_table_index, *_section_header_handle);
-    return section_header_table_index++;
-}
-
-Elf32_Shdr* SectionHeaderTable::getSectionHeader(std::string _section_name) {
-    for (auto& iterator : section_header_table) {
-        Elf32_Shdr* section = iterator.second;
-        if (str_table->getString(section->sh_name) == _section_name)
-            return section;
-    }
-    return nullptr;
+void SectionHeaderTable::set(SHT_t _section_header_table) {
+    section_header_table = _section_header_table;
 }
 
 void SectionHeaderTable::write(std::ofstream* _file) {
-    for (auto& iterator : section_header_table) {
-        Elf32_Shdr* section = iterator.second;
-        _file->write((char*) (section), sizeof(Elf32_Shdr));
+    for (auto& section_header : section_header_table) {
+        _file->write((char*) (&section_header), sizeof(Elf32_Shdr));
     }
 }
 
@@ -75,7 +49,7 @@ void SectionHeaderTable::print(std::ofstream& _file) {
     _file << std::setw(9) << "ENTSIZE";
     _file << std::endl;
     uint32_t index = 0;
-    for (auto& iterator : section_header_table) {
+    for (auto& section_header : section_header_table) {
         Elf32_Shdr* section = iterator.second;
         _file << "  ";
         _file << std::setw(3) << std::right << std::dec << std::setfill(' ') << index << " ";

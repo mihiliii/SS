@@ -1,36 +1,29 @@
 #pragma once
 
 #include <iostream>
-#include <map>
 #include <string>
 
 #include "Elf32.hpp"
-#include "SectionHeaderTable.hpp"
 
-class ParseElf32;
+class Elf32_File;
 
 class Section {
 public:
 
-    friend class ParseElf32;
-
-    virtual ~Section() {};
+    Elf32_Shdr& getHeader();
+    Elf32_Half getIndex() const;
+    std::string getName() const;
 
     virtual void write(std::ofstream* _file) {};
 
-    Elf32_Shdr* getHeader() { return sht->getSectionHeader(sht_index); };
-
-    Elf32_Half getSectionHeaderTableIndex() const { return sht_index; };
-
-    std::string getName() const;
+    virtual ~Section() {};
 
 protected:
 
-    Section(SectionHeaderTable* _sht, Elf32_Shdr* _section_header = nullptr);
+    Section(Elf32_File* _elf32_file);
+    Section(Elf32_File* _elf32_file, Elf32_Shdr _section_header);
 
-    Section(SectionHeaderTable* _sht, std::string _name, Elf32_Shdr* _section_header = nullptr);
-
-    SectionHeaderTable* sht;
-    Elf32_Shdr* section_header;
-    Elf32_Half sht_index;
+    Elf32_File* elf32_file;
+    Elf32_Shdr section_header;
+    uint32_t sh_table_index;
 };
