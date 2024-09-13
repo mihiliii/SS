@@ -14,7 +14,7 @@ void ForwardReferenceTable::add(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {
         forward_references[symbol_name] = std::list<symbol_reference>();
     }
 
-    Elf32_Half current_section_index = Assembler::current_section->getIndex();
+    Elf32_Half current_section_index = Assembler::current_section->index();
     forward_references[symbol_name].push_back({_address, current_section_index});
 }
 

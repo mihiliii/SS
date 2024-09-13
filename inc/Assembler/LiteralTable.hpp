@@ -12,7 +12,7 @@ class CustomSection;
 class LiteralTable {
 public:
 
-    LiteralTable(Elf32_File* _elf32_file, CustomSection* _parent_section);
+    LiteralTable(Elf32File* _elf32_file, CustomSection* _parent_section);
 
     void addLiteralReference(int _literal, Elf32_Addr _address);
     void addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
@@ -28,7 +28,7 @@ public:
 
 private:
 
-    Elf32_File* elf32_file;
+    Elf32File* elf32_file;
     CustomSection* parent_section;
 
     // literal -> offset in literal pool, list of addresses in section where literal is used

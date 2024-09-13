@@ -6,13 +6,13 @@
 
 #include "Elf32.hpp"
 
-class Elf32_File;
+class Elf32File;
 
-class StringTable {
+class StringTable : Section {
 public:
 
-    StringTable(Elf32_File* _elf32_file, std::vector<char> _str_table_data);
-    StringTable(Elf32_File* _elf32_file);
+    StringTable(Elf32File* _elf32_file);
+    StringTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<char> _str_table_data);
 
     Elf32_Off add(std::string _string);
 
@@ -25,6 +25,5 @@ public:
 
 private:
 
-    Elf32_File* elf32_file;
     std::map<Elf32_Off, std::string> string_table;
 };

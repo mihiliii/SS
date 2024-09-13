@@ -11,12 +11,12 @@ class RelocationTable : public Section {
 public:
 
     RelocationTable(
-        Elf32_File* _elf32_file,
+        Elf32File* _elf32_file,
         CustomSection* _linked_section,
         Elf32_Shdr _section_header,
         std::vector<Elf32_Rela> _relocation_table
     );
-    RelocationTable(Elf32_File* _elf32_file, CustomSection* _linked_section);
+    RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section);
 
     void print(std::ofstream& _file) const;
     void write(std::ofstream* _file) override;

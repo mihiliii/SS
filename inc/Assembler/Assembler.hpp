@@ -3,12 +3,9 @@
 #include <iostream>
 #include <vector>
 
-#include "../CustomSection.hpp"
-#include "../Elf32Header.hpp"
-#include "../SectionHeaderTable.hpp"
-#include "../StringTable.hpp"
-#include "../SymbolTable.hpp"
-#include "ForwardReferenceTable.hpp"
+class CustomSection;
+class Elf32File;
+class ForwardReferenceTable;
 
 struct Operand {
     std::string type;
@@ -38,7 +35,7 @@ public:
 
     static CustomSection* current_section;
 
-    static Elf32_File elf32_file;
-    static ForwardReferenceTable* forward_reference_table;
+    static Elf32File elf32_file;
+    static ForwardReferenceTable forward_reference_table;
 
 };

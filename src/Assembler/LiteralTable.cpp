@@ -4,10 +4,10 @@
 
 #include "../inc/CustomSection.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "../inc/Elf32_File.hpp"
+#include "../inc/Elf32File.hpp"
 #include "../inc/RelocationTable.hpp"
 
-LiteralTable::LiteralTable(Elf32_File* _elf32_file, CustomSection* _parent_section)
+LiteralTable::LiteralTable(Elf32File* _elf32_file, CustomSection* _parent_section)
     : elf32_file(_elf32_file), parent_section(_parent_section) {};
 
 // Method needs to be called when literal cant stay in instruction displacement field because of its size.

@@ -5,14 +5,14 @@
 
 #include "Elf32.hpp"
 
-class Elf32_File;
+class Elf32File;
 
 class Section {
 public:
 
-    Elf32_Shdr& getHeader();
-    Elf32_Half getIndex() const;
-    std::string getName() const;
+    Elf32_Shdr& header();
+    Elf32_Half index() const;
+    std::string name() const;
 
     virtual void write(std::ofstream* _file) {};
 
@@ -20,10 +20,10 @@ public:
 
 protected:
 
-    Section(Elf32_File* _elf32_file);
-    Section(Elf32_File* _elf32_file, Elf32_Shdr _section_header);
+    Section(Elf32File* _elf32_file);
+    Section(Elf32File* _elf32_file, Elf32_Shdr _section_header);
 
-    Elf32_File* elf32_file;
+    Elf32File* elf32_file;
     Elf32_Shdr section_header;
     uint32_t sh_table_index;
 };

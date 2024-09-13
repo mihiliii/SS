@@ -8,16 +8,15 @@
 #include "Elf32.hpp"
 #include "Section.hpp"
 
-class Elf32_File;
+class Elf32File;
 
-class SymbolTable {
+class SymbolTable : Section {
 public:
 
     friend class ForwardReferenceTable;
 
-    SymbolTable(Elf32_File* _elf32_file, std::map<std::string, Elf32_Sym> _symbol_table);
-    SymbolTable(Elf32_File* _elf32_file);
-    SymbolTable() = default;
+    SymbolTable(Elf32File* _elf32_file);
+    SymbolTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<Elf32_Sym> _symbol_table);
 
     void write(std::ofstream* _file);
 
@@ -40,6 +39,5 @@ public:
 
 private:
 
-    Elf32_File* elf32_file;
     std::vector<Elf32_Sym*> symbol_table;
 };

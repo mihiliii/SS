@@ -4,17 +4,17 @@
 
 #include "../inc/CustomSection.hpp"
 #include "../inc/Elf32.hpp"
-#include "../inc/Elf32_File.hpp"
+#include "../inc/Elf32File.hpp"
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
 
-RelocationTable::RelocationTable(Elf32_File* _elf32_file, CustomSection* _linked_section)
+RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section)
     : Section(_elf32_file), parent_section(_linked_section) {
-    section_header.sh_name = _elf32_file->getStringTable().add(std::string(".rela") + _linked_section->getName());
+    section_header.sh_name = _elf32_file->getStringTable().add(std::string(".rela") + _linked_section->name());
     section_header.sh_type = SHT_RELA;
     section_header.sh_entsize = sizeof(Elf32_Rela);
-    section_header.sh_info = _linked_section->getIndex();
+    section_header.sh_info = _linked_section->index();
     section_header.sh_link = 0;
     section_header.sh_addralign = 4;
     section_header.sh_size = 0;
@@ -22,7 +22,7 @@ RelocationTable::RelocationTable(Elf32_File* _elf32_file, CustomSection* _linked
 }
 
 RelocationTable::RelocationTable(
-    Elf32_File* _elf32_file,
+    Elf32File* _elf32_file,
     CustomSection* _linked_section,
     Elf32_Shdr _section_header,
     std::vector<Elf32_Rela> _relocation_table
@@ -32,7 +32,7 @@ RelocationTable::RelocationTable(
 }
 
 void RelocationTable::print(std::ofstream& _file) const {
-    _file << std::endl << "Relocation table " << this->getName() << ":" << std::endl;
+    _file << std::endl << "Relocation table " << this->name() << ":" << std::endl;
     _file << std::left << std::setfill(' ');
     _file << "  ";
     _file << std::setw(4) << "NUM";
@@ -44,9 +44,9 @@ void RelocationTable::print(std::ofstream& _file) const {
     int i = 0;
     for (Elf32_Rela relocation_table_entry : relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
-        Elf32_Sym* symbol = sht->getSymbolTable()->getSymbol(symbol_index);
+        Elf32_Sym* symbol = elf32_file->getSymbolTable().get(symbol_index);
 
-        std::string symbol_name = sht->getStringTable()->getString(symbol->st_name);
+        std::string symbol_name = elf32_file->getStringTable().get(symbol->st_name);
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(relocation_table_entry.r_info)) {

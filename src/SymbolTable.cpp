@@ -2,24 +2,22 @@
 
 #include <iomanip>
 
-#include "../inc/Assembler/Instructions.hpp"
-#include "../inc/Elf32_File.hpp"
-#include "../inc/Section.hpp"
+#include "../inc/Elf32File.hpp"
 #include "../inc/StringTable.hpp"
 
-SymbolTable::SymbolTable(Elf32_File* _elf32_file, std::map<std::string, Elf32_Sym> _symbol_table)
-    : elf32_file(_elf32_file), symbol_table() {
+SymbolTable::SymbolTable(Elf32File* _elf32_file) : Section(_elf32_file), symbol_table() {
+    section_header.sh_name = elf32_file->getStringTable().add(".symtab");
+    section_header.sh_type = SHT_SYMTAB;
+    section_header.sh_entsize = sizeof(Elf32_Sym);
+}
+
+SymbolTable::SymbolTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<Elf32_Sym> _symbol_table)
+    : Section(_elf32_file), symbol_table() {
     for (auto& symbol_entry : _symbol_table) {
-        Elf32_Sym* symbol = new Elf32_Sym(symbol_entry.second);
-        if (elf32_file->getStringTable().get(symbol_entry.first) == -1)
-            symbol->st_name = elf32_file->getStringTable().add(elf32_file->getStringTable().get(symbol->st_name));
-        else
-            symbol->st_name = elf32_file->getStringTable().get(symbol_entry.first);
+        Elf32_Sym* symbol = new Elf32_Sym(symbol_entry);
         symbol_table.emplace_back(symbol);
     }
 }
-
-SymbolTable::SymbolTable(Elf32_File* _elf32_file) : symbol_table() {}
 
 Elf32_Sym* SymbolTable::add(std::string _name, Elf32_Sym _symbol_entry) {
     Elf32_Sym* symbol_entry = new Elf32_Sym(_symbol_entry);
@@ -28,7 +26,7 @@ Elf32_Sym* SymbolTable::add(std::string _name, Elf32_Sym _symbol_entry) {
     else
         symbol_entry->st_name = elf32_file->getStringTable().get(_name);
     symbol_table.emplace_back(symbol_entry);
-    elf32_file->getElf32Header().e_symsize += sizeof(Elf32_Sym);
+    section_header.sh_size += sizeof(Elf32_Sym);
     return symbol_entry;
 }
 
@@ -44,7 +42,7 @@ Elf32_Sym* SymbolTable::add(
          .st_defined = _defined}
     );
     symbol_table.emplace_back(symbol_entry);
-    elf32_file->getElf32Header().e_symsize += sizeof(Elf32_Sym);
+    section_header.sh_size += sizeof(Elf32_Sym);
     return symbol_entry;
 }
 
@@ -58,7 +56,7 @@ Elf32_Sym* SymbolTable::get(std::string _name) {
 
 Elf32_Sym* SymbolTable::get(uint32_t _entry_index) {
     if (_entry_index >= symbol_table.size())
-        std::cerr << "Error at SymbolTable::get(uint32_t _entry_index): Symbol entry index out of bounds." << std::endl;
+        return nullptr;
     return symbol_table[_entry_index];
 }
 
@@ -158,13 +156,13 @@ void SymbolTable::print(std::ofstream& _file) const {
 }
 
 void SymbolTable::write(std::ofstream* _file) {
-    elf32_file->getElf32Header().e_symsize = symbol_table.size() * sizeof(Elf32_Sym);
+    section_header.sh_size = symbol_table.size() * sizeof(Elf32_Sym);
 
     _file->write(
-        "\0", elf32_file->getElf32Header().e_symallign - (_file->tellp() % elf32_file->getElf32Header().e_symallign)
+        "\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign)
     );
 
-    elf32_file->getElf32Header().e_symoff = _file->tellp();
+    section_header.sh_offset = _file->tellp();
 
     for (Elf32_Sym* symbol_entry : symbol_table) {
         _file->write((char*) symbol_entry, sizeof(Elf32_Sym));
