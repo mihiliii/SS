@@ -3,26 +3,30 @@
 #include <iomanip>
 #include <iostream>
 
+#include "../inc/Assembler/LiteralTable.hpp"
 #include "../inc/Elf32File.hpp"
+#include "../inc/RelocationTable.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "../inc/RelocationTable.hpp"
-#include "../inc/LiteralTable.hpp"
 
 CustomSection::CustomSection(Elf32File* _elf32_file, std::string _name)
-    : Section(_elf32_file), literal_table(nullptr), relocation_table(nullptr) {
+    : Section(_elf32_file), literal_table(new LiteralTable(_elf32_file, this)), relocation_table(nullptr) {
     section_header.sh_type = SHT_CUSTOM;
     section_header.sh_entsize = 4;
     section_header.sh_addralign = 4;
-    // elf32_file->getCustomSections().insert(std::pair<std::string, CustomSection*>(_name, this));
-    // elf32_file->getSymbolTable().add(_name, 0, true, sh_table_index, ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
+    section_header.sh_name = elf32_file->getStringTable().add(_name);
+    elf32_file->getCustomSections().insert(std::pair<std::string, CustomSection*>(_name, this));
+    elf32_file->getSymbolTable().add(_name, 0, true, sh_table_index, ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
 }
 
 CustomSection::CustomSection(
     Elf32File* _elf32_file, std::string _name, Elf32_Shdr _section_header, std::vector<char> _data
 )
-    : Section(_elf32_file, _section_header), content(_data), literal_table(_sht, this), relocation_table(nullptr) {
-    // elf32_file->getCustomSections().insert(std::pair<std::string, CustomSection*>(_name, this));
+    : Section(_elf32_file, _section_header),
+      content(_data),
+      literal_table(new LiteralTable(_elf32_file, this)),
+      relocation_table(nullptr) {
+    elf32_file->getCustomSections().insert(std::pair<std::string, CustomSection*>(_name, this));
 }
 
 void CustomSection::append(void* _content, size_t _content_size) {
@@ -57,10 +61,16 @@ size_t CustomSection::size() const {
 }
 
 LiteralTable* CustomSection::getLiteralTable() {
+    if (literal_table == nullptr) {
+        literal_table = new LiteralTable(elf32_file, this);
+    }
     return literal_table;
 }
 
 RelocationTable* CustomSection::getRelocationTable() {
+    if (relocation_table == nullptr) {
+        relocation_table = new RelocationTable(elf32_file, this);
+    }
     return relocation_table;
 }
 
@@ -88,17 +98,17 @@ void CustomSection::print(std::ofstream& _file) const {
 }
 
 void CustomSection::write(std::ofstream* _file) {
-    section_header->sh_size = content.size();
+    section_header.sh_size = content.size();
 
-    if (_file->tellp() % section_header->sh_addralign != 0) {
-        _file->write("\0", section_header->sh_addralign - (_file->tellp() % section_header->sh_addralign));
+    if (_file->tellp() % section_header.sh_addralign != 0) {
+        _file->write("\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
     }
 
-    section_header->sh_offset = _file->tellp();
+    section_header.sh_offset = _file->tellp();
     _file->write(content.data(), content.size());
 
-    if (!literal_table.isEmpty()) {
-        literal_table.writePool(_file);
+    if (literal_table != nullptr) {
+        literal_table->writePool(_file);
     }
 
     if (relocation_table != nullptr) {

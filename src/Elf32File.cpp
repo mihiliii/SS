@@ -20,6 +20,7 @@ Elf32File::Elf32File(std::string _file_name, bool _write)
             std::cerr << "Error: Could not open file in Elf32File::Elf32File" << _file_name << std::endl;
         }
 
+        // Make sure that StringTable object is created first since Sections depend on it
         str_table = new StringTable(this);
         sym_table = new SymbolTable(this);
         elf32_header.e_shoff = sizeof(Elf32_Ehdr);

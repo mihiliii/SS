@@ -1,11 +1,11 @@
-#include "../inc/Assembler/LiteralTable.hpp"
+#include "../../inc/Assembler/LiteralTable.hpp"
 
 #include <fstream>
 
-#include "../inc/CustomSection.hpp"
-#include "../inc/SymbolTable.hpp"
-#include "../inc/Elf32File.hpp"
-#include "../inc/RelocationTable.hpp"
+#include "../../inc/CustomSection.hpp"
+#include "../../inc/SymbolTable.hpp"
+#include "../../inc/Elf32File.hpp"
+#include "../../inc/RelocationTable.hpp"
 
 LiteralTable::LiteralTable(Elf32File* _elf32_file, CustomSection* _parent_section)
     : elf32_file(_elf32_file), parent_section(_parent_section) {};
@@ -27,7 +27,7 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
 
         uint32_t symbol_entry_index = elf32_file->getSymbolTable().getIndex(_symbol_entry);
 
-        parent_section->getRelocationTable().add(
+        parent_section->getRelocationTable()->add(
             parent_section->size() + literal_pool.size() * sizeof(int),
             ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index),
             0

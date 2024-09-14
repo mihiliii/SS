@@ -6,8 +6,8 @@
 
 #include "../Elf32.hpp"
 
-class SectionHeaderTable;
 class CustomSection;
+class Elf32File;
 
 class LiteralTable {
 public:

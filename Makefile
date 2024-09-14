@@ -18,11 +18,10 @@ src/Assembler/ForwardReferenceTable.cpp \
 src/Assembler/Instructions.cpp \
 src/Assembler/LiteralTable.cpp \
 src/Assembler/main.cpp \
-src/Assembler/RelocationTable.cpp \
 src/CustomSection.cpp \
-src/Elf32Header.cpp \
+src/Elf32File.cpp \
+src/RelocationTable.cpp \
 src/Section.cpp \
-src/SectionHeaderTable.cpp \
 src/StringTable.cpp \
 src/SymbolTable.cpp \
 

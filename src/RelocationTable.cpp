@@ -69,12 +69,12 @@ void RelocationTable::print(std::ofstream& _file) const {
 }
 
 void RelocationTable::write(std::ofstream* _file) {
-    if (_file->tellp() % section_header->sh_addralign != 0) {
-        _file->write("\0", section_header->sh_addralign - (_file->tellp() % section_header->sh_addralign));
+    if (_file->tellp() % section_header.sh_addralign != 0) {
+        _file->write("\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
     }
 
-    section_header->sh_offset = _file->tellp();
-    section_header->sh_size = relocation_table.size() * sizeof(Elf32_Rela);
+    section_header.sh_offset = _file->tellp();
+    section_header.sh_size = relocation_table.size() * sizeof(Elf32_Rela);
 
     for (Elf32_Rela& relocation_table_entry : relocation_table) {
         _file->write((char*) &relocation_table_entry, sizeof(Elf32_Rela));

@@ -10,7 +10,7 @@
 
 class Elf32File;
 
-class SymbolTable : Section {
+class SymbolTable : public Section {
 public:
 
     friend class ForwardReferenceTable;

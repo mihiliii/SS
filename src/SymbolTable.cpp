@@ -9,22 +9,25 @@ SymbolTable::SymbolTable(Elf32File* _elf32_file) : Section(_elf32_file), symbol_
     section_header.sh_name = elf32_file->getStringTable().add(".symtab");
     section_header.sh_type = SHT_SYMTAB;
     section_header.sh_entsize = sizeof(Elf32_Sym);
+    section_header.sh_addralign = 4;
 }
 
 SymbolTable::SymbolTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<Elf32_Sym> _symbol_table)
     : Section(_elf32_file), symbol_table() {
     for (auto& symbol_entry : _symbol_table) {
-        Elf32_Sym* symbol = new Elf32_Sym(symbol_entry);
-        symbol_table.emplace_back(symbol);
+        symbol_table.emplace_back(new Elf32_Sym(symbol_entry));
     }
 }
 
 Elf32_Sym* SymbolTable::add(std::string _name, Elf32_Sym _symbol_entry) {
     Elf32_Sym* symbol_entry = new Elf32_Sym(_symbol_entry);
-    if (elf32_file->getStringTable().get(_name) == -1)
+    if ((int) elf32_file->getStringTable().get(_name) == 0)
         symbol_entry->st_name = elf32_file->getStringTable().add(_name);
-    else
+    else {
+        std::cout << "Warning: Symbol " << _name << " already exists in String Table" << std::endl;
         symbol_entry->st_name = elf32_file->getStringTable().get(_name);
+    }
+
     symbol_table.emplace_back(symbol_entry);
     section_header.sh_size += sizeof(Elf32_Sym);
     return symbol_entry;
@@ -41,6 +44,7 @@ Elf32_Sym* SymbolTable::add(
          .st_size = 0,
          .st_defined = _defined}
     );
+
     symbol_table.emplace_back(symbol_entry);
     section_header.sh_size += sizeof(Elf32_Sym);
     return symbol_entry;
@@ -57,7 +61,7 @@ Elf32_Sym* SymbolTable::get(std::string _name) {
 Elf32_Sym* SymbolTable::get(uint32_t _entry_index) {
     if (_entry_index >= symbol_table.size())
         return nullptr;
-    return symbol_table[_entry_index];
+    return symbol_table.at(_entry_index);
 }
 
 uint32_t SymbolTable::getIndex(std::string _name) {

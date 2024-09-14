@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "../inc/Assembler/Assembler.hpp"
+#include "../../inc/Assembler/Assembler.hpp"
 
 int main(int argc, char* argv[]) {
     const char* input_file_name = nullptr;
@@ -39,9 +39,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    if (Assembler::startAssembler(input_file_name) == -1) {
+    if (Assembler::startAssembler(input_file_name, output_file_name) == -1) {
         std::cerr << "Error: assembler failed to start. \n";
-        Assembler::closeAssembler();
         return -1;
     }
 
@@ -51,7 +50,6 @@ int main(int argc, char* argv[]) {
     else {
         Assembler::writeToTxtFile(output_file_name);
     }
-    Assembler::closeAssembler();
 
     return 0;
 }

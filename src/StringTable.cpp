@@ -5,14 +5,14 @@
 #include "../inc/Elf32File.hpp"
 
 StringTable::StringTable(Elf32File* _elf32_file) : Section(_elf32_file), string_table() {
-    string_table.insert(std::make_pair(0, ""));
+    add("");
     section_header.sh_name = add(".strtab");
     section_header.sh_type = SHT_STRTAB;
+    section_header.sh_addralign = 1;
 }
 
 StringTable::StringTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<char> _str_table_data)
     : Section(_elf32_file, _section_header), string_table() {
-    string_table.insert(std::make_pair(0, ""));
     for (int i = 0; i < (int) _str_table_data.size(); i++) {
         uint32_t offset = i;
         std::string str;
@@ -25,9 +25,10 @@ StringTable::StringTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std
 }
 
 Elf32_Off StringTable::add(std::string _string) {
-    Elf32_Off offset = string_table.rbegin()->first + string_table.rbegin()->second.size() + 1;
-    string_table.insert(std::make_pair(offset, _string));
+    Elf32_Off offset = section_header.sh_size;
     section_header.sh_size += _string.size() + 1;
+
+    string_table.insert(std::make_pair(offset, _string));
     return offset;
 }
 
@@ -35,7 +36,7 @@ std::string StringTable::get(Elf32_Off _offset) {
     if (string_table.find(_offset) == string_table.end())
         return "";
     else
-        return string_table[_offset];
+        return string_table.at(_offset);
 }
 
 Elf32_Off StringTable::get(std::string _string) {
@@ -43,12 +44,11 @@ Elf32_Off StringTable::get(std::string _string) {
         if (pair.second == _string)
             return pair.first;
     }
-    return -1;
+    return 0;
 }
 
 void StringTable::write(std::ofstream* _file) {
     section_header.sh_offset = _file->tellp();
-    section_header.sh_size = string_table.rbegin()->first + string_table.rbegin()->second.size() + 1;
 
     for (auto& pair : string_table) {
         _file->write(pair.second.c_str(), pair.second.size() + 1);

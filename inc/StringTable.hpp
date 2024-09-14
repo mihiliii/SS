@@ -5,10 +5,11 @@
 #include <map>
 
 #include "Elf32.hpp"
+#include "Section.hpp"
 
 class Elf32File;
 
-class StringTable : Section {
+class StringTable : public Section {
 public:
 
     StringTable(Elf32File* _elf32_file);
