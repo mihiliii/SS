@@ -2,11 +2,13 @@
 
 #include <iostream>
 
+#include "../../inc/Elf32File.hpp"
 #include "../../inc/CustomSection.hpp"
-#include "../../inc/Linker/ParseElf32.hpp"
-#include "../../inc/SectionHeaderTable.hpp"
 #include "../../inc/StringTable.hpp"
 #include "../../inc/SymbolTable.hpp"
+
+std::vector<Place_arg> Linker::place_arguments;
+Elf32File* Linker::output_file = nullptr;
 
 void Linker::addArgument(Place_arg place_arg) {
     place_arguments.push_back(place_arg);
@@ -15,17 +17,15 @@ void Linker::addArgument(Place_arg place_arg) {
 int Linker::startLinking(const char* _output_file, std::vector<const char*> _input_files) {
     std::cout << "Linking started" << std::endl;
 
-    linker_sht = new SectionHeaderTable();
-    linker_sht->setStringTable(new StringTable());
-    linker_sht->setSymbolTable(new SymbolTable());
+    output_file = new Elf32File(_output_file, ELF32_FILE_ASSEMBLY);
 
-    this->mapping(_input_files);
+    mapping(_input_files);
     return 0;
 }
 
 void Linker::mapping(std::vector<const char*> _input_files) {
     for (auto input_file : _input_files) {
-        ParseElf32 elf_file_reader = ParseElf32(std::string(input_file));
+        Elf32File elf32_file = Elf32File(input_file, ELF32_FILE_ASSEMBLY);
 
         std::ofstream output_txt_file("temp.txt", std::ios::out | std::ios::trunc);
         if (!output_txt_file.is_open()) {
@@ -34,9 +34,9 @@ void Linker::mapping(std::vector<const char*> _input_files) {
         }
 
         // prints the elf file to the output file to check if there are any errors
-        elf_file_reader.getElf32Header().print(output_txt_file);
-        elf_file_reader.getSectionHeaderTable().print(output_txt_file);
-        elf_file_reader.getSymbolTable().print(output_txt_file);
+        elf32_file.getElf32Header().print(output_txt_file);
+        elf32_file.getSectionHeaderTable().print(output_txt_file);
+        elf32_file.getSymbolTable().print(output_txt_file);
 
         for (auto section : CustomSection::getSectionsMap()) {
             section.second->print(output_txt_file);

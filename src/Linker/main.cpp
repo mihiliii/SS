@@ -24,7 +24,6 @@ int main(int argc, char* argv[]) {
     int opt_val;
     int option_index;
     int is_hex = 0;
-    Linker linker {};
     const char* output_file_name = nullptr;
 
     while ((opt_val = getopt_long_only(argc, argv, "o:", long_options, &option_index)) != -1) {
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]) {
                             }
                             std::string section = argument.substr(0, at_pos);
                             std::string address = argument.substr(at_pos + 1);
-                            linker.addArgument({section, (Elf32_Addr) std::stoul(address, nullptr, 0)});
+                            Linker::addArgument({section, (Elf32_Addr) std::stoul(address, nullptr, 0)});
                         }
                         break;
                     case 1:
@@ -94,7 +93,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: -o argument not provided." << std::endl;
         return -1;
     }
-    if (linker.startLinking(output_file_name, object_files) != 0) {
+    if (Linker::startLinking(output_file_name, object_files) != 0) {
         std::cerr << "Error: linking failed." << std::endl;
         return -1;
     }

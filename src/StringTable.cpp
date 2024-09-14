@@ -4,12 +4,7 @@
 
 #include "../inc/Elf32File.hpp"
 
-StringTable::StringTable(Elf32File* _elf32_file) : Section(_elf32_file), string_table() {
-    add("");
-    section_header.sh_name = add(".strtab");
-    section_header.sh_type = SHT_STRTAB;
-    section_header.sh_addralign = 1;
-}
+StringTable::StringTable(Elf32File* _elf32_file) : Section(_elf32_file), string_table() {}
 
 StringTable::StringTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<char> _str_table_data)
     : Section(_elf32_file, _section_header), string_table() {
@@ -49,6 +44,7 @@ Elf32_Off StringTable::get(std::string _string) {
 
 void StringTable::write(std::ofstream* _file) {
     section_header.sh_offset = _file->tellp();
+    elf32_file->getElf32Header().e_stroff = section_header.sh_offset;
 
     for (auto& pair : string_table) {
         _file->write(pair.second.c_str(), pair.second.size() + 1);

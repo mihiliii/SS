@@ -5,12 +5,7 @@
 #include "../inc/Elf32File.hpp"
 #include "../inc/StringTable.hpp"
 
-SymbolTable::SymbolTable(Elf32File* _elf32_file) : Section(_elf32_file), symbol_table() {
-    section_header.sh_name = elf32_file->getStringTable().add(".symtab");
-    section_header.sh_type = SHT_SYMTAB;
-    section_header.sh_entsize = sizeof(Elf32_Sym);
-    section_header.sh_addralign = 4;
-}
+SymbolTable::SymbolTable(Elf32File* _elf32_file) : Section(_elf32_file), symbol_table() {}
 
 SymbolTable::SymbolTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<Elf32_Sym> _symbol_table)
     : Section(_elf32_file), symbol_table() {
@@ -162,9 +157,7 @@ void SymbolTable::print(std::ofstream& _file) const {
 void SymbolTable::write(std::ofstream* _file) {
     section_header.sh_size = symbol_table.size() * sizeof(Elf32_Sym);
 
-    _file->write(
-        "\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign)
-    );
+    _file->write("\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
 
     section_header.sh_offset = _file->tellp();
 

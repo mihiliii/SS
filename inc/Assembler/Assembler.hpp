@@ -3,8 +3,9 @@
 #include <iostream>
 #include <vector>
 
-#include "../Elf32File.hpp"
-#include "ForwardReferenceTable.hpp"
+class CustomSection; 
+class Elf32File;
+class ForwardReferenceTable;
 
 struct Operand {
     std::string type;
@@ -19,10 +20,6 @@ public:
     friend class Directives;
 
     static int startAssembler(const char* _input_file_name, const char* _output_file_name);
-
-    static int writeToBinFile(const char* _output_file_name);
-
-    static int writeToTxtFile(const char* _input_file_name);
 
     static void startBackpatching();
 

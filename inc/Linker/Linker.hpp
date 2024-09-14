@@ -16,21 +16,15 @@ struct Place_arg {
 class Linker {
 public:
 
-    Linker() = default;
+    static void addArgument(Place_arg place_arg);
 
-    ~Linker() = default;
+    static int startLinking(const char* _output_file, std::vector<const char*> _input_files);
 
-    void addArgument(Place_arg place_arg);
-
-    int startLinking(const char* _output_file, std::vector<const char*> _input_files);
-
-    void mapping(std::vector<const char*> _input_files);
+    static void mapping(std::vector<const char*> _input_files);
 
 private:
 
-    SectionHeaderTable* linker_sht;
-
-    std::vector<Place_arg> place_arguments;
-    std::ofstream output_file;
+    static Elf32File* output_file;
+    static std::vector<Place_arg> place_arguments;
         
 };

@@ -44,12 +44,5 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    if (Assembler::writeToBinFile(output_file_name) == -1) {
-        std::cerr << "Error: assembler failed to write to file. \n";
-    }
-    else {
-        Assembler::writeToTxtFile(output_file_name);
-    }
-
     return 0;
 }

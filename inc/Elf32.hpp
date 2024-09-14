@@ -27,20 +27,18 @@ typedef int8_t Elf32_SByte;
 
 // Struct that represents the ELF header
 struct Elf32_Ehdr {
-    Elf32_Byte e_ident[EI_NIDENT];  // ELF identification
-    Elf32_Half e_type;              // File type
-    Elf32_Addr e_entry;             // Entry point address (virtual address where the program starts)
-    Elf32_Off e_phoff;              // Program header table file offset
-    Elf32_Off e_shoff;              // Section header table file offset
-    Elf32_Half e_phentsize;         // Program header table entry size
-    Elf32_Half e_phnum;             // Program header table entry count
-    Elf32_Half e_shentsize;         // Section header table entry size
-    Elf32_Half e_shnum;             // Section header table entry count
-    Elf32_Off e_stroff;             // String table file offset
+    Elf32_Half e_type;       // File type
+    Elf32_Addr e_entry;      // Entry point address (virtual address where the program starts)
+    Elf32_Off e_phoff;       // Program header table file offset
+    Elf32_Off e_shoff;       // Section header table file offset
+    Elf32_Half e_phentsize;  // Program header table entry size
+    Elf32_Half e_phnum;      // Program header table entry count
+    Elf32_Half e_shentsize;  // Section header table entry size
+    Elf32_Half e_shnum;      // Section header table entry count
+    Elf32_Off e_stroff;      // String table file offset
 
     Elf32_Ehdr()
-        : e_ident {'C', 'U', 'S', 'T', 'O', 'M', ' ', 'E', 'L', 'F', ' ', 'F', 'I', 'L', 'E', ' '},
-          e_type(ET_NONE),
+        : e_type(ET_NONE),
           e_entry(0),
           e_phoff(0),
           e_shoff(0),
@@ -71,7 +69,6 @@ struct Elf32_Ehdr {
 struct Elf32_Shdr {
     Elf32_Word sh_name;       // Section name (string table index)
     Elf32_Word sh_type;       // Section type
-    Elf32_Word sh_flags;      // Section attributes, not used
     Elf32_Addr sh_addr;       // Virtual address in memory
     Elf32_Off sh_offset;      // Offset of the section from start of ELF file
     Elf32_Word sh_size;       // Size of the section in bytes
