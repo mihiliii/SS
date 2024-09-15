@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
 
     if (Assembler::startAssembler(input_file_name, output_file_name) == -1) {
         std::cerr << "Error: assembler failed to start. \n";
-        return -1;
     }
+    Assembler::closeAssembler();
 
     return 0;
 }

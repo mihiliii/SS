@@ -3,10 +3,11 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <map>
 
 #include "../Elf32.hpp"
 
-class SectionHeaderTable;
+class Elf32File;
 
 struct Place_arg {
     std::string section;
@@ -24,7 +25,7 @@ public:
 
 private:
 
-    static Elf32File* output_file;
-    static std::vector<Place_arg> place_arguments;
+    static Elf32File* elf32_out;
+    static std::map<std::string, Elf32_Addr> place_arguments;
         
 };

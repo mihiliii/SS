@@ -23,6 +23,8 @@ public:
 
     static void startBackpatching();
 
+    static void closeAssembler();
+
     Assembler() = delete; 
 
     ~Assembler() = delete;

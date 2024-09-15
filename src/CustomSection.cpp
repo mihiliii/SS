@@ -56,6 +56,10 @@ char* CustomSection::getContent(Elf32_Off _offset) {
     return &content[_offset];
 }
 
+std::vector<char>& CustomSection::getContent() {
+    return content;
+}
+
 size_t CustomSection::size() const {
     return content.size();
 }
@@ -108,7 +112,7 @@ void CustomSection::write(std::ofstream* _file) {
     _file->write(content.data(), content.size());
 
     if (literal_table != nullptr) {
-        literal_table->writePool(_file);
+        literal_table->write(_file);
     }
 
     if (relocation_table != nullptr) {

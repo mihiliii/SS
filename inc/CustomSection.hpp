@@ -21,6 +21,7 @@ public:
     void overwrite(void* _content, size_t _content_size, Elf32_Off _offset);
 
     char* getContent(Elf32_Off _offset);
+    std::vector<char>& getContent();
 
     size_t size() const;
 

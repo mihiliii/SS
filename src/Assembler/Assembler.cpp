@@ -8,6 +8,7 @@
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
 #include "../../inc/Assembler/LiteralTable.hpp"
 #include "../../inc/Elf32File.hpp"
+#include "Assembler.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -21,7 +22,7 @@ ForwardReferenceTable Assembler::forward_reference_table;
 
 int Assembler::startAssembler(const char* _input_file_name, const char* _output_file_name) {
     // Create an ELF file:
-    elf32_file = new Elf32File(_output_file_name, true);
+    elf32_file = new Elf32File(_output_file_name, ELF32FILE_EMPTY);
 
     // Open a file handle to a particular file:
     FILE* f_input = fopen(_input_file_name, "r");
@@ -44,8 +45,8 @@ int Assembler::startAssembler(const char* _input_file_name, const char* _output_
 
     // Write the ELF file:
     elf32_file->write(std::string(_output_file_name), ELF32FILE_WRITE_BIN);
-    elf32_file->write("readel.txt", ELF32FILE_WRITE_TXT);
-    elf32_file->writeRawContent(std::string(_output_file_name), "readel2.txt");
+    elf32_file->write("readelf.txt", ELF32FILE_WRITE_TXT);
+    elf32_file->writeRawContent(std::string(_output_file_name), "readelf2.txt");
 
     return 0;
 }
@@ -57,4 +58,8 @@ void Assembler::startBackpatching() {
         current_section = iterator.second;
         current_section->getLiteralTable()->resolveReferences();
     }
+}
+
+void Assembler::closeAssembler() {
+    delete elf32_file;
 }

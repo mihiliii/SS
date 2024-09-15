@@ -17,10 +17,10 @@ public:
     void addLiteralReference(int _literal, Elf32_Addr _address);
     void addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
 
-    size_t getSize() const { return literal_pool.size(); };
+    uint32_t* get(uint32_t _index) { return &literal_pool[_index]; };
+    size_t size() const { return literal_pool.size(); };
 
-    void print(std::ofstream& _file);
-    void writePool(std::ofstream* _file);
+    void write(std::ofstream* _file);
 
     void resolveReferences();
 

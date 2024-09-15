@@ -37,9 +37,7 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
     symbol_value_table[_symbol_entry].second.push_back(_address);
 }
 
-void LiteralTable::print(std::ofstream& _file) {}
-
-void LiteralTable::writePool(std::ofstream* _file) {
+void LiteralTable::write(std::ofstream* _file) {
     _file->write((char*) literal_pool.data(), literal_pool.size() * sizeof(int));
 }
 

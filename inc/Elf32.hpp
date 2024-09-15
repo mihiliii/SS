@@ -17,8 +17,6 @@ typedef int8_t Elf32_SByte;
 // *                                ELF HEADER                                *
 // ****************************************************************************
 
-#define EI_NIDENT 16 /* ELF identification size */
-
 // Makros used e_type in Elf32_Ehdr (ELF header)
 #define ET_NONE 0 /* No file type */
 #define ET_REL  1 /* Relocatable file */

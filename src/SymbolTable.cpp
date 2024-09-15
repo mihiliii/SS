@@ -8,7 +8,7 @@
 SymbolTable::SymbolTable(Elf32File* _elf32_file) : Section(_elf32_file), symbol_table() {}
 
 SymbolTable::SymbolTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<Elf32_Sym> _symbol_table)
-    : Section(_elf32_file), symbol_table() {
+    : Section(_elf32_file, _section_header), symbol_table() {
     for (auto& symbol_entry : _symbol_table) {
         symbol_table.emplace_back(new Elf32_Sym(symbol_entry));
     }

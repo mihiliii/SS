@@ -44,7 +44,6 @@ Elf32_Off StringTable::get(std::string _string) {
 
 void StringTable::write(std::ofstream* _file) {
     section_header.sh_offset = _file->tellp();
-    elf32_file->getElf32Header().e_stroff = section_header.sh_offset;
 
     for (auto& pair : string_table) {
         _file->write(pair.second.c_str(), pair.second.size() + 1);

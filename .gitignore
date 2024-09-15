@@ -1,5 +1,7 @@
 /build
 assembler
-test.s
-test.o
-readelf.txt
+linker
+*.o
+*.s
+*.txt
+*.hex
