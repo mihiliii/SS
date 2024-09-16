@@ -28,6 +28,8 @@ public:
     Elf32_Sym* get(std::string _name);
     Elf32_Sym* get(uint32_t _entry_index);
 
+    std::vector<Elf32_Sym*>& getContent();
+
     uint32_t getIndex(std::string _name);
     uint32_t getIndex(Elf32_Sym* _symbol_entry);
 

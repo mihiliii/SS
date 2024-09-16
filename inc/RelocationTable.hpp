@@ -24,6 +24,8 @@ public:
     void add(Elf32_Rela _rela_entry);
     void add(Elf32_Addr _offset, Elf32_Word _info, Elf32_SWord _addend);
 
+    std::vector<Elf32_Rela>& getContent() { return relocation_table; };
+
     bool isEmpty() const { return relocation_table.empty(); };
 
 private:

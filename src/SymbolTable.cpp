@@ -4,6 +4,7 @@
 
 #include "../inc/Elf32File.hpp"
 #include "../inc/StringTable.hpp"
+#include "SymbolTable.hpp"
 
 SymbolTable::SymbolTable(Elf32File* _elf32_file) : Section(_elf32_file), symbol_table() {}
 
@@ -19,7 +20,7 @@ Elf32_Sym* SymbolTable::add(std::string _name, Elf32_Sym _symbol_entry) {
     if ((int) elf32_file->getStringTable().get(_name) == 0)
         symbol_entry->st_name = elf32_file->getStringTable().add(_name);
     else {
-        std::cout << "Warning: Symbol " << _name << " already exists in String Table" << std::endl;
+        std::cout << "Warning: Symbol name" << _name << " already exists in String Table" << std::endl;
         symbol_entry->st_name = elf32_file->getStringTable().get(_name);
     }
 
@@ -57,6 +58,10 @@ Elf32_Sym* SymbolTable::get(uint32_t _entry_index) {
     if (_entry_index >= symbol_table.size())
         return nullptr;
     return symbol_table.at(_entry_index);
+}
+
+std::vector<Elf32_Sym*>& SymbolTable::getContent() {
+    return symbol_table;
 }
 
 uint32_t SymbolTable::getIndex(std::string _name) {

@@ -23,6 +23,10 @@ public:
 
     static void mapping(std::vector<const char*> _input_files);
 
+    static void positioning();
+
+    static void resolutioning();
+
 private:
 
     static Elf32File* elf32_out;
