@@ -86,9 +86,6 @@ Elf32File::Elf32File(std::string _file_name, bool _write)
                 new RelocationTable(this, parent_section, section_header, relocation_table_data);
             }
         }
-        for (auto& section: sh_table) {
-            std::cout << section->sh_name << std::endl;
-        }
     }
 }
 
