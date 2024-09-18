@@ -16,7 +16,6 @@ public:
     friend class ForwardReferenceTable;
 
     SymbolTable(Elf32File* _elf32_file);
-    SymbolTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<Elf32_Sym> _symbol_table);
 
     void write(std::ofstream* _file);
 
@@ -29,13 +28,14 @@ public:
     Elf32_Sym* get(uint32_t _entry_index);
 
     std::vector<Elf32_Sym*>& getContent();
+    void replace(std::vector<Elf32_Sym> _symbol_table);
 
     uint32_t getIndex(std::string _name);
     uint32_t getIndex(Elf32_Sym* _symbol_entry);
 
     void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value);
 
-    void print(std::ofstream& _file) const;
+    void print(std::ostream& _ostream) const;
 
     ~SymbolTable();
 

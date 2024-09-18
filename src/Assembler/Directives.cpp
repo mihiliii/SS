@@ -11,6 +11,7 @@
 
 void Directives::sectionDirective(const std::string& _section_name) {
     CustomSection* section = new CustomSection(Assembler::elf32_file, _section_name);
+    Assembler::elf32_file->getSymbolTable().add(section->name(), 0, true, section->index(), ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
     Assembler::current_section = section;
 }
 

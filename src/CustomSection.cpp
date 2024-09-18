@@ -16,7 +16,6 @@ CustomSection::CustomSection(Elf32File* _elf32_file, std::string _name)
     section_header.sh_addralign = 4;
     section_header.sh_name = elf32_file->getStringTable().add(_name);
     elf32_file->getCustomSections().insert(std::pair<std::string, CustomSection*>(_name, this));
-    elf32_file->getSymbolTable().add(_name, 0, true, sh_table_index, ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
 }
 
 CustomSection::CustomSection(
@@ -60,6 +59,11 @@ std::vector<char>& CustomSection::getContent() {
     return content;
 }
 
+void CustomSection::replace(std::vector<char> _content) {
+    content = _content;
+    section_header.sh_size = content.size();
+}
+
 size_t CustomSection::size() const {
     return content.size();
 }
@@ -86,19 +90,19 @@ void CustomSection::setLiteralTable(LiteralTable* _literal_table) {
     literal_table = _literal_table;
 }
 
-void CustomSection::print(std::ofstream& _file) const {
-    _file << std::endl << "Content of section " << name() << ":\n";
+void CustomSection::print(std::ostream& _ostream) const {
+    _ostream << std::endl << "Content of section " << name() << ":\n";
     for (uint32_t location_counter = 0; location_counter < content.size(); location_counter++) {
         if (location_counter % 16 == 0) {
-            _file << std::hex << std::setw(8) << std::setfill('0') << location_counter << ": ";
+            _ostream << std::hex << std::setw(8) << std::setfill('0') << location_counter << ": ";
         }
-        _file << std::hex << std::setw(2) << std::setfill('0')
+        _ostream << std::hex << std::setw(2) << std::setfill('0')
               << (unsigned int) (unsigned char) content[location_counter] << " ";
         if ((location_counter + 1) % 16 == 0) {
-            _file << std::dec << "\n";
+            _ostream << std::dec << "\n";
         }
     }
-    _file << std::dec << "\n";
+    _ostream << std::dec << "\n";
 }
 
 void CustomSection::write(std::ofstream* _file) {

@@ -130,12 +130,9 @@ struct Elf32_Rela {
 
 // Struct that represents the program header table entry
 struct Elf32_Phdr {
-    Elf32_Word p_type;  // Type of the segment
-    // Elf32_Word p_flags;  // Segment attributes
+    Elf32_Word p_type;    // Type of the segment
     Elf32_Off p_offset;   // Offset of the segment in the ELF file
-    Elf32_Addr p_vaddr;   // Virtual address of the segment in memory
-    Elf32_Addr p_paddr;   // Physical address of the segment in memory
-    Elf32_Word p_filesz;  // Size of the segment in the ELF file
-    Elf32_Word p_memsz;   // Size of the segment in memory
+    Elf32_Addr p_addr;    // Address of the segment where it should be loaded
+    Elf32_Word p_filesz;  // Size of the segment
     Elf32_Word p_align;   // Required alignment of the segment
 };

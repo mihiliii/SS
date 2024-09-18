@@ -33,16 +33,16 @@ RelocationTable::RelocationTable(
     _elf32_file->getRelocationTables().insert(std::pair<CustomSection*, RelocationTable*>(parent_section, this));
 }
 
-void RelocationTable::print(std::ofstream& _file) const {
-    _file << std::endl << "Relocation table " << this->name() << ":" << std::endl;
-    _file << std::left << std::setfill(' ');
-    _file << "  ";
-    _file << std::setw(4) << "NUM";
-    _file << std::setw(9) << "OFFSET";
-    _file << std::setw(9) << "TYPE";
-    _file << std::setw(25) << "SYMBOL";
-    _file << std::setw(9) << "ADDEND";
-    _file << std::endl;
+void RelocationTable::print(std::ostream& _ostream) const {
+    _ostream << std::endl << "Relocation table " << this->name() << ":" << std::endl;
+    _ostream << std::left << std::setfill(' ');
+    _ostream << "  ";
+    _ostream << std::setw(4) << "NUM";
+    _ostream << std::setw(9) << "OFFSET";
+    _ostream << std::setw(9) << "TYPE";
+    _ostream << std::setw(25) << "SYMBOL";
+    _ostream << std::setw(9) << "ADDEND";
+    _ostream << std::endl;
     int i = 0;
     for (Elf32_Rela relocation_table_entry : relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
@@ -59,14 +59,14 @@ void RelocationTable::print(std::ofstream& _file) const {
                 break;
         }
 
-        _file << std::right << std::dec << std::setfill(' ') << std::setw(5) << i++ << " ";
-        _file << std::hex << std::setfill('0');
-        _file << std::setw(8) << relocation_table_entry.r_offset << " ";
-        _file << std::setw(8) << std::setfill(' ') << std::left << relocation_type << " ";
-        _file << std::setw(25) << (std::to_string(symbol_index) + " (" + symbol_name + ")");
-        _file << std::dec << std::left << std::setfill(' ');
-        _file << std::setw(8) << relocation_table_entry.r_addend;
-        _file << std::endl;
+        _ostream << std::right << std::dec << std::setfill(' ') << std::setw(5) << i++ << " ";
+        _ostream << std::hex << std::setfill('0');
+        _ostream << std::setw(8) << relocation_table_entry.r_offset << " ";
+        _ostream << std::setw(8) << std::setfill(' ') << std::left << relocation_type << " ";
+        _ostream << std::setw(25) << (std::to_string(symbol_index) + " (" + symbol_name + ")");
+        _ostream << std::dec << std::left << std::setfill(' ');
+        _ostream << std::setw(8) << relocation_table_entry.r_addend;
+        _ostream << std::endl;
     }
 }
 

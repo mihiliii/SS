@@ -3,21 +3,9 @@
 #include <iomanip>
 
 #include "../inc/Elf32File.hpp"
+#include "StringTable.hpp"
 
 StringTable::StringTable(Elf32File* _elf32_file) : Section(_elf32_file), string_table() {}
-
-StringTable::StringTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<char> _str_table_data)
-    : Section(_elf32_file, _section_header), string_table() {
-    for (int i = 0; i < (int) _str_table_data.size(); i++) {
-        uint32_t offset = i;
-        std::string str;
-        while (_str_table_data[i] != '\0') {
-            str += _str_table_data[i];
-            i++;
-        }
-        string_table.insert(std::make_pair(offset, str));
-    }
-}
 
 Elf32_Off StringTable::add(std::string _string) {
     Elf32_Off offset = section_header.sh_size;
@@ -32,6 +20,19 @@ std::string StringTable::get(Elf32_Off _offset) {
         return "";
     else
         return string_table.at(_offset);
+}
+
+void StringTable::replace(std::vector<char> _str_table_data) {
+    string_table.clear();
+    for (int i = 0; i < (int) _str_table_data.size(); i++) {
+        uint32_t offset = i;
+        std::string str;
+        while (_str_table_data[i] != '\0') {
+            str += _str_table_data[i];
+            i++;
+        }
+        string_table.insert(std::make_pair(offset, str));
+    }
 }
 
 Elf32_Off StringTable::get(std::string _string) {

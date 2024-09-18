@@ -23,6 +23,8 @@ public:
     char* getContent(Elf32_Off _offset);
     std::vector<char>& getContent();
 
+    void replace(std::vector<char> _content);
+
     size_t size() const;
 
     LiteralTable* getLiteralTable();
@@ -31,7 +33,7 @@ public:
     void setRelocationTable(RelocationTable* _relocation_table);
     void setLiteralTable(LiteralTable* _literal_table);
 
-    void print(std::ofstream& _file) const;
+    void print(std::ostream& _ostream) const;
     void write(std::ofstream* _file) override;
 
     ~CustomSection() = default;

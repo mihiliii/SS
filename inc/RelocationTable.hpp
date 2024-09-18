@@ -18,7 +18,7 @@ public:
     );
     RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section);
 
-    void print(std::ofstream& _file) const;
+    void print(std::ostream& _file) const;
     void write(std::ofstream* _file) override;
 
     void add(Elf32_Rela _rela_entry);

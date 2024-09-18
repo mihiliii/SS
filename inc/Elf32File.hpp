@@ -11,26 +11,26 @@
 #include "SymbolTable.hpp"
 
 typedef std::vector<Elf32_Shdr*> SectionHeaderTable;
+typedef std::vector<Elf32_Phdr> ProgramHeaderTable;
 typedef Elf32_Ehdr Elf32Header;
 
-#define ELF32FILE_EMPTY 0
-#define ELF32FILE_WRITTEN 1
-
-#define ELF32FILE_WRITE_BIN 0
-#define ELF32FILE_WRITE_TXT 1
+#define ELF_NONE ET_NONE
+#define ELF_REL  ET_REL
+#define ELF_EXEC ET_EXEC
 
 class Elf32File {
 public:
 
-    Elf32File(std::string _file_name, bool _mode);
+    Elf32File();                        // Used for creating a new empty ELF file
+    Elf32File(std::string _file_name);  // Used for reading an existing ELF file
 
-    void write(std::string _file_name, bool _mode);
-    static void writeRawContent(std::string _input_file, std::string _output_file);
+    void write(std::string _file_name, Elf32_Half _type);
+    static void readElf(std::string _file_name);
 
     Elf32Header& getElf32Header() { return elf32_header; }
     SectionHeaderTable& getSectionHeaderTable() { return sh_table; }
-    StringTable& getStringTable() { return *str_table; }
-    SymbolTable& getSymbolTable() { return *sym_table; }
+    StringTable& getStringTable() { return str_table; }
+    SymbolTable& getSymbolTable() { return sym_table; }
     std::map<std::string, CustomSection*>& getCustomSections() { return custom_sections; }
     std::map<CustomSection*, RelocationTable*>& getRelocationTables() { return relocation_tables; }
 
@@ -41,16 +41,15 @@ public:
         for (auto& relocation_table : relocation_tables) {
             delete relocation_table.second;
         }
-        delete str_table;
-        delete sym_table;
     };
 
 private:
 
     Elf32Header elf32_header;
     SectionHeaderTable sh_table;
-    StringTable* str_table;
-    SymbolTable* sym_table;
+    StringTable str_table;
+    SymbolTable sym_table;
     std::map<std::string, CustomSection*> custom_sections;
     std::map<CustomSection*, RelocationTable*> relocation_tables;
+    ProgramHeaderTable ph_table;
 };
