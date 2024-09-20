@@ -10,9 +10,17 @@
 #include "../../inc/SymbolTable.hpp"
 
 void Directives::sectionDirective(const std::string& _section_name) {
-    CustomSection* section = new CustomSection(Assembler::elf32_file, _section_name);
-    Assembler::elf32_file->getSymbolTable().add(section->name(), 0, true, section->index(), ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
-    Assembler::current_section = section;
+    CustomSectionMap::iterator it_custom_section = Assembler::elf32_file->getCustomSections().find(_section_name);
+    if (it_custom_section != Assembler::elf32_file->getCustomSections().end()) {
+        Assembler::current_section = it_custom_section->second;
+    }
+    else {
+        CustomSection* section = new CustomSection(Assembler::elf32_file, _section_name);
+        Assembler::elf32_file->getSymbolTable().add(
+            section->name(), 0, true, section->index(), ELF32_ST_INFO(STB_LOCAL, STT_SECTION)
+        );
+        Assembler::current_section = section;
+    }
 }
 
 void Directives::skipDirective(int _bytes) {

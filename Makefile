@@ -12,50 +12,28 @@ $(BUILD_DIR)/bison.tab.c \
 $(BUILD_DIR)/lex.yy.c
 
 ASSEMBLER_FILES =\
-src/Assembler/Assembler.cpp \
-src/Assembler/Directives.cpp \
-src/Assembler/ForwardReferenceTable.cpp \
-src/Assembler/Instructions.cpp \
-src/Assembler/LiteralTable.cpp \
-src/Assembler/main.cpp \
-src/CustomSection.cpp \
-src/Elf32File.cpp \
-src/RelocationTable.cpp \
-src/Section.cpp \
-src/StringTable.cpp \
-src/SymbolTable.cpp \
+$(wildcard src/Assembler/*.cpp) \
 
 LINKER_FILES =\
-src/Linker/Linker.cpp \
-src/Linker/main.cpp \
-src/Assembler/LiteralTable.cpp \
-src/CustomSection.cpp \
-src/Elf32File.cpp \
-src/RelocationTable.cpp \
-src/Section.cpp \
-src/StringTable.cpp \
-src/SymbolTable.cpp \
+$(wildcard src/Linker/*.cpp) \
 
+COMMON_FILES =\
+$(wildcard src/*.cpp) \
 
-CXXFLAGS = -Wall -Iinc -g -std=c++2a
+CXXFLAGS = -Wall -Iinc -g -std=c++11
 FLEXFLAGS =
 BISONFLAGS = -d
-
-ARGS = -o test.o test.s
 
 ifeq ($(DEBUG_MODE), 1)
 	FLEXFLAGS += -d
 endif
 
-run: all
-	./$(ASSEMBLER_PROGRAM_NAME) $(ARGS)
-
 all: assembler linker
 
-linker: $(LINKER_FILES)
+linker: $(LINKER_FILES) $(COMMON_FILES)
 	g++ $(CXXFLAGS) -o $(LINKER_PROGRAM_NAME) $(^)
 
-assembler: $(ASSEMBLER_FILES) $(C_FILES) 
+assembler: $(ASSEMBLER_FILES) $(COMMON_FILES) $(C_FILES) 
 	g++ $(CXXFLAGS) -o $(ASSEMBLER_PROGRAM_NAME) $(^) -lfl
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)
@@ -69,3 +47,6 @@ $(BUILD_DIR):
 
 clean:
 	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME)
+
+cleanall:
+	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME) *.o

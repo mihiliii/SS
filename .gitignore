@@ -5,3 +5,4 @@ linker
 *.s
 *.txt
 *.hex
+*.sh

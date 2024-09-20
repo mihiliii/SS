@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
-#include "../../inc/Assembler/LiteralTable.hpp"
+#include "../../inc/LiteralTable.hpp"
 #include "../../inc/Elf32File.hpp"
 
 // Include the Flex and Bison headers to use their functions:

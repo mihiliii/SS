@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "../inc/Assembler/LiteralTable.hpp"
+#include "../inc/LiteralTable.hpp"
 #include "../inc/Elf32File.hpp"
 #include "../inc/RelocationTable.hpp"
 #include "../inc/StringTable.hpp"

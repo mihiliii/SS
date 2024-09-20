@@ -1,11 +1,11 @@
-#include "../../inc/Assembler/LiteralTable.hpp"
+#include "../inc/LiteralTable.hpp"
 
 #include <fstream>
 
-#include "../../inc/CustomSection.hpp"
-#include "../../inc/SymbolTable.hpp"
-#include "../../inc/Elf32File.hpp"
-#include "../../inc/RelocationTable.hpp"
+#include "../inc/CustomSection.hpp"
+#include "../inc/Elf32File.hpp"
+#include "../inc/RelocationTable.hpp"
+#include "../inc/SymbolTable.hpp"
 
 LiteralTable::LiteralTable(Elf32File* _elf32_file, CustomSection* _parent_section)
     : elf32_file(_elf32_file), parent_section(_parent_section) {};

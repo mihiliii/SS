@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 
-#include "../Elf32.hpp"
+#include "Elf32.hpp"
 
 class CustomSection;
 class Elf32File;

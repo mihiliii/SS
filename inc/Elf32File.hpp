@@ -13,6 +13,8 @@
 typedef std::vector<Elf32_Shdr*> SectionHeaderTable;
 typedef std::vector<Elf32_Phdr> ProgramHeaderTable;
 typedef Elf32_Ehdr Elf32Header;
+typedef std::map<std::string, CustomSection*> CustomSectionMap;
+typedef std::map<CustomSection*, RelocationTable*> RelocationTableMap;
 
 #define ELF_NONE ET_NONE
 #define ELF_REL  ET_REL
@@ -31,8 +33,8 @@ public:
     SectionHeaderTable& getSectionHeaderTable() { return sh_table; }
     StringTable& getStringTable() { return str_table; }
     SymbolTable& getSymbolTable() { return sym_table; }
-    std::map<std::string, CustomSection*>& getCustomSections() { return custom_sections; }
-    std::map<CustomSection*, RelocationTable*>& getRelocationTables() { return relocation_tables; }
+    CustomSectionMap& getCustomSections() { return custom_sections; }
+    RelocationTableMap& getRelocationTables() { return relocation_tables; }
 
     ~Elf32File() {
         for (auto& custom_section : custom_sections) {
@@ -49,7 +51,7 @@ private:
     SectionHeaderTable sh_table;
     StringTable str_table;
     SymbolTable sym_table;
-    std::map<std::string, CustomSection*> custom_sections;
-    std::map<CustomSection*, RelocationTable*> relocation_tables;
+    CustomSectionMap custom_sections;
+    RelocationTableMap relocation_tables;
     ProgramHeaderTable ph_table;
 };
