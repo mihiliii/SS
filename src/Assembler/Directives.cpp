@@ -8,19 +8,23 @@
 #include "../../inc/Elf32File.hpp"
 #include "../../inc/Section.hpp"
 #include "../../inc/SymbolTable.hpp"
+#include "../../inc/LiteralTable.hpp"
 
 void Directives::sectionDirective(const std::string& _section_name) {
-    CustomSectionMap::iterator it_custom_section = Assembler::elf32_file->getCustomSections().find(_section_name);
-    if (it_custom_section != Assembler::elf32_file->getCustomSections().end()) {
+    CustomSectionMap::iterator it_custom_section = Assembler::elf32_file->customSectionMap().find(_section_name);
+    if (it_custom_section != Assembler::elf32_file->customSectionMap().end()) {
         Assembler::current_section = it_custom_section->second;
     }
     else {
         CustomSection* section = new CustomSection(Assembler::elf32_file, _section_name);
-        Assembler::elf32_file->getSymbolTable().add(
+        Assembler::elf32_file->symbolTable().add(
             section->name(), 0, true, section->index(), ELF32_ST_INFO(STB_LOCAL, STT_SECTION)
         );
         Assembler::current_section = section;
     }
+    Assembler::literal_table_map.insert(std::pair<CustomSection*, LiteralTable>(
+        Assembler::current_section, LiteralTable(Assembler::elf32_file, Assembler::current_section)
+    ));
 }
 
 void Directives::skipDirective(int _bytes) {
@@ -30,7 +34,7 @@ void Directives::skipDirective(int _bytes) {
 
 void Directives::wordDirective(std::vector<Operand>* _values) {
     CustomSection* current_section = Assembler::current_section;
-    SymbolTable* symbol_table = &Assembler::elf32_file->getSymbolTable();
+    SymbolTable* symbol_table = &Assembler::elf32_file->symbolTable();
 
     for (Operand& node : *_values) {
         if (node.type == typeid(uint32_t).name())
@@ -46,7 +50,7 @@ void Directives::wordDirective(std::vector<Operand>* _values) {
 
             uint32_t symbol_entry_index = symbol_table->getIndex(symbol_entry);
 
-            current_section->getRelocationTable()->add(
+            current_section->relocationTable()->add(
                 current_section->size(), ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index), 0
             );
 
@@ -56,7 +60,7 @@ void Directives::wordDirective(std::vector<Operand>* _values) {
 }
 
 void Directives::globalDirective(std::vector<Operand>* _symbols) {
-    SymbolTable* symbol_table = &Assembler::elf32_file->getSymbolTable();
+    SymbolTable* symbol_table = &Assembler::elf32_file->symbolTable();
 
     for (Operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
@@ -73,7 +77,7 @@ void Directives::globalDirective(std::vector<Operand>* _symbols) {
 }
 
 void Directives::externDirective(std::vector<Operand>* _symbols) {
-    SymbolTable* symbol_table = &Assembler::elf32_file->getSymbolTable();
+    SymbolTable* symbol_table = &Assembler::elf32_file->symbolTable();
     for (Operand& node : *_symbols) {
         std::string symbol_name = std::string((char*) node.value);
         Elf32_Sym* symbol_entry = symbol_table->get(symbol_name);
@@ -89,7 +93,7 @@ void Directives::externDirective(std::vector<Operand>* _symbols) {
 }
 
 int Directives::defineLabel(std::string _label) {
-    Elf32_Sym* symbol_entry = Assembler::elf32_file->getSymbolTable().get(_label);
+    Elf32_Sym* symbol_entry = Assembler::elf32_file->symbolTable().get(_label);
     Elf32_Off location_counter = Assembler::current_section->size();
     if (symbol_entry != nullptr)
         if (symbol_entry->st_defined == true) {
@@ -97,10 +101,10 @@ int Directives::defineLabel(std::string _label) {
             return -1;
         }
         else {
-            Assembler::elf32_file->getSymbolTable().defineSymbol(symbol_entry, location_counter);
+            Assembler::elf32_file->symbolTable().defineSymbol(symbol_entry, location_counter);
         }
     else {
-        symbol_entry = Assembler::elf32_file->getSymbolTable().add(
+        symbol_entry = Assembler::elf32_file->symbolTable().add(
             _label, location_counter, true, Assembler::current_section->index()
         );
     }

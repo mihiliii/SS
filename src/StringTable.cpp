@@ -22,7 +22,15 @@ std::string StringTable::get(Elf32_Off _offset) {
         return string_table.at(_offset);
 }
 
-void StringTable::replace(std::vector<char> _str_table_data) {
+Elf32_Off StringTable::get(std::string _string) {
+    for (auto& pair : string_table) {
+        if (pair.second == _string)
+            return pair.first;
+    }
+    return 0;
+}
+
+void StringTable::replace(const std::vector<char>& _str_table_data) {
     string_table.clear();
     for (int i = 0; i < (int) _str_table_data.size(); i++) {
         uint32_t offset = i;
@@ -33,14 +41,6 @@ void StringTable::replace(std::vector<char> _str_table_data) {
         }
         string_table.insert(std::make_pair(offset, str));
     }
-}
-
-Elf32_Off StringTable::get(std::string _string) {
-    for (auto& pair : string_table) {
-        if (pair.second == _string)
-            return pair.first;
-    }
-    return 0;
 }
 
 void StringTable::write(std::ofstream* _file) {

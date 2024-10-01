@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::vector<const char*> object_files;
+    std::vector<std::string> object_files;
     if (optind >= argc) {
         std::cerr << "Error: object files are missing." << std::endl;
         return -1;

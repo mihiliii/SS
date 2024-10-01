@@ -1,8 +1,8 @@
 #pragma once
 
 #include <fstream>
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "Elf32.hpp"
 #include "Section.hpp"
@@ -19,7 +19,7 @@ public:
     Elf32_Off get(std::string _string);
     std::string get(Elf32_Off _offset);
 
-    void replace(std::vector<char> _str_table_data);
+    void replace(const std::vector<char>& _str_table_data);
 
     void write(std::ofstream* _file);
 

@@ -25,9 +25,9 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
     if (symbol_value_table.find(_symbol_entry) == symbol_value_table.end()) {
         symbol_value_table[_symbol_entry] = std::make_pair(literal_pool.size() * sizeof(int), std::list<Elf32_Addr>());
 
-        uint32_t symbol_entry_index = elf32_file->getSymbolTable().getIndex(_symbol_entry);
+        uint32_t symbol_entry_index = elf32_file->symbolTable().getIndex(_symbol_entry);
 
-        parent_section->getRelocationTable()->add(
+        parent_section->relocationTable()->add(
             parent_section->size() + literal_pool.size() * sizeof(int),
             ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index),
             0
@@ -35,6 +35,10 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
         literal_pool.emplace_back(0);
     }
     symbol_value_table[_symbol_entry].second.push_back(_address);
+}
+
+void LiteralTable::addLiteralPoolToSection() {
+    parent_section->append(literal_pool.data(), literal_pool.size() * sizeof(int));
 }
 
 void LiteralTable::write(std::ofstream* _file) {
@@ -45,7 +49,7 @@ void LiteralTable::resolveReferences() {
     for (const auto& entry : literal_table) {
         for (const Elf32_Off& section_offset : entry.second.second) {
             Elf32_Off literal_pool_offset = entry.second.first;
-            uint8_t* content = (uint8_t*) parent_section->getContent(section_offset);
+            uint8_t* content = (uint8_t*) parent_section->content(section_offset);
 
             uint32_t disp = literal_pool_offset + (parent_section->size() - section_offset) - 4;
 
@@ -61,7 +65,7 @@ void LiteralTable::resolveReferences() {
     for (const auto& entry : symbol_value_table) {
         for (const Elf32_Off& section_offset : entry.second.second) {
             Elf32_Off literal_pool_offset = entry.second.first;
-            uint8_t* content = (uint8_t*) parent_section->getContent(section_offset);
+            uint8_t* content = (uint8_t*) parent_section->content(section_offset);
 
             uint32_t disp = literal_pool_offset + (parent_section->size() - section_offset) - 4;
 

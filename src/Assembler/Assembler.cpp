@@ -6,8 +6,8 @@
 #include <iostream>
 
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
-#include "../../inc/LiteralTable.hpp"
 #include "../../inc/Elf32File.hpp"
+#include "../../inc/LiteralTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -18,6 +18,7 @@ CustomSection* Assembler::current_section = nullptr;
 
 Elf32File* Assembler::elf32_file = nullptr;
 ForwardReferenceTable Assembler::forward_reference_table;
+std::map<CustomSection*, LiteralTable> Assembler::literal_table_map;
 
 int Assembler::startAssembler(const char* _input_file_name, const char* _output_file_name) {
     // Create an ELF file:
@@ -52,9 +53,9 @@ int Assembler::startAssembler(const char* _input_file_name, const char* _output_
 void Assembler::startBackpatching() {
     forward_reference_table.backpatch();
 
-    for (auto iterator : elf32_file->getCustomSections()) {
-        current_section = iterator.second;
-        current_section->getLiteralTable()->resolveReferences();
+    for (auto iterator : literal_table_map) {
+        iterator.second.resolveReferences();
+        iterator.second.addLiteralPoolToSection();
     }
 }
 

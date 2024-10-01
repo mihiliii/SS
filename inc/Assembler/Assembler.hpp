@@ -2,10 +2,12 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 
 class CustomSection; 
 class Elf32File;
 class ForwardReferenceTable;
+class LiteralTable;
 
 struct Operand {
     std::string type;
@@ -33,5 +35,6 @@ public:
 
     static Elf32File* elf32_file;
     static ForwardReferenceTable forward_reference_table;
+    static std::map<CustomSection*, LiteralTable> literal_table_map;
 
 };
