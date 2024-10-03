@@ -8,6 +8,7 @@
 #include "../inc/RelocationTable.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
+#include "CustomSection.hpp"
 
 CustomSection::CustomSection(Elf32File* _elf32_file, const std::string& _name)
     : Section(_elf32_file), relocation_table(nullptr) {
@@ -32,7 +33,7 @@ void CustomSection::append(void* _content, size_t _content_size) {
     section_header.sh_size += sizeof(char) * _content_size;
 }
 
-void CustomSection::append(instruction_format _content) {
+void CustomSection::append(instruction_format_t _content) {
     uint32_t instruction = (uint32_t) _content;
     for (size_t i = 0; i < sizeof(_content); i++) {
         section_content.push_back((char) ((instruction >> (8 * i)) & 0xFF));
@@ -69,6 +70,10 @@ RelocationTable* CustomSection::relocationTable() {
         relocation_table = new RelocationTable(elf32_file, this);
     }
     return relocation_table;
+}
+
+bool CustomSection::hasRelocationTable() const {
+    return relocation_table != nullptr;
 }
 
 void CustomSection::setRelocationTable(RelocationTable* _relocation_table) {

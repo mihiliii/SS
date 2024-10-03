@@ -1,10 +1,10 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
 #include <map>
+#include <vector>
 
-class CustomSection; 
+class CustomSection;
 class Elf32File;
 class ForwardReferenceTable;
 class LiteralTable;
@@ -25,16 +25,12 @@ public:
 
     static void startBackpatching();
 
-    static void closeAssembler();
-
-    Assembler() = delete; 
+    Assembler() = delete;
 
     ~Assembler() = delete;
 
     static CustomSection* current_section;
-
-    static Elf32File* elf32_file;
+    static Elf32File elf32_file;
     static ForwardReferenceTable forward_reference_table;
     static std::map<CustomSection*, LiteralTable> literal_table_map;
-
 };

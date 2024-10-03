@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <iostream>
+#include <vector>
 
 #include "Elf32.hpp"
 #include "Section.hpp"
@@ -27,7 +28,7 @@ public:
     void replace(const std::vector<Elf32_Sym>& _symbol_table);
 
     uint32_t getIndex(const std::string& _name);
-    uint32_t getIndex(Elf32_Sym _symbol_entry);
+    uint32_t getIndex(Elf32_Sym& _symbol_entry);
 
     void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <list>
 #include <map>
 #include <vector>
 
@@ -10,11 +11,11 @@
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
 
-typedef std::vector<Elf32_Shdr> SectionHeaderTable;
+typedef std::vector<Elf32_Shdr*> SectionHeaderTable;
 typedef std::vector<Elf32_Phdr> ProgramHeaderTable;
 typedef Elf32_Ehdr Elf32Header;
 typedef std::map<std::string, CustomSection> CustomSectionMap;
-typedef std::map<std::string, RelocationTable> RelocationTableMap;
+typedef std::map<CustomSection*, RelocationTable> RelocationTableMap;
 
 #define ELF32FILE_NONE ET_NONE
 #define ELF32FILE_REL  ET_REL
@@ -36,6 +37,13 @@ public:
     CustomSectionMap& customSectionMap() { return custom_sections; }
     RelocationTableMap& relocationTableMap() { return relocation_tables; }
     ProgramHeaderTable& programHeaderTable() { return ph_table; }
+
+    CustomSection* newCustomSection(const std::string& _name);
+    CustomSection* newCustomSection(
+        const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data
+    );
+
+    RelocationTable* newRelocationTable(CustomSection* _linked_section);
 
     ~Elf32File() {};
 

@@ -20,7 +20,6 @@ RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_
     section_header.sh_addralign = 4;
     section_header.sh_size = 0;
     _linked_section->setRelocationTable(this);
-    _elf32_file->relocationTableMap().insert(std::make_pair(relocation_table_name, this));
 }
 
 RelocationTable::RelocationTable(
@@ -34,7 +33,6 @@ RelocationTable::RelocationTable(
     const std::string& relocation_table_name = ".rela" + _linked_section->name();
     section_header.sh_name = _elf32_file->stringTable().add(relocation_table_name);
     _linked_section->setRelocationTable(this);
-    _elf32_file->relocationTableMap().insert(std::make_pair(relocation_table_name, this));
     std::cout << _elf32_file->relocationTableMap().size() << std::endl;
 }
 

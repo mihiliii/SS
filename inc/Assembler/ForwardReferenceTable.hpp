@@ -22,12 +22,12 @@ public:
 
 private:
 
-    struct symbol_reference {
+    struct SymbolReference {
         Elf32_Addr address;        // Address of the section that needs to be replaced with the symbol value.
         Elf32_Half section_index;  // Index of the section that needs to be replaced with the symbol value.
     };
 
-    void resolveSymbol(Elf32_Sym* _symbol_entry, symbol_reference& _address);
+    void resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _address);
 
-    std::map<std::string, std::list<symbol_reference>> forward_references;
+    std::map<std::string, std::list<SymbolReference>> forward_references;
 };

@@ -77,7 +77,7 @@ uint32_t SymbolTable::getIndex(const std::string& _name) {
     return -1;
 }
 
-uint32_t SymbolTable::getIndex(Elf32_Sym _symbol_entry) {
+uint32_t SymbolTable::getIndex(Elf32_Sym& _symbol_entry) {
     return getIndex(elf32_file->stringTable().get(_symbol_entry.st_name));
 }
 
