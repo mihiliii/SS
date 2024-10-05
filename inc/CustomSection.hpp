@@ -5,7 +5,6 @@
 
 #include "Section.hpp"
 
-class LiteralTable;
 class RelocationTable;
 typedef uint32_t instruction_format_t;
 
@@ -18,14 +17,15 @@ public:
     void append(instruction_format_t _content);
 
     void overwrite(void* _content, size_t _content_size, Elf32_Off _offset);
-    void replace(const std::vector<char>& _content);
+    void replace(std::vector<char> _content);
 
     char* content(Elf32_Off _offset);
     std::vector<char>& content();
 
     size_t size() const;
 
-    RelocationTable* relocationTable();
+    RelocationTable& relocationTable();
+    bool hasRelocationTable();
     void setRelocationTable(RelocationTable* _relocation_table);
 
     void print(std::ostream& _ostream) const;

@@ -9,7 +9,6 @@
 #include "../inc/RelocationTable.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "Elf32File.hpp"
 
 Elf32File::Elf32File()
     : elf32_header(), sh_table(), str_table(this), sym_table(this), custom_sections(), relocation_tables(), ph_table() {
@@ -66,24 +65,28 @@ Elf32File::Elf32File(std::string _file_name)
             while (file.get(ch) && ch != '\0') {
                 section_name.push_back(ch);
             }
-            new CustomSection(this, section_name, section_header, custom_section_data);
+
+            newCustomSection(section_name, section_header, custom_section_data);
         } else if (section_header.sh_type == SHT_RELA) {
             std::vector<Elf32_Rela> relocation_table_data(section_header.sh_size / sizeof(Elf32_Rela));
             file.seekg(section_header.sh_offset);
             file.read((char*) relocation_table_data.data(), section_header.sh_size);
 
-            std::string section_name;
             char ch;
-
+            std::string section_name;
             file.seekg(elf32_header.e_stroff + section_header.sh_name);
             while (file.get(ch) && ch != '\0') {
                 section_name.push_back(ch);
             }
 
-            std::string parent_section_name =
-                section_name.substr(sizeof(".rela") - 1, section_name.size() - (sizeof(".rela") - 1));
-            CustomSection* parent_section = custom_sections.at(parent_section_name);
-            new RelocationTable(this, parent_section, section_header, relocation_table_data);
+            const size_t rela_str_size = sizeof(RelocationTable::NAME_PREFIX) - 1;
+            std::string linked_section_name = section_name.substr(rela_str_size, section_name.size() - rela_str_size);
+
+            CustomSection* linked_section = &custom_sections.at(linked_section_name);
+            if (linked_section == nullptr) {
+                std::cerr << "Error: Could not find linked section in Elf32File::Elf32File" << std::endl;
+            }
+            newRelocationTable(linked_section, section_header, relocation_table_data);
         }
     }
     for (int pht_entry = 0; pht_entry < elf32_header.e_phnum; pht_entry++) {
@@ -111,7 +114,7 @@ void Elf32File::write(std::string _file_name, Elf32_Half _type) {
     }
 
     for (auto iterator : custom_sections) {
-        iterator.second->write(&file);
+        iterator.second.write(&file);
     }
 
     elf32_header.e_stroff = file.tellp();
@@ -212,10 +215,9 @@ void Elf32File::readElf(std::string _file_name) {
     // clang-format on
 
     for (auto iterator : elf_file.custom_sections) {
-        iterator.second->print(std::cout);
-        RelocationTable* relocation_table = iterator.second->relocationTable();
-        if (!relocation_table->isEmpty()) {
-            relocation_table->print(std::cout);
+        iterator.second.print(std::cout);
+        if (iterator.second.hasRelocationTable()) {
+            iterator.second.relocationTable().print(std::cout);
         }
     }
 
@@ -279,6 +281,7 @@ void Elf32File::readElf(std::string _file_name) {
 
 CustomSection* Elf32File::newCustomSection(const std::string& _name) {
     auto return_value = custom_sections.emplace(_name, CustomSection(this, _name));
+    auto return_value = custom_sections.emplace(_name, CustomSection(this, _name));
     if (!return_value.second) {
         std::cerr << "Error: Could not create custom section in Elf32File::newCustomSection" << std::endl;
         return nullptr;
@@ -286,7 +289,9 @@ CustomSection* Elf32File::newCustomSection(const std::string& _name) {
     return &return_value.first->second;
 }
 
-CustomSection* Elf32File::newCustomSection(const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data) {
+CustomSection* Elf32File::newCustomSection(
+    const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data
+) {
     auto return_value = custom_sections.emplace(_name, CustomSection(this, _name, _section_header, _data));
     if (!return_value.second) {
         std::cerr << "Error: Could not create custom section in Elf32File::newCustomSection" << std::endl;
@@ -297,6 +302,18 @@ CustomSection* Elf32File::newCustomSection(const std::string& _name, Elf32_Shdr 
 
 RelocationTable* Elf32File::newRelocationTable(CustomSection* _linked_section) {
     auto return_value = relocation_tables.emplace(_linked_section, RelocationTable(this, _linked_section));
+    if (!return_value.second) {
+        std::cerr << "Error: Could not create relocation table in Elf32File::newRelocationTable" << std::endl;
+        return nullptr;
+    }
+    return &return_value.first->second;
+}
+
+RelocationTable* Elf32File::newRelocationTable(
+    CustomSection* _linked_section, Elf32_Shdr _section_header, const std::vector<Elf32_Rela>& _data
+) {
+    auto return_value =
+        relocation_tables.emplace(_linked_section, RelocationTable(this, _linked_section, _section_header, _data));
     if (!return_value.second) {
         std::cerr << "Error: Could not create relocation table in Elf32File::newRelocationTable" << std::endl;
         return nullptr;

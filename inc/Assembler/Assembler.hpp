@@ -23,8 +23,6 @@ public:
 
     static int startAssembler(const char* _input_file_name, const char* _output_file_name);
 
-    static void startBackpatching();
-
     Assembler() = delete;
 
     ~Assembler() = delete;

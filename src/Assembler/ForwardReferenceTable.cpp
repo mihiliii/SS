@@ -2,7 +2,7 @@
 
 #include "../../inc/Assembler/Assembler.hpp"
 #include "../../inc/Assembler/Instructions.hpp"
-#include "../../inc/LiteralTable.hpp"
+#include "../../inc/Assembler/LiteralTable.hpp"
 #include "../../inc/CustomSection.hpp"
 #include "../../inc/Elf32File.hpp"
 #include "../../inc/StringTable.hpp"

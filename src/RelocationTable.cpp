@@ -11,7 +11,7 @@
 
 RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section)
     : Section(_elf32_file), linked_section(_linked_section), relocation_table() {
-    const std::string& relocation_table_name = ".rela" + _linked_section->name();
+    const std::string& relocation_table_name = NAME_PREFIX + _linked_section->name();
     section_header.sh_name = _elf32_file->stringTable().add(relocation_table_name);
     section_header.sh_type = SHT_RELA;
     section_header.sh_entsize = sizeof(Elf32_Rela);
@@ -26,14 +26,12 @@ RelocationTable::RelocationTable(
     Elf32File* _elf32_file,
     CustomSection* _linked_section,
     Elf32_Shdr _section_header,
-    const std::vector<Elf32_Rela>& _relocation_table)
-    : Section(_elf32_file, _section_header),
-      linked_section(_linked_section),
-      relocation_table(_relocation_table) {
-    const std::string& relocation_table_name = ".rela" + _linked_section->name();
+    const std::vector<Elf32_Rela>& _relocation_table
+)
+    : Section(_elf32_file, _section_header), linked_section(_linked_section), relocation_table(_relocation_table) {
+    const std::string& relocation_table_name = NAME_PREFIX + _linked_section->name();
     section_header.sh_name = _elf32_file->stringTable().add(relocation_table_name);
     _linked_section->setRelocationTable(this);
-    std::cout << _elf32_file->relocationTableMap().size() << std::endl;
 }
 
 void RelocationTable::print(std::ostream& _ostream) const {
@@ -75,8 +73,7 @@ void RelocationTable::print(std::ostream& _ostream) const {
 
 void RelocationTable::write(std::ofstream* _file) {
     if (_file->tellp() % section_header.sh_addralign != 0) {
-        _file->write(
-            "\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
+        _file->write("\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
     }
 
     section_header.sh_offset = _file->tellp();

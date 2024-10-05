@@ -7,7 +7,7 @@
 #include "../../inc/Assembler/Assembler.hpp"
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
 #include "../../inc/Elf32File.hpp"
-#include "../../inc/LiteralTable.hpp"
+#include "../../inc/Assembler/LiteralTable.hpp"
 
 typedef uint32_t instruction_format_t;
 extern uint32_t line;

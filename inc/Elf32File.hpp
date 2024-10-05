@@ -44,6 +44,9 @@ public:
     );
 
     RelocationTable* newRelocationTable(CustomSection* _linked_section);
+    RelocationTable* newRelocationTable(
+        CustomSection* _linked_section, Elf32_Shdr _section_header, const std::vector<Elf32_Rela>& _data
+    );
 
     ~Elf32File() {};
 

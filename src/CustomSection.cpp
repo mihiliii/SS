@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "../inc/Elf32File.hpp"
-#include "../inc/LiteralTable.hpp"
 #include "../inc/RelocationTable.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
@@ -56,7 +55,7 @@ std::vector<char>& CustomSection::content() {
     return section_content;
 }
 
-void CustomSection::replace(const std::vector<char>& _content) {
+void CustomSection::replace(std::vector<char> _content) {
     section_content = _content;
     section_header.sh_size = section_content.size();
 }
@@ -65,14 +64,14 @@ size_t CustomSection::size() const {
     return section_content.size();
 }
 
-RelocationTable* CustomSection::relocationTable() {
+RelocationTable& CustomSection::relocationTable() {
     if (relocation_table == nullptr) {
-        relocation_table = new RelocationTable(elf32_file, this);
+        relocation_table = elf32_file->newRelocationTable(this);
     }
-    return relocation_table;
+    return *relocation_table;
 }
 
-bool CustomSection::hasRelocationTable() const {
+bool CustomSection::hasRelocationTable() {
     return relocation_table != nullptr;
 }
 

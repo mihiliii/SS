@@ -10,6 +10,8 @@ class CustomSection;
 class RelocationTable : public Section {
 public:
 
+    const std::string NAME_PREFIX = ".rela";
+
     RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section);
     RelocationTable(
         Elf32File* _elf32_file,
@@ -26,9 +28,7 @@ public:
     void write(std::ofstream* _file) override;
 
     std::vector<Elf32_Rela>& relocationTable() { return relocation_table; };
-    CustomSection* linkedSection() { return linked_section; };
-
-    bool isEmpty() const { return relocation_table.empty(); };
+    CustomSection& linkedSection() { return *linked_section; };
 
 private:
 

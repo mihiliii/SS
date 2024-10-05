@@ -6,8 +6,8 @@
 #include <iostream>
 
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
+#include "../../inc/Assembler/LiteralTable.hpp"
 #include "../../inc/Elf32File.hpp"
-#include "../../inc/LiteralTable.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -37,20 +37,16 @@ int Assembler::startAssembler(const char* _input_file_name, const char* _output_
     // Close the file handle:
     fclose(f_input);
 
-    startBackpatching();
+    // Backpatching phase:
+    forward_reference_table.backpatch();
+    for (auto iterator : literal_table_map) {
+        iterator.second.resolveReferences();
+        iterator.second.addLiteralPoolToSection();
+    }
 
     // Write the ELF file:
     elf32_file.write(std::string(_output_file_name), ET_REL);
     elf32_file.readElf(std::string(_output_file_name));
 
     return 0;
-}
-
-void Assembler::startBackpatching() {
-    forward_reference_table.backpatch();
-
-    for (auto iterator : literal_table_map) {
-        iterator.second.resolveReferences();
-        iterator.second.addLiteralPoolToSection();
-    }
 }

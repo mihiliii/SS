@@ -3,7 +3,6 @@
 #include <iomanip>
 
 #include "../inc/Elf32File.hpp"
-#include "StringTable.hpp"
 
 StringTable::StringTable(Elf32File* _elf32_file) : Section(_elf32_file), string_table() {}
 

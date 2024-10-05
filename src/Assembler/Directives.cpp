@@ -4,11 +4,8 @@
 
 #include "../../inc/Assembler/Assembler.hpp"
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
-#include "../../inc/CustomSection.hpp"
+#include "../../inc/Assembler/LiteralTable.hpp"
 #include "../../inc/Elf32File.hpp"
-#include "../../inc/LiteralTable.hpp"
-#include "../../inc/Section.hpp"
-#include "../../inc/SymbolTable.hpp"
 
 CustomSection*& Directives::current_section = Assembler::current_section;
 Elf32File& Directives::elf32_file = Assembler::elf32_file;
@@ -49,7 +46,7 @@ void Directives::wordDirective(std::vector<Operand>* _values) {
 
             uint32_t symbol_entry_index = elf32_file.symbolTable().getIndex(*symbol_entry);
 
-            current_section->relocationTable()->add(
+            current_section->relocationTable().add(
                 current_section->size(), ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index), 0
             );
 

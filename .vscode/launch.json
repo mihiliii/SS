@@ -49,8 +49,8 @@
             "program": "${workspaceFolder}/assembler",
             "args": [
                 "-o",
-                "test1.o",
-                "test1.s"
+                "test.o",
+                "test.s"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
