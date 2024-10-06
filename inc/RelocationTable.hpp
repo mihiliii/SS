@@ -10,7 +10,7 @@ class CustomSection;
 class RelocationTable : public Section {
 public:
 
-    const std::string NAME_PREFIX = ".rela";
+    static const std::string NAME_PREFIX;
 
     RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section);
     RelocationTable(

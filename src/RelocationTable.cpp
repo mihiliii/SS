@@ -9,6 +9,8 @@
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
 
+const std::string RelocationTable::NAME_PREFIX = std::string(".rela");
+
 RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section)
     : Section(_elf32_file), linked_section(_linked_section), relocation_table() {
     const std::string& relocation_table_name = NAME_PREFIX + _linked_section->name();

@@ -11,7 +11,10 @@ typedef uint32_t instruction_format_t;
 class CustomSection : public Section {
 public:
 
-    friend class Elf32File;
+    CustomSection(Elf32File* _elf32_file, const std::string& _name);
+    CustomSection(
+        Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data
+    );
 
     void append(void* _content, size_t _content_size);
     void append(instruction_format_t _content);
@@ -34,11 +37,6 @@ public:
     ~CustomSection() = default;
 
 private:
-
-    CustomSection(Elf32File* _elf32_file, const std::string& _name);
-    CustomSection(
-        Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data
-    );
 
     std::vector<char> section_content;
     RelocationTable* relocation_table;
