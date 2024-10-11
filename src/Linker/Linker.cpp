@@ -17,9 +17,25 @@ void Linker::addArgument(Place_arg place_arg) {
 int Linker::startLinking(const std::string& _output_file, std::vector<std::string> _input_files) {
     std::cout << "Linking started" << std::endl;
 
+    // mapping phase
+
     for (auto input_file : _input_files) {
         Elf32File in_elf32_file = Elf32File(input_file);
         map(in_elf32_file);
+    }
+
+    Elf32_Addr out_current_place_address = 0;
+    for (const auto& place_arguments_iterator : place_arguments) {
+        const std::string& section_name = place_arguments_iterator.first;
+        const Elf32_Addr& place_address = place_arguments_iterator.second;
+        CustomSection& out_section = out_elf32_file.customSectionMap().find(section_name)->second;
+
+        if (place_address == 0) {
+            out_section.header().sh_addr = out_current_place_address;
+            out_current_place_address += out_section.size();
+        } else {
+            out_section.header().sh_addr = place_arguments_iterator.second;
+        }
     }
 
     out_elf32_file.write(_output_file, ELF32FILE_EXEC);
@@ -47,22 +63,6 @@ void Linker::map(Elf32File& in_elf32_file) {
             CustomSection& out_section = out_cs_map_iterator->second;
 
             out_section.append((char*) in_section.content().data(), in_section.size());
-        }
-    }
-
-    // Resolve section addresses.
-
-    Elf32_Addr out_current_place_address = 0;
-    for (auto& place_arguments_iterator : place_arguments) {
-        const std::string& section_name = place_arguments_iterator.first;
-        const Elf32_Addr& place_address = place_arguments_iterator.second;
-        CustomSection& out_section = out_elf32_file.customSectionMap().find(section_name)->second;
-
-        if (place_address == 0) {
-            out_section.header().sh_addr = out_current_place_address;
-            out_current_place_address += out_section.size();
-        } else {
-            out_section.header().sh_addr = place_arguments_iterator.second;
         }
     }
 

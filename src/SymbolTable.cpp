@@ -14,7 +14,7 @@ Elf32_Sym& SymbolTable::add(const std::string& _name, Elf32_Sym _symbol_entry) {
         _symbol_entry.st_name = elf32_file->stringTable().get(_name);
     }
 
-    section_header.sh_size += sizeof(Elf32_Sym);
+    header().sh_size += sizeof(Elf32_Sym);
     symbol_table.emplace_back(_symbol_entry);
     return symbol_table.back();
 }
@@ -36,7 +36,7 @@ Elf32_Sym& SymbolTable::add(
          .st_defined = _defined}
     );
 
-    section_header.sh_size += sizeof(Elf32_Sym);
+    header().sh_size += sizeof(Elf32_Sym);
     symbol_table.push_back(symbol_entry);
     return symbol_table.back();
 }
@@ -66,7 +66,7 @@ void SymbolTable::replace(const std::vector<Elf32_Sym>& _symbol_table) {
     for (const Elf32_Sym& symbol_entry : _symbol_table) {
         symbol_table.push_back(symbol_entry);
     }
-    section_header.sh_size = symbol_table.size() * sizeof(Elf32_Sym);
+    header().sh_size = symbol_table.size() * sizeof(Elf32_Sym);
 }
 
 uint32_t SymbolTable::getIndex(const std::string& _name) {
@@ -162,11 +162,11 @@ void SymbolTable::print(std::ostream& _ostream) const {
 }
 
 void SymbolTable::write(std::ofstream* _file) {
-    section_header.sh_size = symbol_table.size() * sizeof(Elf32_Sym);
+    header().sh_size = symbol_table.size() * sizeof(Elf32_Sym);
 
-    _file->write("\0", section_header.sh_addralign - (_file->tellp() % section_header.sh_addralign));
+    _file->write("\0", header().sh_addralign - (_file->tellp() % header().sh_addralign));
 
-    section_header.sh_offset = _file->tellp();
+    header().sh_offset = _file->tellp();
 
     for (Elf32_Sym& symbol_entry : symbol_table) {
         _file->write((char*) &symbol_entry, sizeof(Elf32_Sym));

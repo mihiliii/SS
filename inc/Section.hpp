@@ -24,6 +24,5 @@ protected:
     Section(Elf32File* _elf32_file, Elf32_Shdr _section_header);
 
     Elf32File* elf32_file;
-    Elf32_Shdr section_header;
     uint32_t sh_table_index;
 };

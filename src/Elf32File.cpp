@@ -27,13 +27,7 @@ Elf32File::Elf32File()
 }
 
 Elf32File::Elf32File(std::string _file_name)
-    : elf32_header(),
-      sh_table(),
-      str_table(this),
-      sym_table(this),
-      custom_sections(),
-      relocation_tables(),
-      ph_table() {
+    : elf32_header(), sh_table(), str_table(this), sym_table(this), custom_sections(), relocation_tables(), ph_table() {
     std::ifstream file(_file_name, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file in Elf32File::Elf32File: " << _file_name << std::endl;
@@ -89,9 +83,6 @@ Elf32File::Elf32File(std::string _file_name)
             std::string linked_section_name = section_name.substr(rela_str_size, section_name.size() - rela_str_size);
 
             CustomSection* linked_section = &custom_sections.at(linked_section_name);
-            if (linked_section == nullptr) {
-                std::cerr << "Error: Could not find linked section in Elf32File::Elf32File" << std::endl;
-            }
             newRelocationTable(linked_section, section_header, relocation_table_data);
         }
     }
@@ -99,9 +90,8 @@ Elf32File::Elf32File(std::string _file_name)
         Elf32_Phdr program_header;
         file.seekg(elf32_header.e_phoff + pht_entry * sizeof(Elf32_Phdr));
         file.read((char*) (&program_header), sizeof(Elf32_Phdr));
-        ph_table.push_back(&program_header);
+        ph_table.push_back(program_header);
     }
-    ph_table.push_back(nullptr);
 
     file.close();
 }
@@ -142,8 +132,8 @@ void Elf32File::write(std::string _file_name, Elf32_Half _type) {
     elf32_header.e_shnum = sh_table.size();
 
     // Write the section header table:
-    for (Elf32_Shdr* section_header : sh_table) {
-        file.write((char*) section_header, sizeof(Elf32_Shdr));
+    for (Elf32_Shdr& section_header : sh_table) {
+        file.write((char*) &section_header, sizeof(Elf32_Shdr));
     }
 
     // Write the ELF header at the beginning of the file:
@@ -163,6 +153,8 @@ void Elf32File::readElf(std::string _file_name) {
     Elf32File elf_file(_file_name);
 
     // clang-format off
+
+    std::cout << "File: " << _file_name << std::endl << std::endl;
 
     std::cout << "Elf Header:" << std::endl;
     switch (elf_file.elf32_header.e_type) {
@@ -210,17 +202,17 @@ void Elf32File::readElf(std::string _file_name) {
     for (auto& section : elf_file.sh_table) {
         std::cout << "  "
                   << std::right << std::setw(3) << std::setfill(' ') << std::dec << index << " "
-                  << std::left << std::setw(24) << elf_file.str_table.get(section->sh_name) << " "
+                  << std::left << std::setw(24) << elf_file.str_table.get(section.sh_name) << " "
                   << std::right << std::hex << std::setfill('0')
-                  << std::setw(4) << section->sh_type << " "
-                  << std::setw(8) << section->sh_addr << " "
-                  << std::setw(8) << section->sh_offset << " "
-                  << std::setw(8) << section->sh_size << " "
-                  << std::setw(4) << section->sh_link << " "
-                  << std::setw(4) << section->sh_info << " "
+                  << std::setw(4) << section.sh_type << " "
+                  << std::setw(8) << section.sh_addr << " "
+                  << std::setw(8) << section.sh_offset << " "
+                  << std::setw(8) << section.sh_size << " "
+                  << std::setw(4) << section.sh_link << " "
+                  << std::setw(4) << section.sh_info << " "
                   << std::dec << std::setfill(' ') << std::left 
-                  << std::setw(5) << section->sh_addralign << " "
-                  << std::setw(8) << section->sh_entsize << std::endl;
+                  << std::setw(5) << section.sh_addralign << " "
+                  << std::setw(8) << section.sh_entsize << std::endl;
         index += 1;
     }
 
@@ -240,10 +232,12 @@ void Elf32File::readElf(std::string _file_name) {
 
     std::cout << std::endl << "Content of " << _file_name << ":\n";
 
+    size_t i = 0;
+    size_t s = 0;
     while (!input_file.eof()) {
         input_file.read(buffer.data(), bufferSize);
-        size_t s = input_file.gcount();
-        for (size_t i = 0; i < s; i++) {
+        s += input_file.gcount();
+        for (; i < s; i++) {
             if (i % 16 == 0)
                 std::cout << std::right << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
             else if (i % 8 == 0)

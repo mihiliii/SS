@@ -36,7 +36,7 @@ void ForwardReferenceTable::backpatch() {
 }
 
 void ForwardReferenceTable::resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _reference) {
-    Elf32_Off sh_name = Assembler::elf32_file.sectionHeaderTable().at(_reference.section_index)->sh_name;
+    Elf32_Off sh_name = Assembler::elf32_file.sectionHeaderTable().at(_reference.section_index).sh_name;
     CustomSection* section =
         &Assembler::elf32_file.customSectionMap().at(Assembler::elf32_file.stringTable().get(sh_name));
 

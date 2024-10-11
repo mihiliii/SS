@@ -12,7 +12,7 @@
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
 
-typedef std::vector<Elf32_Shdr*> SectionHeaderTable;
+typedef std::vector<Elf32_Shdr> SectionHeaderTable;
 typedef std::vector<Elf32_Phdr> ProgramHeaderTable;
 typedef Elf32_Ehdr Elf32Header;
 typedef std::map<std::string, CustomSection> CustomSectionMap;

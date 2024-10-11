@@ -7,8 +7,8 @@
 StringTable::StringTable(Elf32File* _elf32_file) : Section(_elf32_file), string_table() {}
 
 Elf32_Off StringTable::add(std::string _string) {
-    Elf32_Off offset = section_header.sh_size;
-    section_header.sh_size += _string.size() + 1;
+    Elf32_Off offset = header().sh_size;
+    header().sh_size += _string.size() + 1;
 
     string_table.insert(std::make_pair(offset, _string));
     return offset;
@@ -43,7 +43,7 @@ void StringTable::replace(const std::vector<char>& _str_table_data) {
 }
 
 void StringTable::write(std::ofstream* _file) {
-    section_header.sh_offset = _file->tellp();
+    header().sh_offset = _file->tellp();
 
     for (auto& pair : string_table) {
         _file->write(pair.second.c_str(), pair.second.size() + 1);
