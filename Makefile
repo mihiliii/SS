@@ -20,7 +20,7 @@ $(wildcard src/Linker/*.cpp) \
 COMMON_FILES =\
 $(wildcard src/*.cpp) \
 
-CXXFLAGS = -Wall -Iinc -g -std=c++11
+CXXFLAGS = -Wall -Iinc -g -std=c++2a
 FLEXFLAGS =
 BISONFLAGS = -d
 

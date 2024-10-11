@@ -30,7 +30,7 @@ public:
     uint32_t getIndex(const std::string& _name);
     uint32_t getIndex(Elf32_Sym& _symbol_entry);
 
-    void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value);
+    void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value, Elf32_Half _section_index);
 
     void print(std::ostream& _ostream) const;
 

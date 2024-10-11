@@ -55,7 +55,7 @@ void RelocationTable::print(std::ostream& _ostream) const {
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(relocation_table_entry.r_info)) {
-            case ELF32_R_ABS32:
+            case ELF32_R_TYPE_ABS32:
                 relocation_type = "ABS32";
                 break;
             default:

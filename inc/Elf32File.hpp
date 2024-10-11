@@ -4,6 +4,7 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <memory>
 
 #include "CustomSection.hpp"
 #include "Elf32.hpp"
@@ -39,16 +40,14 @@ public:
     ProgramHeaderTable& programHeaderTable() { return ph_table; }
 
     CustomSection* newCustomSection(const std::string& _name);
-    CustomSection* newCustomSection(
-        const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data
-    );
+    CustomSection* newCustomSection(const std::string& _name, Elf32_Shdr _section_header,
+                                    const std::vector<char>& _data);
 
     RelocationTable* newRelocationTable(CustomSection* _linked_section);
-    RelocationTable* newRelocationTable(
-        CustomSection* _linked_section, Elf32_Shdr _section_header, const std::vector<Elf32_Rela>& _data
-    );
+    RelocationTable* newRelocationTable(CustomSection* _linked_section, Elf32_Shdr _section_header,
+                                        const std::vector<Elf32_Rela>& _data);
 
-    ~Elf32File() {};
+    ~Elf32File() = default;
 
 private:
 

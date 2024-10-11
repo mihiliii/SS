@@ -12,9 +12,12 @@ class CustomSection : public Section {
 public:
 
     CustomSection(Elf32File* _elf32_file, const std::string& _name);
-    CustomSection(
-        Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data
-    );
+    CustomSection(Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header,
+                  const std::vector<char>& _data);
+
+    CustomSection(const CustomSection&) = delete;
+    CustomSection& operator=(const CustomSection&) = delete;
+    CustomSection(CustomSection&&) = delete;
 
     void append(void* _content, size_t _content_size);
     void append(instruction_format_t _content);

@@ -81,9 +81,10 @@ uint32_t SymbolTable::getIndex(Elf32_Sym& _symbol_entry) {
     return getIndex(elf32_file->stringTable().get(_symbol_entry.st_name));
 }
 
-void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value) {
+void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value, Elf32_Half _section_index) {
     _symbol_entry->st_value = _value;
     _symbol_entry->st_defined = true;
+    _symbol_entry->st_shndx = _section_index;
 }
 
 void SymbolTable::print(std::ostream& _ostream) const {

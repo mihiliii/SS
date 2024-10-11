@@ -16,7 +16,7 @@ public:
 
     virtual void write(std::ofstream* _file) {};
 
-    virtual ~Section();
+    virtual ~Section() = 0;
 
 protected:
 

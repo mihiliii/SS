@@ -29,7 +29,7 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
 
         linked_section->relocationTable().add(
             linked_section->size() + literal_pool.size() * sizeof(int),
-            ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index),
+            ELF32_R_INFO(ELF32_R_TYPE_ABS32, symbol_entry_index),
             0
         );
         literal_pool.emplace_back(0);

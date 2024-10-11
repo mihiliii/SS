@@ -32,13 +32,13 @@ void Linker::map(Elf32File& in_elf32_file) {
     // to the output file and add it to place_arguments map so linker can change its address later.
     // If section exists in out_elf32_file then append content only.
 
-    for (auto in_cs_map_iterator : in_elf32_file.customSectionMap()) {
+    for (auto& in_cs_map_iterator : in_elf32_file.customSectionMap()) {
         const std::string& in_section_name = in_cs_map_iterator.first;
         CustomSection& in_section = in_cs_map_iterator.second;
 
         auto out_cs_map_iterator = out_elf32_file.customSectionMap().find(in_section_name);
         if (out_cs_map_iterator == out_elf32_file.customSectionMap().end()) {
-            in_elf32_file.newCustomSection(in_section_name, in_section.header(), in_section.content());
+            out_elf32_file.newCustomSection(in_section_name, in_section.header(), in_section.content());
 
             if (place_arguments.find(in_section_name) == place_arguments.end()) {
                 place_arguments.insert(std::pair<std::string, Elf32_Addr>(in_section_name, 0));
@@ -50,10 +50,10 @@ void Linker::map(Elf32File& in_elf32_file) {
         }
     }
 
-    // Resolve section addresses. 
+    // Resolve section addresses.
 
     Elf32_Addr out_current_place_address = 0;
-    for (auto place_arguments_iterator : place_arguments) {
+    for (auto& place_arguments_iterator : place_arguments) {
         const std::string& section_name = place_arguments_iterator.first;
         const Elf32_Addr& place_address = place_arguments_iterator.second;
         CustomSection& out_section = out_elf32_file.customSectionMap().find(section_name)->second;
@@ -78,9 +78,9 @@ void Linker::map(Elf32File& in_elf32_file) {
 
     // Resolve relocation tables.
 
-    for (auto in_rela_table_iterator : in_elf32_file.relocationTableMap()) {
+    for (auto& in_rela_table_iterator : in_elf32_file.relocationTableMap()) {
         RelocationTable& in_rela_table = in_rela_table_iterator.second;
-        CustomSection& in_section = in_rela_table.linkedSection();
+        CustomSection& in_section = *in_rela_table_iterator.first;
 
         std::vector<Elf32_Rela> out_rela_table_content;
         for (Elf32_Rela relocation : in_rela_table.relocationTable()) {
@@ -88,19 +88,25 @@ void Linker::map(Elf32File& in_elf32_file) {
             std::string symbol_name = in_elf32_file.stringTable().get(sym_entry->st_name);
 
             relocation.r_info =
-                ELF32_R_INFO(out_elf32_file.symbolTable().getIndex(symbol_name), ELF32_R_TYPE(relocation.r_info));
+                ELF32_R_INFO(ELF32_R_TYPE(relocation.r_info), out_elf32_file.symbolTable().getIndex(symbol_name));
+
             out_rela_table_content.push_back(relocation);
         }
 
-        auto out_rela_table_iterator = out_elf32_file.relocationTableMap().find(in_section.name());
-        if (out_rela_table_iterator == out_elf32_file.relocationTableMap().end()) {
-            CustomSection* out_section = out_elf32_file.customSectionMap().find(in_section.name())->second;
+        auto out_section_iterator = out_elf32_file.customSectionMap().find(in_section.name());
+        if (out_section_iterator == out_elf32_file.customSectionMap().end()) {
+            std::cerr << "Error: Could not find section in out_elf32_file in Linker::map" << std::endl;
+            return;
+        }
 
-            new RelocationTable(&out_elf32_file, out_section, in_rela_table.header(), out_rela_table_content);
+        auto out_rela_table_iterator = out_elf32_file.relocationTableMap().find(&out_section_iterator->second);
+        if (out_rela_table_iterator == out_elf32_file.relocationTableMap().end()) {
+            out_elf32_file.newRelocationTable(&out_section_iterator->second, in_rela_table.header(),
+                                              out_rela_table_content);
 
         } else {
-            RelocationTable* out_rela_table = out_rela_table_iterator->second;
-            out_rela_table->add(out_rela_table_content);
+            RelocationTable& out_rela_table = out_rela_table_iterator->second;
+            out_rela_table.add(out_rela_table_content);
         }
     }
 }

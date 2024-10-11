@@ -47,7 +47,7 @@ void Directives::wordDirective(std::vector<Operand>* _values) {
             uint32_t symbol_entry_index = elf32_file.symbolTable().getIndex(*symbol_entry);
 
             current_section->relocationTable().add(
-                current_section->size(), ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index), 0
+                current_section->size(), ELF32_R_INFO(ELF32_R_TYPE_ABS32, symbol_entry_index), 0
             );
 
             current_section->append((instruction_format_t) 0);
@@ -92,7 +92,7 @@ int Directives::defineLabel(std::string _label) {
             std::cout << "Symbol " << _label << " already defined!" << std::endl;
             return -1;
         } else {
-            elf32_file.symbolTable().defineSymbol(symbol_entry, location_counter);
+            elf32_file.symbolTable().defineSymbol(symbol_entry, location_counter, current_section->index());
         }
     else {
         symbol_entry = &elf32_file.symbolTable().add(_label, location_counter, true, current_section->index());
