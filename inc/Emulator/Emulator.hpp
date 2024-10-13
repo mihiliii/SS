@@ -10,12 +10,17 @@ typedef std::vector<char> Memory;
 class Emulator {
 public:
 
-    void loadProgram(const std::string& _path);
+    Emulator(Elf32File _program) : program(_program), memory(0x100000000, 0), cpu(memory) {
+        cpu.reset();
+    }
+
+    void run();
+
 
 
 private:
 
-    Elf32File* elf32_file;
+    Elf32File program;
     
     Memory memory;
     CPU cpu;
