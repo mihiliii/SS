@@ -1,8 +1,8 @@
 #pragma once
 
 #include <fstream>
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "Elf32.hpp"
 #include "Section.hpp"
@@ -13,12 +13,13 @@ class StringTable : public Section {
 public:
 
     StringTable(Elf32File* _elf32_file);
-    StringTable(Elf32File* _elf32_file, Elf32_Shdr _section_header, std::vector<char> _str_table_data);
 
     Elf32_Off add(std::string _string);
 
     Elf32_Off get(std::string _string);
     std::string get(Elf32_Off _offset);
+
+    void replace(const std::vector<char>& _str_table_data);
 
     void write(std::ofstream* _file);
 

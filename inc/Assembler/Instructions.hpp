@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 #define CREATE_INSTRUCTION(OP_CODE, MOD, RegA, RegB, RegC, disp)                                           \
     ((((OP_CODE) & 0xF) << 28) | (((MOD) & 0xF) << 24) | (((RegA) & 0xF) << 20) | (((RegB) & 0xF) << 16) | \
@@ -16,7 +16,6 @@
 #define INSTRUCTION_FORMAT_GPR_C(instruction)   ((instruction & 0x0000F000) >> 12)
 #define INSTRUCTION_FORMAT_DISP(instruction)    (instruction & 0x00000FFF)
 
-struct Operand;
 
 enum struct CSR { STATUS = 0x0, HANDLER = 0x1, CAUSE = 0x2 };
 
@@ -98,10 +97,13 @@ enum struct MOD_ST {
 
 enum struct ADDR { IMMEDIATE, MEM_DIR, REG_DIR, REG_IND, REG_IND_OFF };
 
+class CustomSection;
+class Elf32File;
+class ForwardReferenceTable;
+class LiteralTable;
+
 class Instructions {
 public:
-
-    friend class Assembler;
 
     static void halt();
 
@@ -138,4 +140,9 @@ public:
     static void exchange(uint8_t _gprA, uint8_t _gprB);
 
 private:
+
+    static CustomSection*& current_section;
+    static Elf32File& elf32_file;
+    static ForwardReferenceTable& forward_reference_table;
+    static std::map<CustomSection*, LiteralTable>& literal_table_map;
 };

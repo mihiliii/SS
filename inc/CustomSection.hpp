@@ -5,40 +5,42 @@
 
 #include "Section.hpp"
 
-class LiteralTable;
 class RelocationTable;
-typedef uint32_t instruction_format;
+typedef uint32_t instruction_format_t;
 
 class CustomSection : public Section {
 public:
 
-    CustomSection(Elf32File* _elf32_file, std::string _name);
-    CustomSection(Elf32File* _elf32_file, std::string _name, Elf32_Shdr _section_header, std::vector<char> _data);
+    CustomSection(Elf32File* _elf32_file, const std::string& _name);
+    CustomSection(Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header,
+                  const std::vector<char>& _data);
+
+    CustomSection(const CustomSection&) = delete;
+    CustomSection& operator=(const CustomSection&) = delete;
+    CustomSection(CustomSection&&) = delete;
 
     void append(void* _content, size_t _content_size);
-    void append(instruction_format _content);
+    void append(instruction_format_t _content);
 
     void overwrite(void* _content, size_t _content_size, Elf32_Off _offset);
+    void replace(std::vector<char> _content);
 
-    char* getContent(Elf32_Off _offset);
-    std::vector<char>& getContent();
+    char* content(Elf32_Off _offset);
+    std::vector<char>& content();
 
     size_t size() const;
 
-    LiteralTable* getLiteralTable();
-    RelocationTable* getRelocationTable();
-
+    RelocationTable& relocationTable();
+    bool hasRelocationTable();
     void setRelocationTable(RelocationTable* _relocation_table);
-    void setLiteralTable(LiteralTable* _literal_table);
 
-    void print(std::ofstream& _file) const;
+    void print(std::ostream& _ostream) const;
     void write(std::ofstream* _file) override;
 
     ~CustomSection() = default;
 
 private:
 
-    std::vector<char> content;
-    LiteralTable* literal_table;
+    std::vector<char> section_content;
     RelocationTable* relocation_table;
 };

@@ -3,12 +3,12 @@
 #include <fstream>
 
 #include "../../inc/CustomSection.hpp"
-#include "../../inc/SymbolTable.hpp"
 #include "../../inc/Elf32File.hpp"
 #include "../../inc/RelocationTable.hpp"
+#include "../../inc/SymbolTable.hpp"
 
-LiteralTable::LiteralTable(Elf32File* _elf32_file, CustomSection* _parent_section)
-    : elf32_file(_elf32_file), parent_section(_parent_section) {};
+LiteralTable::LiteralTable(Elf32File* _elf32_file, CustomSection* _linked_section)
+    : elf32_file(_elf32_file), linked_section(_linked_section) {};
 
 // Method needs to be called when literal cant stay in instruction displacement field because of its size.
 // Method adds literal to literal pool and adds a reference to that literal in the literal table.
@@ -25,16 +25,20 @@ void LiteralTable::addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32
     if (symbol_value_table.find(_symbol_entry) == symbol_value_table.end()) {
         symbol_value_table[_symbol_entry] = std::make_pair(literal_pool.size() * sizeof(int), std::list<Elf32_Addr>());
 
-        uint32_t symbol_entry_index = elf32_file->getSymbolTable().getIndex(_symbol_entry);
+        uint32_t symbol_entry_index = elf32_file->symbolTable().getIndex(*_symbol_entry);
 
-        parent_section->getRelocationTable()->add(
-            parent_section->size() + literal_pool.size() * sizeof(int),
-            ELF32_R_INFO(ELF32_R_ABS32, symbol_entry_index),
+        linked_section->relocationTable().add(
+            linked_section->size() + literal_pool.size() * sizeof(int),
+            ELF32_R_INFO(ELF32_R_TYPE_ABS32, symbol_entry_index),
             0
         );
         literal_pool.emplace_back(0);
     }
     symbol_value_table[_symbol_entry].second.push_back(_address);
+}
+
+void LiteralTable::addLiteralPoolToSection() {
+    linked_section->append(literal_pool.data(), literal_pool.size() * sizeof(int));
 }
 
 void LiteralTable::write(std::ofstream* _file) {
@@ -45,9 +49,9 @@ void LiteralTable::resolveReferences() {
     for (const auto& entry : literal_table) {
         for (const Elf32_Off& section_offset : entry.second.second) {
             Elf32_Off literal_pool_offset = entry.second.first;
-            uint8_t* content = (uint8_t*) parent_section->getContent(section_offset);
+            uint8_t* content = (uint8_t*) linked_section->content(section_offset);
 
-            uint32_t disp = literal_pool_offset + (parent_section->size() - section_offset) - 4;
+            uint32_t disp = literal_pool_offset + (linked_section->size() - section_offset) - 4;
 
             if (disp > 0xFFF) {
                 std::cout << "Literal pool overflow" << std::endl;
@@ -55,15 +59,15 @@ void LiteralTable::resolveReferences() {
 
             uint32_t new_content = content[3] << 24 | content[2] << 16 | (content[1] & 0xF0) << 8 | (disp & 0xFFF);
 
-            parent_section->overwrite(&new_content, sizeof(uint32_t), section_offset);
+            linked_section->overwrite(&new_content, sizeof(uint32_t), section_offset);
         }
     }
     for (const auto& entry : symbol_value_table) {
         for (const Elf32_Off& section_offset : entry.second.second) {
             Elf32_Off literal_pool_offset = entry.second.first;
-            uint8_t* content = (uint8_t*) parent_section->getContent(section_offset);
+            uint8_t* content = (uint8_t*) linked_section->content(section_offset);
 
-            uint32_t disp = literal_pool_offset + (parent_section->size() - section_offset) - 4;
+            uint32_t disp = literal_pool_offset + (linked_section->size() - section_offset) - 4;
 
             if (disp > 0xFFF) {
                 std::cout << "Literal pool overflow" << std::endl;
@@ -71,7 +75,7 @@ void LiteralTable::resolveReferences() {
 
             uint32_t new_content = content[3] << 24 | content[2] << 16 | (content[1] & 0xF0) << 8 | (disp & 0xFFF);
 
-            parent_section->overwrite(&new_content, sizeof(uint32_t), section_offset);
+            linked_section->overwrite(&new_content, sizeof(uint32_t), section_offset);
         }
     }
 }

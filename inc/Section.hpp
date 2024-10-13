@@ -16,7 +16,7 @@ public:
 
     virtual void write(std::ofstream* _file) {};
 
-    virtual ~Section() {};
+    virtual ~Section() = 0;
 
 protected:
 
@@ -24,6 +24,5 @@ protected:
     Section(Elf32File* _elf32_file, Elf32_Shdr _section_header);
 
     Elf32File* elf32_file;
-    Elf32_Shdr section_header;
     uint32_t sh_table_index;
 };

@@ -10,26 +10,28 @@ class CustomSection;
 class RelocationTable : public Section {
 public:
 
-    RelocationTable(
-        Elf32File* _elf32_file,
-        CustomSection* _linked_section,
-        Elf32_Shdr _section_header,
-        std::vector<Elf32_Rela> _relocation_table
-    );
-    RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section);
+    static const std::string NAME_PREFIX;
 
-    void print(std::ofstream& _file) const;
-    void write(std::ofstream* _file) override;
+    RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section);
+    RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section, Elf32_Shdr _section_header,
+                    const std::vector<Elf32_Rela>& _relocation_table);
+
+    RelocationTable(const RelocationTable&) = delete;
+    RelocationTable& operator=(const RelocationTable&) = delete;
+    RelocationTable(RelocationTable&&) = delete;
 
     void add(Elf32_Rela _rela_entry);
     void add(Elf32_Addr _offset, Elf32_Word _info, Elf32_SWord _addend);
+    void add(const std::vector<Elf32_Rela>& _relocation_table);
 
-    std::vector<Elf32_Rela>& getContent() { return relocation_table; };
+    void print(std::ostream& _file) const;
+    void write(std::ofstream* _file) override;
 
-    bool isEmpty() const { return relocation_table.empty(); };
+    std::vector<Elf32_Rela>& relocationTable() { return relocation_table; };
+    CustomSection& linkedSection() { return *linked_section; };
 
 private:
 
-    CustomSection* parent_section;
+    CustomSection* linked_section;
     std::vector<Elf32_Rela> relocation_table;
 };

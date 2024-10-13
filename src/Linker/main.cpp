@@ -77,13 +77,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::vector<const char*> object_files;
+    std::vector<std::string> object_file_names;
     if (optind >= argc) {
         std::cerr << "Error: object files are missing." << std::endl;
         return -1;
     }
     else {
-        for (int i = optind; i < argc; i++) object_files.push_back(argv[i]);
+        for (int i = optind; i < argc; i++) object_file_names.push_back(argv[i]);
     }
     if (is_hex == 0) {
         std::cerr << "Error: -hex argument not provided." << std::endl;
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: -o argument not provided." << std::endl;
         return -1;
     }
-    if (Linker::startLinking(output_file_name, object_files) != 0) {
+    if (Linker::startLinking(output_file_name, object_file_names) != 0) {
         std::cerr << "Error: linking failed." << std::endl;
         return -1;
     }

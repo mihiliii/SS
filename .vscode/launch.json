@@ -9,7 +9,19 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/linker",
-            "args": ["-hex", "-o", "temp.hex", "test.o"],
+            "args": [
+                "-hex",
+                "-place=my_code@0x40000000",
+                "-place=math@0xF0000000",
+                "-o",
+                "./tests/program.hex",
+                "./tests/handler.o",
+                "./tests/math.o",
+                "./tests/main.o",
+                "./tests/isr_terminal.o",
+                "./tests/isr_timer.o",
+                "./tests/isr_software.o"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -35,7 +47,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/assembler",
-            "args": ["-o", "test.o", "test.s"],
+            "args": [
+                "-o",
+                "./tests/isr_timer.o",
+                "./tests/isr_timer.s"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

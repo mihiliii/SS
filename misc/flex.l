@@ -50,12 +50,20 @@ STATUS "%status"
 HANDLER "%handler"
 CAUSE "%cause"
 
+/* Special registers: */
+SP "%sp"
+PC "%pc"
+
 %%
 
-"#"[^\n]*\n                 { line++; }
+"#"[^\n]*                   ; 
 ","                         { return ','; }
 ":"                         { return ':'; }
 "$"                         { return '$'; }
+"["                         { return '['; }
+"]"                         { return ']'; }
+"+"                         { return '+'; }
+"-"                         { return '-'; }  
 {HALT}                      { return HALT; }
 {INT}                       { return INT; }
 {IRET}                      { return IRET; }
@@ -94,11 +102,14 @@ CAUSE "%cause"
 {HANDLER}                   { yylval.uint_val = (uint32_t) CSR::HANDLER; return CSR; }
 {CAUSE}                     { yylval.uint_val = (uint32_t) CSR::CAUSE; return CSR; }
 
+{SP}                        { yylval.uint_val = (uint32_t) GPR::SP; return GPR; }
+{PC}                        { yylval.uint_val = (uint32_t) GPR::PC; return GPR; }
+
 %r[0-9]|%r1[0-5]            { yylval.uint_val = (uint32_t) strtol(yytext + 2, NULL, 10); return GPR; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.uint_val = (uint32_t) strtol(yytext, NULL, 0); return LITERAL; }
-[a-zA-Z_][a-zA-Z0-9_]*      { yylval.s_val = strdup(yytext); return SYMBOL; }
+\.?[a-zA-Z_][a-zA-Z0-9_]*   { yylval.s_val = strdup(yytext); return SYMBOL; }
 \n                          { line++; return EOL; }
-[ \t]+                      ;
+[ \r\t]+                    ;
 .                           { printf("Syntax error, unknown character: %s\n", yytext); }
 
 %%

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
-#include <vector>
 #include <fstream>
 #include <map>
+#include <string>
+#include <vector>
 
 #include "../Elf32.hpp"
 
@@ -19,9 +19,10 @@ public:
 
     static void addArgument(Place_arg place_arg);
 
-    static int startLinking(const char* _output_file, std::vector<const char*> _input_files);
+    static int startLinking(const std::string& _output_file,
+                            std::vector<std::string> _input_files);
 
-    static void mapping(std::vector<const char*> _input_files);
+    static void map(Elf32File& _in_elf32_file);
 
     static void positioning();
 
@@ -29,7 +30,6 @@ public:
 
 private:
 
-    static Elf32File* elf32_out;
+    static Elf32File out_elf32_file;
     static std::map<std::string, Elf32_Addr> place_arguments;
-        
 };
