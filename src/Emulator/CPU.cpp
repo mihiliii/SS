@@ -2,15 +2,17 @@
 
 #include "../../inc/Assembler/Instructions.hpp"
 
-#define PUSH(_register) \
-    GPR_SP -= 4;        \
-    memory[GPR_SP] = _register
+#define PUSH(_register)                     \
+    GPR_SP -= sizeof(instruction_t) / BYTE; \
+    memory[GPR_SP] = _register;
 #define POP(_register)          \
     _register = memory[GPR_SP]; \
-    GPR_SP += 4
+    GPR_SP += sizeof(instruction_t) / BYTE;
 
-void CPU::fetchInstruction() {
-    
+instruction_t CPU::fetchInstruction() {
+    instruction_t instruction = memory[GPR_PC];
+    GPR_PC += sizeof(instruction_t) / BYTE;
+    return instruction;
 }
 
 void CPU::executeInstruction(instruction_t _instruction) {
@@ -131,4 +133,12 @@ void CPU::executeInstruction(instruction_t _instruction) {
 void CPU::reset() {
     GPR_PC = 0x40000000;
     GPR_SP = 0x0;
+}
+
+void CPU::run() {
+    running = true;
+    while (running) {
+        instruction_t instruction = fetchInstruction();
+        executeInstruction(instruction);
+    }
 }

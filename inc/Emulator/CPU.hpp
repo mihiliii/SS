@@ -34,11 +34,12 @@ public:
     Register& getZERO()              { return GPR_ZERO; };
     // clang-format on
 
-    void fetchInstruction();
-
+    instruction_t fetchInstruction();
     void executeInstruction(instruction_t _instruction);
 
     void reset();
+
+    void run();
 
 private:
 

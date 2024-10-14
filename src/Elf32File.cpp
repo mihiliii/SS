@@ -86,11 +86,13 @@ Elf32File::Elf32File(std::string _file_name)
             newRelocationTable(linked_section, section_header, relocation_table_data);
         }
     }
-    for (int pht_entry = 0; pht_entry < elf32_header.e_phnum; pht_entry++) {
-        Elf32_Phdr program_header;
-        file.seekg(elf32_header.e_phoff + pht_entry * sizeof(Elf32_Phdr));
-        file.read((char*) (&program_header), sizeof(Elf32_Phdr));
-        ph_table.push_back(program_header);
+    if (elf32_header.e_type == ET_EXEC) {
+        for (int pht_entry = 0; pht_entry < elf32_header.e_phnum; pht_entry++) {
+            Elf32_Phdr program_header;
+            file.seekg(elf32_header.e_phoff + pht_entry * sizeof(Elf32_Phdr));
+            file.read((char*) (&program_header), sizeof(Elf32_Phdr));
+            ph_table.push_back(program_header);
+        }
     }
 
     file.close();
