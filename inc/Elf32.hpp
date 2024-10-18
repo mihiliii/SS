@@ -15,6 +15,7 @@ typedef int8_t Elf32_SByte;
 // ****************************************************************************
 
 /* Makros used e_type in Elf32_Ehdr (ELF header) */
+
 #define ET_NONE 0  // No file type
 #define ET_REL  1  // Relocatable file
 #define ET_EXEC 2  // Executable file
@@ -49,10 +50,12 @@ struct Elf32_Ehdr {
 // ****************************************************************************
 
 /* Indexes of special sections */
+
 #define SHN_UNDEF 0xfff0  // Undefined section
 #define SHN_ABS   0xfff1  // Associated symbol is absolute
 
 /* Makros used in sh_type in Elf32_Shdr (Section header table entry) */
+
 #define SHT_NULL     0x0  // Unused section
 #define SHT_SYMTAB   0x1  // Symbol table
 #define SHT_STRTAB   0x2  // Section header string table
@@ -78,21 +81,25 @@ struct Elf32_Shdr {
 // ****************************************************************************
 
 /* Makros used in st_info in Elf32_Sym (Symbol table entry) */
+
 #define ELF32_ST_BIND(i)    ((i) >> 4)                  // Symbol binding
 #define ELF32_ST_TYPE(i)    ((i) & 0xf)                 // Symbol type
 #define ELF32_ST_INFO(b, t) (((b) << 4) + ((t) & 0xf))  // Symbol type and binding
 
 /* Symbol table bindings */
+
 #define STB_LOCAL  0  // Local symbol
 #define STB_GLOBAL 1  // Global symbol
 #define STB_WEAK   2  // Weak symbol
 
 /* Symbol table types */
+
 #define STT_NOTYPE  0  // No type
 #define STT_SECTION 1  // Section
 #define STT_FILE    2  // File
 
 /* Symbol table visibility */
+
 #define STV_DEFAULT 0  // Default visibility
 
 /* Struct that represents the symbol table entry */
@@ -106,6 +113,7 @@ struct Elf32_Sym {
 };
 
 /* Makros used in r_info in Elf32_Rela (Relocation table entry) */
+
 #define ELF32_R_INFO(t, s) (((t) << 8) + ((s) & 0xff))  // Symbol table index and relocation type
 #define ELF32_R_TYPE(i)    ((i) >> 8)                   // Relocation type
 #define ELF32_R_SYM(i)     ((i) & 0xff)                 // Symbol table index

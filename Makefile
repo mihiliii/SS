@@ -47,6 +47,5 @@ $(BUILD_DIR):
 
 clean:
 	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME)
-
-cleanall:
-	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME) *.o
+	find . -type f -name "*.o" -delete
+	find . -type f -name "*.hex" -delete

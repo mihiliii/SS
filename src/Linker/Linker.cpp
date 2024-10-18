@@ -17,7 +17,7 @@ void Linker::addArgument(Place_arg place_arg) {
 int Linker::startLinking(const std::string& _output_file, std::vector<std::string> _input_files) {
     std::cout << "Linking started" << std::endl;
 
-    // mapping phase
+    // map phase
 
     for (auto input_file : _input_files) {
         Elf32File in_elf32_file = Elf32File(input_file);
@@ -36,6 +36,24 @@ int Linker::startLinking(const std::string& _output_file, std::vector<std::strin
         } else {
             out_section.header().sh_addr = place_arguments_iterator.second;
         }
+    }
+
+    // relocation phase
+
+    std::deque<Elf32_Sym> new_symbol_table;
+
+    for (auto symbol : out_elf32_file.symbolTable().symbolTable()) {
+        // update sections
+
+        if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
+            symbol.st_shndx = out_elf32_file.customSectionMap()
+                                  .find(out_elf32_file.stringTable().get(symbol.st_name))
+                                  ->second.index();
+            new_symbol_table.emplace_back(symbol);
+        }
+
+        // if (symbol.st_shndx != SHN_ABS && symbol.st_shndx != SHN_UNDEF)
+        //     symbol.st_value += out_elf32_file->sectionHeaderTable()[symbol->st_shndx]->sh_addr;
     }
 
     out_elf32_file.write(_output_file, ELF32FILE_EXEC);
@@ -70,10 +88,22 @@ void Linker::map(Elf32File& in_elf32_file) {
 
     for (auto symbol : in_elf32_file.symbolTable().symbolTable()) {
         const std::string& symbol_name = in_elf32_file.stringTable().get(symbol.st_name);
+        const std::string& section_name = in_elf32_file.stringTable().get(symbol.st_shndx);
 
-        if (out_elf32_file.symbolTable().get(symbol_name) == nullptr) {
-            out_elf32_file.symbolTable().add(symbol_name, symbol);
+        if (out_elf32_file.symbolTable().get(symbol_name) != nullptr) {
+            // TODO: Handle duplicate symbols
+            continue;
         }
+
+        if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
+            symbol.st_shndx =
+                out_elf32_file.customSectionMap().find(in_elf32_file.stringTable().get(symbol.st_name))->second.index();
+        } else {
+            
+        }
+
+
+        out_elf32_file.symbolTable().add(symbol_name, symbol);
     }
 
     // Resolve relocation tables.
@@ -111,11 +141,7 @@ void Linker::map(Elf32File& in_elf32_file) {
     }
 }
 
-// void Linker::positioning() {
-//     for (auto& symbol : out_elf32_file->symbolTable().getContent()) {
-//         if (symbol->st_shndx != SHN_ABS && symbol->st_shndx != SHN_UNDEF)
-//             symbol->st_value += out_elf32_file->sectionHeaderTable()[symbol->st_shndx]->sh_addr;
-//     }
+// void Linker::relocationing() {
 // }
 
 // void Linker::resolutioning() {
