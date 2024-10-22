@@ -51,7 +51,6 @@ struct Elf32_Ehdr {
 
 /* Indexes of special sections */
 
-#define SHN_UNDEF 0xfff0  // Undefined section
 #define SHN_ABS   0xfff1  // Associated symbol is absolute
 
 /* Makros used in sh_type in Elf32_Shdr (Section header table entry) */

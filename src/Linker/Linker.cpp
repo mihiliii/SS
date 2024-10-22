@@ -1,6 +1,7 @@
 #include "../../inc/Linker/Linker.hpp"
 
 #include <iostream>
+#include <queue>
 
 #include "../../inc/CustomSection.hpp"
 #include "../../inc/Elf32File.hpp"
@@ -38,22 +39,22 @@ int Linker::startLinking(const std::string& _output_file, std::vector<std::strin
         }
     }
 
-    // relocation phase
+    out_elf32_file.symbolTable().sort();
 
-    std::deque<Elf32_Sym> new_symbol_table;
+    // symbol resolve phase
 
-    for (auto symbol : out_elf32_file.symbolTable().symbolTable()) {
-        // update sections
-
-        if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
-            symbol.st_shndx = out_elf32_file.customSectionMap()
-                                  .find(out_elf32_file.stringTable().get(symbol.st_name))
-                                  ->second.index();
-            new_symbol_table.emplace_back(symbol);
+    for (auto& symbol : out_elf32_file.symbolTable().symbolTable()) {
+        if (symbol.st_defined == false) {
+            std::cerr << "Error: Undefined symbol: " << out_elf32_file.stringTable().get(symbol.st_name) << std::endl;
         }
-
-        // if (symbol.st_shndx != SHN_ABS && symbol.st_shndx != SHN_UNDEF)
-        //     symbol.st_value += out_elf32_file->sectionHeaderTable()[symbol->st_shndx]->sh_addr;
+        if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
+            const std::string& section_name = out_elf32_file.stringTable().get(symbol.st_name);
+            symbol.st_value = out_elf32_file.customSectionMap().find(section_name)->second.header().sh_addr;
+        } else {
+            const std::string& section_name =
+                out_elf32_file.stringTable().get(out_elf32_file.sectionHeaderTable().at(symbol.st_shndx).sh_name);
+            symbol.st_value += out_elf32_file.customSectionMap().find(section_name)->second.header().sh_addr;
+        }
     }
 
     out_elf32_file.write(_output_file, ELF32FILE_EXEC);
@@ -86,24 +87,50 @@ void Linker::map(Elf32File& in_elf32_file) {
 
     // Resolve symbol table.
 
-    for (auto symbol : in_elf32_file.symbolTable().symbolTable()) {
-        const std::string& symbol_name = in_elf32_file.stringTable().get(symbol.st_name);
-        const std::string& section_name = in_elf32_file.stringTable().get(symbol.st_shndx);
+    std::queue<Elf32_Sym> non_section_symbols;
 
-        if (out_elf32_file.symbolTable().get(symbol_name) != nullptr) {
-            // TODO: Handle duplicate symbols
+    for (auto symbol : in_elf32_file.symbolTable().symbolTable()) {
+        if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
+            const std::string& section_name = in_elf32_file.stringTable().get(symbol.st_name);
+
+            if (out_elf32_file.symbolTable().get(section_name) != nullptr) {
+                continue;
+            }
+
+            symbol.st_shndx = out_elf32_file.customSectionMap().find(section_name)->second.index();
+            out_elf32_file.symbolTable().add(section_name, symbol);
+        } else {
+            non_section_symbols.push(symbol);
+        }
+    }
+
+    while (!non_section_symbols.empty()) {
+        Elf32_Sym new_symbol = non_section_symbols.front();
+        non_section_symbols.pop();
+
+        const std::string& new_symbol_name = in_elf32_file.stringTable().get(new_symbol.st_name);
+
+        Elf32_Sym* old_symbol = out_elf32_file.symbolTable().get(new_symbol_name);
+        if (old_symbol != nullptr) {
+            if (old_symbol->st_defined == true && new_symbol.st_defined == true) {
+                std::cerr << "Error: Duplicate symbol definition in Linker::map" << std::endl;
+                return;
+            } else if (old_symbol->st_defined == false && new_symbol.st_defined == true) {
+                out_elf32_file.symbolTable().changeValues(*old_symbol, new_symbol);
+            }
+
+            // Might need to handle other cases in the future
             continue;
         }
 
-        if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
-            symbol.st_shndx =
-                out_elf32_file.customSectionMap().find(in_elf32_file.stringTable().get(symbol.st_name))->second.index();
-        } else {
-            
+        if (new_symbol.st_shndx != SHN_ABS) {
+            Elf32_Shdr section_header = in_elf32_file.sectionHeaderTable().at(new_symbol.st_shndx);
+            const std::string& section_name = in_elf32_file.stringTable().get(section_header.sh_name);
+
+            new_symbol.st_shndx = out_elf32_file.customSectionMap().find(section_name)->second.index();
         }
 
-
-        out_elf32_file.symbolTable().add(symbol_name, symbol);
+        out_elf32_file.symbolTable().add(new_symbol_name, new_symbol);
     }
 
     // Resolve relocation tables.

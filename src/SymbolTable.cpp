@@ -19,22 +19,19 @@ Elf32_Sym& SymbolTable::add(const std::string& _name, Elf32_Sym _symbol_entry) {
     return symbol_table.back();
 }
 
-Elf32_Sym& SymbolTable::add(
-    const std::string& _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index, unsigned char _info
-) {
+Elf32_Sym& SymbolTable::add(const std::string& _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index,
+                            unsigned char _info) {
     Elf32_Off name = elf32_file->stringTable().get(_name);
     if (name == 0) {
         name = elf32_file->stringTable().add(_name);
     }
 
-    Elf32_Sym symbol_entry = Elf32_Sym(
-        {.st_name = name,
-         .st_info = _info,
-         .st_shndx = _section_index,
-         .st_value = _value,
-         .st_size = 0,
-         .st_defined = _defined}
-    );
+    Elf32_Sym symbol_entry = Elf32_Sym({.st_name = name,
+                                        .st_info = _info,
+                                        .st_shndx = _section_index,
+                                        .st_value = _value,
+                                        .st_size = 0,
+                                        .st_defined = _defined});
 
     header().sh_size += sizeof(Elf32_Sym);
     symbol_table.push_back(symbol_entry);
@@ -61,12 +58,34 @@ std::deque<Elf32_Sym>& SymbolTable::symbolTable() {
     return symbol_table;
 }
 
-void SymbolTable::replace(const std::vector<Elf32_Sym>& _symbol_table) {
+void SymbolTable::replaceTable(const std::vector<Elf32_Sym>& _symbol_table) {
     symbol_table.clear();
     for (const Elf32_Sym& symbol_entry : _symbol_table) {
         symbol_table.push_back(symbol_entry);
     }
     header().sh_size = symbol_table.size() * sizeof(Elf32_Sym);
+}
+
+void SymbolTable::changeValues(Elf32_Sym& _old_symbol, Elf32_Sym _new_symbol) {
+    _new_symbol.st_name = _old_symbol.st_name;
+    _old_symbol = _new_symbol;
+}
+
+void SymbolTable::sort() {
+    // Sort the symbol table by type (STT_SECTION, STT_NOTYPE) and then by binding (STB_LOCAL, STB_GLOBAL, STB_WEAK) 
+    std::sort(symbol_table.begin(), symbol_table.end(), [](const Elf32_Sym& a, const Elf32_Sym& b) {
+        if (ELF32_ST_TYPE(a.st_info) == STT_SECTION && ELF32_ST_TYPE(b.st_info) != STT_SECTION) {
+            return true;
+        } else if (ELF32_ST_TYPE(a.st_info) != STT_SECTION && ELF32_ST_TYPE(b.st_info) == STT_SECTION) {
+            return false;
+        } else if (ELF32_ST_BIND(a.st_info) == STB_LOCAL && ELF32_ST_BIND(b.st_info) != STB_LOCAL) {
+            return true;
+        } else if (ELF32_ST_BIND(a.st_info) != STB_LOCAL && ELF32_ST_BIND(b.st_info) == STB_LOCAL) {
+            return false;
+        } else {
+            return a.st_value < b.st_value;
+        }
+    });
 }
 
 uint32_t SymbolTable::getIndex(const std::string& _name) {
@@ -104,9 +123,6 @@ void SymbolTable::print(std::ostream& _ostream) const {
     for (const Elf32_Sym& symbol_entry : symbol_table) {
         std::string bind, type, section_index;
         switch (symbol_entry.st_shndx) {
-            case SHN_UNDEF:
-                section_index = "UND";
-                break;
             case SHN_ABS:
                 section_index = "ABS";
                 break;

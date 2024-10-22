@@ -25,7 +25,10 @@ public:
     Elf32_Sym* get(uint32_t _entry_index);
 
     std::deque<Elf32_Sym>& symbolTable();
-    void replace(const std::vector<Elf32_Sym>& _symbol_table);
+    void replaceTable(const std::vector<Elf32_Sym>& _symbol_table);
+    void changeValues(Elf32_Sym& _old_symbol, Elf32_Sym _new_symbol);
+
+    void sort();
 
     uint32_t getIndex(const std::string& _name);
     uint32_t getIndex(Elf32_Sym& _symbol_entry);

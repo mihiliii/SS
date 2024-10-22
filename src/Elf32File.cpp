@@ -53,7 +53,7 @@ Elf32File::Elf32File(std::string _file_name)
             file.read((char*) symbol_table_data.data(), section_header.sh_size);
 
             sym_table.header() = section_header;
-            sym_table.replace(symbol_table_data);
+            sym_table.replaceTable(symbol_table_data);
         } else if (section_header.sh_type == SHT_CUSTOM) {
             std::vector<char> custom_section_data(section_header.sh_size);
             file.seekg(section_header.sh_offset);

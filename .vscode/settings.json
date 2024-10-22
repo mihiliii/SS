@@ -57,5 +57,6 @@
         "locale": "cpp",
         "queue": "cpp",
         "cstring": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }
