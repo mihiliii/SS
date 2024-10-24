@@ -24,10 +24,6 @@ public:
 
     static void map(Elf32File& _in_elf32_file);
 
-    static void positioning();
-
-    static void resolutioning();
-
 private:
 
     static Elf32File out_elf32_file;

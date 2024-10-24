@@ -39,8 +39,6 @@ int Linker::startLinking(const std::string& _output_file, std::vector<std::strin
         }
     }
 
-    out_elf32_file.symbolTable().sort();
-
     // symbol resolve phase
 
     for (auto& symbol : out_elf32_file.symbolTable().symbolTable()) {
@@ -54,6 +52,19 @@ int Linker::startLinking(const std::string& _output_file, std::vector<std::strin
             const std::string& section_name =
                 out_elf32_file.stringTable().get(out_elf32_file.sectionHeaderTable().at(symbol.st_shndx).sh_name);
             symbol.st_value += out_elf32_file.customSectionMap().find(section_name)->second.header().sh_addr;
+        }
+    }
+
+    // relocation phase
+
+    for (auto& relocation_table_map_iterator : out_elf32_file.relocationTableMap()) {
+        CustomSection& linked_section = *relocation_table_map_iterator.first;
+        RelocationTable& relocation_table = relocation_table_map_iterator.second;
+
+        for (auto& relocation_table_entry : relocation_table.relocationTable()) {
+            uint32_t sym_value = out_elf32_file.symbolTable().get(ELF32_R_SYM(relocation_table_entry.r_info))->st_value;
+            sym_value += relocation_table_entry.r_addend;
+            linked_section.overwrite(&sym_value, sizeof(sym_value), relocation_table_entry.r_offset);
         }
     }
 
@@ -85,7 +96,7 @@ void Linker::map(Elf32File& in_elf32_file) {
         }
     }
 
-    // Resolve symbol table.
+    // Map symbol table.
 
     std::queue<Elf32_Sym> non_section_symbols;
 
@@ -99,6 +110,21 @@ void Linker::map(Elf32File& in_elf32_file) {
 
             symbol.st_shndx = out_elf32_file.customSectionMap().find(section_name)->second.index();
             out_elf32_file.symbolTable().add(section_name, symbol);
+
+            // for (auto& relocation_table_map_iterator : in_elf32_file.relocationTableMap()) {
+            //     RelocationTable& relocation_table = relocation_table_map_iterator.second;
+
+            //     for (Elf32_Rela& relocation_entry : relocation_table.relocationTable()) {
+            //         Elf32_Sym* in_sym_entry = in_elf32_file.symbolTable().get(ELF32_R_SYM(relocation_entry.r_info));
+            //         const std::string& in_section_name = in_elf32_file.stringTable().get(in_sym_entry->st_name);
+
+            //         if (in_section_name == section_name) {
+            //             relocation_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(relocation_entry.r_info),
+            //                                                    out_elf32_file.symbolTable().getIndex(section_name));
+            //         }
+            //     }
+            // }
+
         } else {
             non_section_symbols.push(symbol);
         }
@@ -131,9 +157,23 @@ void Linker::map(Elf32File& in_elf32_file) {
         }
 
         out_elf32_file.symbolTable().add(new_symbol_name, new_symbol);
+
+        // for (auto& relocation_table_map_iterator : in_elf32_file.relocationTableMap()) {
+        //     RelocationTable& relocation_table = relocation_table_map_iterator.second;
+
+        //     for (Elf32_Rela& relocation_entry : relocation_table.relocationTable()) {
+        //         Elf32_Sym* in_sym_entry = in_elf32_file.symbolTable().get(ELF32_R_SYM(relocation_entry.r_info));
+        //         const std::string& in_section_name = in_elf32_file.stringTable().get(in_sym_entry->st_name);
+
+        //         if (in_section_name == new_symbol_name) {
+        //             relocation_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(relocation_entry.r_info),
+        //                                                    out_elf32_file.symbolTable().getIndex(new_symbol_name));
+        //         }
+        //     }
+        // }
     }
 
-    // Resolve relocation tables.
+    // Map relocation tables.
 
     for (auto& in_rela_table_iterator : in_elf32_file.relocationTableMap()) {
         RelocationTable& in_rela_table = in_rela_table_iterator.second;
@@ -160,27 +200,9 @@ void Linker::map(Elf32File& in_elf32_file) {
         if (out_rela_table_iterator == out_elf32_file.relocationTableMap().end()) {
             out_elf32_file.newRelocationTable(&out_section_iterator->second, in_rela_table.header(),
                                               out_rela_table_content);
-
         } else {
             RelocationTable& out_rela_table = out_rela_table_iterator->second;
             out_rela_table.add(out_rela_table_content);
         }
     }
 }
-
-// void Linker::relocationing() {
-// }
-
-// void Linker::resolutioning() {
-//     for (auto& relocation_tables : out_elf32_file->relocationTableMap()) {
-//         RelocationTable* relocation_table = relocation_tables.second;
-
-//         for (auto& relocation_entry : relocation_table->getContent()) {
-//             Elf32_Sym* symbol =
-//                 out_elf32_file->symbolTable().get(ELF32_R_SYM(relocation_entry.r_info));
-//             if (symbol->st_shndx != SHN_ABS && symbol->st_shndx != SHN_UNDEF)
-//                 symbol->st_value +=
-//                 out_elf32_file->sectionHeaderTable()[symbol->st_shndx]->sh_addr;
-//         }
-//     }
-// }
