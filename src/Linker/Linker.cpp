@@ -68,8 +68,13 @@ int Linker::startLinking(const std::string& _output_file, std::vector<std::strin
         }
     }
 
-    out_elf32_file.write(_output_file, ELF32FILE_EXEC);
-    Elf32File::readElf(_output_file);
+    std::string _object_output_file = _output_file.substr(0, _output_file.find_last_of('.')) + ".o";
+
+    out_elf32_file.write(_object_output_file, ELF32FILE_EXEC);
+    Elf32File::readElf(_object_output_file);
+
+    out_elf32_file.writeHex(_output_file);
+
     return 0;
 }
 
@@ -111,20 +116,6 @@ void Linker::map(Elf32File& in_elf32_file) {
             symbol.st_shndx = out_elf32_file.customSectionMap().find(section_name)->second.index();
             out_elf32_file.symbolTable().add(section_name, symbol);
 
-            // for (auto& relocation_table_map_iterator : in_elf32_file.relocationTableMap()) {
-            //     RelocationTable& relocation_table = relocation_table_map_iterator.second;
-
-            //     for (Elf32_Rela& relocation_entry : relocation_table.relocationTable()) {
-            //         Elf32_Sym* in_sym_entry = in_elf32_file.symbolTable().get(ELF32_R_SYM(relocation_entry.r_info));
-            //         const std::string& in_section_name = in_elf32_file.stringTable().get(in_sym_entry->st_name);
-
-            //         if (in_section_name == section_name) {
-            //             relocation_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(relocation_entry.r_info),
-            //                                                    out_elf32_file.symbolTable().getIndex(section_name));
-            //         }
-            //     }
-            // }
-
         } else {
             non_section_symbols.push(symbol);
         }
@@ -158,19 +149,6 @@ void Linker::map(Elf32File& in_elf32_file) {
 
         out_elf32_file.symbolTable().add(new_symbol_name, new_symbol);
 
-        // for (auto& relocation_table_map_iterator : in_elf32_file.relocationTableMap()) {
-        //     RelocationTable& relocation_table = relocation_table_map_iterator.second;
-
-        //     for (Elf32_Rela& relocation_entry : relocation_table.relocationTable()) {
-        //         Elf32_Sym* in_sym_entry = in_elf32_file.symbolTable().get(ELF32_R_SYM(relocation_entry.r_info));
-        //         const std::string& in_section_name = in_elf32_file.stringTable().get(in_sym_entry->st_name);
-
-        //         if (in_section_name == new_symbol_name) {
-        //             relocation_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(relocation_entry.r_info),
-        //                                                    out_elf32_file.symbolTable().getIndex(new_symbol_name));
-        //         }
-        //     }
-        // }
     }
 
     // Map relocation tables.

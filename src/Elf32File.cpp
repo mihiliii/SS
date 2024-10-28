@@ -11,7 +11,7 @@
 #include "../inc/SymbolTable.hpp"
 
 Elf32File::Elf32File()
-    : elf32_header(), sh_table(), str_table(this), sym_table(this), custom_sections(), relocation_tables(), ph_table() {
+    : elf32_header(), sh_table(), str_table(this), sym_table(this), custom_sections(), relocation_tables() {
     elf32_header.e_shoff = sizeof(Elf32_Ehdr);
     elf32_header.e_shentsize = sizeof(Elf32_Shdr);
 
@@ -27,7 +27,7 @@ Elf32File::Elf32File()
 }
 
 Elf32File::Elf32File(std::string _file_name)
-    : elf32_header(), sh_table(), str_table(this), sym_table(this), custom_sections(), relocation_tables(), ph_table() {
+    : elf32_header(), sh_table(), str_table(this), sym_table(this), custom_sections(), relocation_tables() {
     std::ifstream file(_file_name, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file in Elf32File::Elf32File: " << _file_name << std::endl;
@@ -86,14 +86,6 @@ Elf32File::Elf32File(std::string _file_name)
             newRelocationTable(linked_section, section_header, relocation_table_data);
         }
     }
-    if (elf32_header.e_type == ET_EXEC) {
-        for (int pht_entry = 0; pht_entry < elf32_header.e_phnum; pht_entry++) {
-            Elf32_Phdr program_header;
-            file.seekg(elf32_header.e_phoff + pht_entry * sizeof(Elf32_Phdr));
-            file.read((char*) (&program_header), sizeof(Elf32_Phdr));
-            ph_table.push_back(program_header);
-        }
-    }
 
     file.close();
 }
@@ -107,13 +99,6 @@ void Elf32File::write(std::string _file_name, Elf32_Half _type) {
     }
 
     file.seekp(sizeof(Elf32_Ehdr), std::ios::beg);
-
-    // Write program headers right after the ELF header:
-    if (_type == ET_EXEC) {
-        // for (const Elf32_Phdr& program_header : ph_table) {
-        //     file.write((char*) &program_header, sizeof(Elf32_Phdr));
-        // }
-    }
 
     // Write sections right after the ELF header:
     for (auto& iterator : custom_sections) {
@@ -143,6 +128,56 @@ void Elf32File::write(std::string _file_name, Elf32_Half _type) {
     file.write((char*) &elf32_header, sizeof(Elf32_Ehdr));
 
     file.close();
+}
+
+void Elf32File::writeHex(std::string _file_name) {
+    std::ofstream file;
+    file.open(_file_name, std::ios::out);
+
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file in Elf32File::writeToFile" << _file_name << std::endl;
+        return;
+    }
+
+    Elf32_Addr address_to_write = 0;
+
+    while (true) {
+        // Write section content in next format in txt file:
+        // 00000000: 00 01 02 03 04 05 06 07
+        // 00000008: 08 09 0A 0B 0C 0D 0E 0F
+        // ...
+
+        CustomSection* section_to_write = nullptr;
+        for (auto& iterator : custom_sections) {
+            // If address to write matches section address, set section_to_write to that section
+            // Else, find the section that has the smallest address of all sections but greater than address_to_write
+            if (address_to_write == iterator.second.header().sh_addr) {
+                section_to_write = &iterator.second;
+                break;
+            } else if (address_to_write < iterator.second.header().sh_addr) {
+                section_to_write = &iterator.second;
+            }
+        }
+
+        if (section_to_write == nullptr) {
+            break;
+        }
+
+        Elf32_Addr first_address = section_to_write->header().sh_addr;
+        Elf32_Addr last_address = address_to_write + section_to_write->size();
+
+        for (address_to_write = first_address; address_to_write < last_address; address_to_write++) {
+            if (address_to_write % 8 == 0) {
+                if (address_to_write != 0) {
+                    file << std::endl;
+                }
+                file << std::hex << std::setw(8) << std::setfill('0') << address_to_write << ": ";
+            }
+
+            file << std::hex << std::setw(2) << std::setfill('0')
+                 << (uint32_t) (unsigned char) section_to_write->content()[address_to_write - first_address] << " ";
+        }
+    }
 }
 
 void Elf32File::readElf(std::string _file_name) {

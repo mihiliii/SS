@@ -7,7 +7,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    Emulator emulator = Emulator(Elf32File(argv[1]));
+    Elf32File elf32_file = Elf32File(std::string(argv[1]));
+
+    Emulator emulator = Emulator(elf32_file);
     emulator.start();
 
     return 0;

@@ -1,6 +1,7 @@
 /build
 assembler
 linker
+emulator
 *.o
 *.s
 *.txt

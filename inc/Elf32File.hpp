@@ -3,8 +3,8 @@
 #include <fstream>
 #include <list>
 #include <map>
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "CustomSection.hpp"
 #include "Elf32.hpp"
@@ -13,7 +13,6 @@
 #include "SymbolTable.hpp"
 
 typedef std::vector<Elf32_Shdr> SectionHeaderTable;
-typedef std::vector<Elf32_Phdr> ProgramHeaderTable;
 typedef Elf32_Ehdr Elf32Header;
 typedef std::map<std::string, CustomSection> CustomSectionMap;
 typedef std::map<CustomSection*, RelocationTable> RelocationTableMap;
@@ -29,6 +28,7 @@ public:
     Elf32File(std::string _file_name);  // Used for reading an existing ELF file
 
     void write(std::string _file_name, Elf32_Half _type);
+    void writeHex(std::string _file_name);
     static void readElf(std::string _file_name);
 
     Elf32Header& elf32Header() { return elf32_header; }
@@ -37,7 +37,6 @@ public:
     SymbolTable& symbolTable() { return sym_table; }
     CustomSectionMap& customSectionMap() { return custom_sections; }
     RelocationTableMap& relocationTableMap() { return relocation_tables; }
-    ProgramHeaderTable& programHeaderTable() { return ph_table; }
 
     CustomSection* newCustomSection(const std::string& _name);
     CustomSection* newCustomSection(const std::string& _name, Elf32_Shdr _section_header,
@@ -57,5 +56,4 @@ private:
     SymbolTable sym_table;
     CustomSectionMap custom_sections;
     RelocationTableMap relocation_tables;
-    ProgramHeaderTable ph_table;
 };

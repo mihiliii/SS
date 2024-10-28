@@ -5,7 +5,7 @@
 #include "../../inc/Elf32File.hpp"
 #include "../../inc/CustomSection.hpp"
 
-Emulator::Emulator(Elf32File _program) : program(_program), memory(0x100000000, 0), cpu(memory) {
+Emulator::Emulator(Elf32File& _program) : program(_program), memory(0x100000000, 0), cpu(memory) {
     if (_program.elf32Header().e_type != ET_EXEC) {
         throw std::runtime_error("Error: Invalid ELF file type.");
     }
@@ -18,4 +18,6 @@ Emulator::Emulator(Elf32File _program) : program(_program), memory(0x100000000, 
     }
 }
 
-void Emulator::start() {}
+void Emulator::start() {
+    cpu.run();
+}
