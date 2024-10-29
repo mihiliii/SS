@@ -26,9 +26,13 @@ void CPU::executeInstruction(instruction_t _instruction) {
     uint8_t regA = INSTRUCTION_FORMAT_GPR_A(_instruction);
     uint8_t regB = INSTRUCTION_FORMAT_GPR_B(_instruction);
     uint8_t regC = INSTRUCTION_FORMAT_GPR_C(_instruction);
-    uint16_t disp = INSTRUCTION_FORMAT_DISP(_instruction);
+    uint32_t disp = INSTRUCTION_FORMAT_DISP(_instruction);
 
-    std::cout << "Instruction: " << std::hex << _instruction << " " << GPR_PC << std::endl;
+    if (disp & 0x800) {
+        disp |= 0xFFFFF000;
+    }
+
+    std::cout << "Instruction: " << std::hex << _instruction << " " << GPR_PC << std::endl << std::flush;
 
     switch (op_code) {
         case (int) OP_CODE::HALT:
@@ -49,7 +53,7 @@ void CPU::executeInstruction(instruction_t _instruction) {
                 PUSH(GPR_PC);
                 GPR_PC = GPR[regA] + GPR[regB] + disp;
             } else if (mod == (int) MOD_CALL::CALL_IND) {
-                POP(GPR_PC);
+                PUSH(GPR_PC);
                 readMemory(GPR_PC, GPR[regA] + GPR[regB] + disp);
             }
             break;
@@ -129,8 +133,8 @@ void CPU::executeInstruction(instruction_t _instruction) {
             if (mod == (int) MOD_ST::MEM_GPRA_GPRB_DISP)
                 writeMemory(GPR[regA] + GPR[regB] + disp, GPR[regC]);
             else if (mod == (int) MOD_ST::PUSH) {
-                writeMemory(GPR[regA], GPR[regB]);
                 GPR[regA] = GPR[regA] + disp;
+                writeMemory(GPR[regA], GPR[regC]);
             } else if (mod == (int) MOD_ST::MEM_MEM_GPRA_GPRB_DISP) {
                 Register temp;
                 readMemory(temp, GPR[regA] + GPR[regB] + disp);

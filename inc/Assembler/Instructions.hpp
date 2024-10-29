@@ -129,13 +129,13 @@ public:
 
     static void load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, std::string _symbol);
 
-    static void csr_load(uint8_t _csr, uint8_t _gpr);
+    static void csr_read(uint8_t _csr, uint8_t _gpr);
 
     static void store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value);
 
     static void store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);
 
-    static void csr_store(uint8_t _csr, uint8_t _gpr);
+    static void csr_write(uint8_t _gpr, uint8_t _csr);
 
     static void exchange(uint8_t _gprA, uint8_t _gprB);
 

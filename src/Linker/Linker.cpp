@@ -83,6 +83,8 @@ void Linker::map(Elf32File& in_elf32_file) {
     // to the output file and add it to place_arguments map so linker can change its address later.
     // If section exists in out_elf32_file then append content only.
 
+    std::map<std::string, Elf32_Off> section_addend;
+
     for (auto& in_cs_map_iterator : in_elf32_file.customSectionMap()) {
         const std::string& in_section_name = in_cs_map_iterator.first;
         CustomSection& in_section = in_cs_map_iterator.second;
@@ -97,6 +99,7 @@ void Linker::map(Elf32File& in_elf32_file) {
         } else {
             CustomSection& out_section = out_cs_map_iterator->second;
 
+            section_addend.emplace(in_section_name, out_section.size());
             out_section.append((char*) in_section.content().data(), in_section.size());
         }
     }
@@ -125,10 +128,23 @@ void Linker::map(Elf32File& in_elf32_file) {
         Elf32_Sym new_symbol = non_section_symbols.front();
         non_section_symbols.pop();
 
-        const std::string& new_symbol_name = in_elf32_file.stringTable().get(new_symbol.st_name);
+        if (new_symbol.st_shndx != SHN_ABS) {
+            Elf32_Shdr section_header = in_elf32_file.sectionHeaderTable().at(new_symbol.st_shndx);
+            const std::string& section_name = in_elf32_file.stringTable().get(section_header.sh_name);
 
-        Elf32_Sym* old_symbol = out_elf32_file.symbolTable().get(new_symbol_name);
+            auto addend = section_addend.find(section_name);
+            if (addend != section_addend.end()) {
+                new_symbol.st_value += addend->second;
+            }
+
+            new_symbol.st_shndx = out_elf32_file.customSectionMap().find(section_name)->second.index();
+        }
+
+        const std::string& symbol_name = in_elf32_file.stringTable().get(new_symbol.st_name);
+        Elf32_Sym* old_symbol = out_elf32_file.symbolTable().get(symbol_name);
+
         if (old_symbol != nullptr) {
+            std::cout << symbol_name << " " << old_symbol->st_value << " " << new_symbol.st_value << std::endl;
             if (old_symbol->st_defined == true && new_symbol.st_defined == true) {
                 std::cerr << "Error: Duplicate symbol definition in Linker::map" << std::endl;
                 return;
@@ -140,15 +156,7 @@ void Linker::map(Elf32File& in_elf32_file) {
             continue;
         }
 
-        if (new_symbol.st_shndx != SHN_ABS) {
-            Elf32_Shdr section_header = in_elf32_file.sectionHeaderTable().at(new_symbol.st_shndx);
-            const std::string& section_name = in_elf32_file.stringTable().get(section_header.sh_name);
-
-            new_symbol.st_shndx = out_elf32_file.customSectionMap().find(section_name)->second.index();
-        }
-
-        out_elf32_file.symbolTable().add(new_symbol_name, new_symbol);
-
+        out_elf32_file.symbolTable().add(symbol_name, new_symbol);
     }
 
     // Map relocation tables.

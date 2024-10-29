@@ -164,8 +164,8 @@ instruction:
     | ST GPR ',' GPR                     { Instructions::store(ADDR::REG_DIR, (uint8_t) $2, (uint8_t) $4, 0, 0); }
     | ST GPR ',' '[' GPR ']'             { Instructions::store(ADDR::REG_IND, (uint8_t) $5, 0, (uint8_t) $2, 0); }
     | ST GPR ',' '[' GPR '+' LITERAL ']' { Instructions::store(ADDR::REG_IND_OFF, (uint8_t) $5, 0, (uint8_t) $2, (uint32_t) $7); }
-    | CSRRD CSR ',' GPR { Instructions::csr_load((uint8_t) $2, (uint8_t) $4); }
-    | CSRWR GPR ',' CSR { Instructions::csr_store((uint8_t) $2, (uint8_t) $4); }
+    | CSRRD CSR ',' GPR { Instructions::csr_read((uint8_t) $2, (uint8_t) $4); }
+    | CSRWR GPR ',' CSR { Instructions::csr_write((uint8_t) $2, (uint8_t) $4); }
 ;
 
 %%

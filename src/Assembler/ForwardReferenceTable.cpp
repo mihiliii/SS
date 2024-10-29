@@ -50,7 +50,7 @@ void ForwardReferenceTable::resolveSymbol(Elf32_Sym* _symbol_entry, SymbolRefere
     if (op_code == OP_CODE::JMP && offset < 0xFFF) {
         uint8_t mod = INSTRUCTION_FORMAT_MOD(instruction);
         mod = (mod >= 0x8) ? (mod - 0x8) : mod;
-        uint32_t reg_A = 0;
+        uint32_t reg_A = 15;
         instruction = (instruction & 0xF00FF000) | ((uint32_t) mod << 24) | (reg_A << 20) | (offset & 0xFFF);
 
         section->overwrite(&instruction, sizeof(instruction_format_t), _reference.address);

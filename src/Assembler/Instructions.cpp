@@ -206,8 +206,8 @@ void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, std::string _s
     current_section->append(instruction);
 }
 
-void Instructions::csr_load(uint8_t _csr, uint8_t _gpr) {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::GPR, _csr, _gpr, 0, 0));
+void Instructions::csr_read(uint8_t _csr, uint8_t _gpr) {
+    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::CSR, _gpr, _csr, 0, 0));
 }
 
 void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value) {
@@ -290,8 +290,8 @@ void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC
     current_section->append(instruction);
 }
 
-void Instructions::csr_store(uint8_t _csr, uint8_t _gpr) {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::CSR, _gpr, _csr, 0, 0));
+void Instructions::csr_write(uint8_t _gpr, uint8_t _csr) {
+    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::GPR, _csr, _gpr, 0, 0));
 }
 
 void Instructions::exchange(uint8_t _gprS, uint8_t _gprD) {
