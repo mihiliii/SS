@@ -44,12 +44,11 @@ public:
 
     void run();
 
-private:
-
     bool running;
 
     Register GPR[16];
     Register CSR[3];
 
     Memory& memory;
+
 };

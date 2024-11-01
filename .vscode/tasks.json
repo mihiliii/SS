@@ -4,24 +4,7 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++ build assembler (makefile)",
-            "command": "make clean assembler",
-            "args": [],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "detail": "compiler: /usr/bin/g++"
-        },
-        {
-            "type": "cppbuild",
-            "label": "C/C++: g++ build emulator (makefile)",
-            "command": "make clean emulator",
+            "command": "make clean_assembler assembler",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -38,7 +21,24 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++ build linker (makefile)",
-            "command": "make clean linker",
+            "command": "make clean_linker linker",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "compiler: /usr/bin/g++"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++ build emulator (makefile)",
+            "command": "make clean_emulator emulator",
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"

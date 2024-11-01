@@ -18,6 +18,8 @@ void Linker::addArgument(Place_arg place_arg) {
 int Linker::startLinking(const std::string& _output_file, std::vector<std::string> _input_files) {
     std::cout << "Linking started" << std::endl;
 
+    Elf32File& out_elf32_file = Linker::out_elf32_file;
+
     // map phase
 
     for (auto input_file : _input_files) {
@@ -83,6 +85,8 @@ void Linker::map(Elf32File& in_elf32_file) {
     // to the output file and add it to place_arguments map so linker can change its address later.
     // If section exists in out_elf32_file then append content only.
 
+    Elf32File& out_elf32_file = Linker::out_elf32_file;
+
     std::map<std::string, Elf32_Off> section_addend;
 
     for (auto& in_cs_map_iterator : in_elf32_file.customSectionMap()) {
@@ -144,7 +148,6 @@ void Linker::map(Elf32File& in_elf32_file) {
         Elf32_Sym* old_symbol = out_elf32_file.symbolTable().get(symbol_name);
 
         if (old_symbol != nullptr) {
-            std::cout << symbol_name << " " << old_symbol->st_value << " " << new_symbol.st_value << std::endl;
             if (old_symbol->st_defined == true && new_symbol.st_defined == true) {
                 std::cerr << "Error: Duplicate symbol definition in Linker::map" << std::endl;
                 return;
@@ -172,6 +175,11 @@ void Linker::map(Elf32File& in_elf32_file) {
 
             relocation.r_info =
                 ELF32_R_INFO(ELF32_R_TYPE(relocation.r_info), out_elf32_file.symbolTable().getIndex(symbol_name));
+
+            auto addend = section_addend.find(in_section.name());
+            if (addend != section_addend.end()) {
+                relocation.r_offset += addend->second;
+            }
 
             out_rela_table_content.push_back(relocation);
         }

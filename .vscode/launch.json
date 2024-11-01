@@ -5,11 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C/C++: g++ build and debug emulator (makefile)",
+            "name": "C/C++: g++ build and debug assembler (makefile)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/emulator",
-            "args": ["tests/testA/program.o"],
+            "program": "${workspaceFolder}/assembler",
+            "args": [
+                "-o",
+                "./tests/testB/test.o",
+                "./tests/testB/test.s"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -27,7 +31,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: g++ build emulator (makefile)",
+            "preLaunchTask": "C/C++: g++ build assembler (makefile)",
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
@@ -69,14 +73,12 @@
             "miDebuggerPath": "/usr/bin/gdb"
         },
         {
-            "name": "C/C++: g++ build and debug assembler (makefile)",
+            "name": "C/C++: g++ build and debug emulator (makefile)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/assembler",
+            "program": "${workspaceFolder}/emulator",
             "args": [
-                "-o",
-                "./tests/isr_timer.o",
-                "./tests/isr_timer.s"
+                "tests/testA/program.o"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -95,7 +97,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "C/C++: g++ build assembler (makefile)",
+            "preLaunchTask": "C/C++: g++ build emulator (makefile)",
             "miDebuggerPath": "/usr/bin/gdb"
         }
     ]

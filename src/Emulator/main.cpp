@@ -12,5 +12,7 @@ int main(int argc, char* argv[]) {
     Emulator emulator = Emulator(elf32_file);
     emulator.start();
 
+    emulator.printEndState();
+
     return 0;
 }

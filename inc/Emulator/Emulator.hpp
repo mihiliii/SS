@@ -14,6 +14,8 @@ public:
 
     void start();
 
+    void printEndState();
+
 private:
 
     Elf32File& program;

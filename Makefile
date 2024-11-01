@@ -55,6 +55,15 @@ $(BUILD_DIR):
 clean:
 	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME) $(EMULATOR_PROGRAM_NAME)
 
+clean_assembler:
+	rm -rf $(ASSEMBLER_PROGRAM_NAME)
+
+clean_linker:
+	rm -rf $(LINKER_PROGRAM_NAME)
+
+clean_emulator:
+	rm -rf $(EMULATOR_PROGRAM_NAME)
+
 clean_all: clean
 	find . -type f -name "*.o" -delete
 	find . -type f -name "*.hex" -delete

@@ -32,8 +32,6 @@ void CPU::executeInstruction(instruction_t _instruction) {
         disp |= 0xFFFFF000;
     }
 
-    std::cout << "Instruction: " << std::hex << _instruction << " " << GPR_PC << std::endl << std::flush;
-
     switch (op_code) {
         case (int) OP_CODE::HALT:
             // Halt the CPU
@@ -140,9 +138,19 @@ void CPU::executeInstruction(instruction_t _instruction) {
                 readMemory(temp, GPR[regA] + GPR[regB] + disp);
                 writeMemory((uint32_t) temp, GPR[regC]);
             }
+            break;
         default:
+            // Invalid instruction
+            std::cout << "Invalid instruction." << std::endl;
+            running = false;
             break;
     }
+
+    // R0 should always be zero
+    if (GPR_ZERO != 0) {
+        GPR_ZERO = 0;
+    }
+
 }
 
 void CPU::readMemory(Register& _register, uint32_t _address) {
