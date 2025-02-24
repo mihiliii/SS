@@ -8,50 +8,80 @@
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
+#include "../inc/misc/Exceptions.hpp"
 
-const std::string RelocationTable::NAME_PREFIX = std::string(".rela");
+const std::string RelocationTable::kRelaNamePrefix = std::string(".rela");
 
-RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section)
-    : Section(_elf32_file), linked_section(_linked_section), relocation_table() {
-    const std::string& relocation_table_name = NAME_PREFIX + _linked_section->name();
-    header().sh_name = _elf32_file->stringTable().add(relocation_table_name);
-    header().sh_type = SHT_RELA;
-    header().sh_entsize = sizeof(Elf32_Rela);
-    header().sh_info = _linked_section->index();
-    header().sh_link = 0;
-    header().sh_addralign = 4;
-    header().sh_size = 0;
-    _linked_section->setRelocationTable(this);
+RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_section)
+    : Section(elf32_file),
+      _linked_section(linked_section),
+      _string_table(elf32_file.get_string_table()),
+      _symbol_table(elf32_file.get_symbol_table()),
+      _relocation_table()
+{
+    const std::string& relocation_table_name = kRelaNamePrefix + linked_section.get_name();
+    _header.sh_name = _string_table.add_string(relocation_table_name);
+    _header.sh_type = SHT_RELA;
+    _header.sh_entsize = sizeof(Elf32_Rela);
+    _header.sh_info = linked_section.get_index();
+    _header.sh_link = 0;
+    _header.sh_addralign = 4;
+    _header.sh_size = 0;
+    linked_section.set_relocation_table(*this);
 }
 
-RelocationTable::RelocationTable(
-    Elf32File* _elf32_file,
-    CustomSection* _linked_section,
-    Elf32_Shdr _section_header,
-    const std::vector<Elf32_Rela>& _relocation_table
-)
-    : Section(_elf32_file, _section_header), linked_section(_linked_section), relocation_table(_relocation_table) {
-    const std::string& relocation_table_name = NAME_PREFIX + _linked_section->name();
-    header().sh_name = _elf32_file->stringTable().add(relocation_table_name);
-    _linked_section->setRelocationTable(this);
+RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_section,
+                                 Elf32_Shdr section_header,
+                                 const std::vector<Elf32_Rela>& relocation_table)
+    : Section(elf32_file, section_header),
+      _linked_section(linked_section),
+      _string_table(elf32_file.get_string_table()),
+      _symbol_table(elf32_file.get_symbol_table()),
+      _relocation_table(relocation_table)
+{
+    const std::string& rela_table_name = kRelaNamePrefix + linked_section.get_name();
+    _header.sh_name = _string_table.add_string(rela_table_name);
+    linked_section.set_relocation_table(*this);
 }
 
-void RelocationTable::print(std::ostream& _ostream) const {
-    _ostream << std::endl << "Relocation table " << this->name() << ":" << std::endl;
-    _ostream << std::left << std::setfill(' ');
-    _ostream << "  ";
-    _ostream << std::setw(4) << "NUM";
-    _ostream << std::setw(9) << "OFFSET";
-    _ostream << std::setw(9) << "TYPE";
-    _ostream << std::setw(25) << "SYMBOL";
-    _ostream << std::setw(9) << "ADDEND";
-    _ostream << std::endl;
-    int i = 0;
-    for (Elf32_Rela relocation_table_entry : relocation_table) {
+const std::string& RelocationTable::get_name() const
+{
+    return _string_table.get_string(_header.sh_name);
+}
+
+CustomSection& RelocationTable::get_linked_section()
+{
+    return _linked_section;
+};
+
+void RelocationTable::replace_data(const std::vector<Elf32_Rela>& relocation_table)
+{
+    _relocation_table.clear();
+    for (const Elf32_Rela& symbol_entry : relocation_table) {
+        _relocation_table.push_back(symbol_entry);
+    }
+    _header.sh_size = _relocation_table.size() * sizeof(Elf32_Sym);
+}
+
+void RelocationTable::print(std::ostream& ostream) const
+{
+    // clang-format off
+    ostream << std::endl
+            << "Relocation table " << get_name() << ":" << std::endl
+            << std::left << std::setfill(' ')
+            << "  "
+            << std::setw(4) << "NUM"
+            << std::setw(9) << "OFFSET"
+            << std::setw(9) << "TYPE"
+            << std::setw(25) << "SYMBOL"
+            << std::setw(9) << "ADDEND" << std::endl;
+
+    int num = 0;
+    for (Elf32_Rela relocation_table_entry : _relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
-        Elf32_Sym* symbol = elf32_file->symbolTable().get(symbol_index);
+        Elf32_Sym symbol = _symbol_table.get_symbol(symbol_index);
 
-        std::string symbol_name = elf32_file->stringTable().get(symbol->st_name);
+        const std::string& symbol_name = _string_table.get_string(symbol.st_name);
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(relocation_table_entry.r_info)) {
@@ -62,42 +92,58 @@ void RelocationTable::print(std::ostream& _ostream) const {
                 break;
         }
 
-        _ostream << std::right << std::dec << std::setfill(' ') << std::setw(5) << i++ << " ";
-        _ostream << std::hex << std::setfill('0');
-        _ostream << std::setw(8) << relocation_table_entry.r_offset << " ";
-        _ostream << std::setw(8) << std::setfill(' ') << std::left << relocation_type << " ";
-        _ostream << std::setw(25) << (std::to_string(symbol_index) + " (" + symbol_name + ")");
-        _ostream << std::dec << std::left << std::setfill(' ');
-        _ostream << std::setw(8) << relocation_table_entry.r_addend;
-        _ostream << std::endl;
+        ostream << std::right << std::dec << std::setfill(' ')
+                << std::setw(5) << num++
+                << " " << std::hex << std::setfill('0') << std::setw(8) << relocation_table_entry.r_offset 
+                << " " << std::setw(8) << std::setfill(' ') << std::left << relocation_type
+                << " " << std::setw(25) << (std::to_string(symbol_index) + " (" + symbol_name + ")")
+                << std::dec << std::left << std::setfill(' ') << std::setw(8) << relocation_table_entry.r_addend << std::endl;
+    }
+    // clang-format on
+}
+
+void RelocationTable::write(std::ofstream& file)
+{
+    if (file.tellp() % _header.sh_addralign != 0) {
+        file.write("\0", _header.sh_addralign - (file.tellp() % _header.sh_addralign));
+    }
+
+    _header.sh_offset = file.tellp();
+    _header.sh_size = _relocation_table.size() * sizeof(Elf32_Rela);
+
+    for (Elf32_Rela& relocation_table_entry : _relocation_table) {
+        file.write((char*) &relocation_table_entry, sizeof(Elf32_Rela));
     }
 }
 
-void RelocationTable::write(std::ofstream* _file) {
-    if (_file->tellp() % header().sh_addralign != 0) {
-        _file->write("\0", header().sh_addralign - (_file->tellp() % header().sh_addralign));
+Elf32_Rela& RelocationTable::get_entry(size_t index)
+{
+    return _relocation_table.at(index);
+}
+
+Elf32_Rela& RelocationTable::get_entry(const std::string& symbol_name)
+{
+    for (Elf32_Rela& relocation_table_entry : _relocation_table) {
+        Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
+        Elf32_Sym symbol = _symbol_table.get_symbol(symbol_index);
+        const std::string& current_symbol_name = _string_table.get_string(symbol.st_name);
+
+        if (current_symbol_name == symbol_name) {
+            return relocation_table_entry;
+        }
     }
-
-    header().sh_offset = _file->tellp();
-    header().sh_size = relocation_table.size() * sizeof(Elf32_Rela);
-
-    for (Elf32_Rela& relocation_table_entry : relocation_table) {
-        _file->write((char*) &relocation_table_entry, sizeof(Elf32_Rela));
-    }
+    THROW_EXCEPTION("Can't find relocation table entry for symbol: " + symbol_name);
 }
 
-void RelocationTable::add(Elf32_Rela _rela_entry) {
-    relocation_table.push_back(_rela_entry);
-    header().sh_size += sizeof(Elf32_Rela);
+void RelocationTable::add_entry(Elf32_Rela rela_entry)
+{
+    _relocation_table.push_back(rela_entry);
+    _header.sh_size += sizeof(Elf32_Rela);
 }
 
-void RelocationTable::add(Elf32_Addr _offset, Elf32_Word _info, Elf32_SWord _addend) {
-    Elf32_Rela rela_entry = {.r_offset = _offset, .r_info = _info, .r_addend = _addend};
-    relocation_table.push_back(rela_entry);
-    header().sh_size += sizeof(Elf32_Rela);
-}
-
-void RelocationTable::add(const std::vector<Elf32_Rela>& _content) {
-    relocation_table.insert(relocation_table.end(), _content.begin(), _content.end());
-    header().sh_size += _content.size() * sizeof(Elf32_Rela);
+void RelocationTable::add_entry(Elf32_Addr offset, Elf32_Word info, Elf32_SWord addend)
+{
+    Elf32_Rela rela_entry = {.r_offset = offset, .r_info = info, .r_addend = addend};
+    _relocation_table.push_back(rela_entry);
+    _header.sh_size += sizeof(Elf32_Rela);
 }

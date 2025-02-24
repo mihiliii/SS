@@ -7,104 +7,134 @@
 #include "../inc/RelocationTable.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "CustomSection.hpp"
+#include "../inc/misc/Exceptions.hpp"
 
-CustomSection::CustomSection(Elf32File* _elf32_file, const std::string& _name)
-    : Section(_elf32_file), relocation_table(nullptr) {
-    header().sh_type = SHT_CUSTOM;
-    header().sh_entsize = 4;
-    header().sh_addralign = 4;
-    header().sh_name = elf32_file->stringTable().add(_name);
+CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name)
+    : Section(elf32_file), _data(), _relocation_table(nullptr)
+{
+    _header.sh_type = SHT_CUSTOM;
+    _header.sh_entsize = 4;
+    _header.sh_addralign = 4;
+    _header.sh_name = elf32_file.get_string_table().add_string(name);
 }
 
-CustomSection::CustomSection(
-    Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header, const std::vector<char>& _data
-)
-    : Section(_elf32_file, _section_header), section_content(_data), relocation_table(nullptr) {
-    header().sh_name = elf32_file->stringTable().add(_name);
+CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name,
+                             Elf32_Shdr section_header, const std::vector<char>& data)
+    : Section(elf32_file, section_header), _data(data), _relocation_table(nullptr)
+{
+    _header.sh_name = elf32_file.get_string_table().add_string(name);
 }
 
-void CustomSection::append(void* _content, size_t _content_size) {
-    char* char_content = (char*) _content;
-    for (size_t i = 0; i < _content_size; i++) {
-        section_content.push_back(char_content[i]);
+void CustomSection::add_data(void* data, size_t data_size)
+{
+    if (data == nullptr) {
+        THROW_EXCEPTION("Data to append is null.");
     }
-    header().sh_size += sizeof(char) * _content_size;
-}
 
-void CustomSection::append(instruction_format_t _content) {
-    uint32_t instruction = (uint32_t) _content;
-    for (size_t i = 0; i < sizeof(_content); i++) {
-        section_content.push_back((char) ((instruction >> (8 * i)) & 0xFF));
+    char* c_data = (char*) data;
+    for (size_t i = 0; i < data_size; i++) {
+        _data.push_back(c_data[i]);
     }
-    header().sh_size += sizeof(_content);
+    _header.sh_size = sizeof(char) * _data.size();
 }
 
-void CustomSection::overwrite(void* _content, size_t _content_size, Elf32_Off _offset) {
-    char* char_content = (char*) _content;
-    for (size_t i = 0; i < _content_size; i++) {
-        section_content[_offset + i] = char_content[i];
+void CustomSection::add_data(const std::vector<char>& data)
+{
+    for (char byte : data) {
+        _data.push_back(byte);
+    }
+    _header.sh_size = sizeof(char) * _data.size();
+}
+
+void CustomSection::add_data(instruction_t instruction)
+{
+    for (size_t i = 0; i < sizeof(instruction_t); i++) {
+        _data.push_back((char) ((instruction >> (8 * i)) & 0xFF));
+    }
+    _header.sh_size = sizeof(char) * _data.size();
+}
+
+void CustomSection::overwrite_data(void* data, size_t data_size, Elf32_Off offset)
+{
+    if (data == nullptr) {
+        THROW_EXCEPTION("Data to overwrite is null.");
+    } else if (offset + data_size > _data.size()) {
+        THROW_EXCEPTION("Data to overwrite is out of bounds.");
+    }
+
+    char* c_data = (char*) data;
+    for (size_t i = 0; i < data_size; i++) {
+        _data[offset + i] = c_data[i];
     }
 }
 
-char* CustomSection::content(Elf32_Off _offset) {
-    return &section_content[_offset];
+void CustomSection::replace_data(const std::vector<char>& data)
+{
+    _data = data;
+    _header.sh_size = sizeof(char) * _data.size();
 }
 
-std::vector<char>& CustomSection::content() {
-    return section_content;
+char CustomSection::get_data(Elf32_Off offset)
+{
+    return _data[offset];
 }
 
-void CustomSection::replace(std::vector<char> _content) {
-    section_content = _content;
-    header().sh_size = section_content.size();
+size_t CustomSection::get_size() const
+{
+    return _data.size();
 }
 
-size_t CustomSection::size() const {
-    return section_content.size();
-}
-
-RelocationTable& CustomSection::relocationTable() {
-    if (relocation_table == nullptr) {
-        relocation_table = elf32_file->newRelocationTable(this);
+RelocationTable& CustomSection::get_relocation_table()
+{
+    if (_relocation_table == nullptr) {
+        _relocation_table = &_elf32_file.new_relocation_table(*this);
     }
-    return *relocation_table;
+    return *_relocation_table;
 }
 
-bool CustomSection::hasRelocationTable() {
-    return relocation_table != nullptr;
+const std::string& CustomSection::get_name() const
+{
+    return _elf32_file.get_string_table().get_string(_header.sh_name);
 }
 
-void CustomSection::setRelocationTable(RelocationTable* _relocation_table) {
-    relocation_table = _relocation_table;
+bool CustomSection::has_relocation_table()
+{
+    return _relocation_table != nullptr;
 }
 
-void CustomSection::print(std::ostream& _ostream) const {
-    _ostream << std::endl << "Content of section " << name() << ":\n";
-    for (uint32_t location_counter = 0; location_counter < section_content.size(); location_counter++) {
-        if (location_counter % 16 == 0) {
-            _ostream << std::right << std::hex << std::setw(8) << std::setfill('0') << location_counter << ": ";
+void CustomSection::set_relocation_table(RelocationTable& relocation_table)
+{
+    _relocation_table = &relocation_table;
+}
+
+void CustomSection::print(std::ostream& ostream) const
+{
+    // clang-format off
+    ostream << std::endl << "Content of section " << get_name() << ":";
+    for (uint32_t i = 0; i < _data.size(); i++) {
+        if (i % 16 == 0) {
+            ostream << std::endl 
+                    << std::right << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
         }
-        _ostream << std::hex << std::setw(2) << std::setfill('0')
-                 << (unsigned int) (unsigned char) section_content[location_counter] << " ";
-        if ((location_counter + 1) % 16 == 0) {
-            _ostream << "\n";
-        }
+        // TODO: change unsigned char cast
+        ostream << std::hex << std::setw(2) << std::setfill('0') << (uint32_t) (unsigned char) _data[i] << " ";
     }
-    _ostream << std::left << std::dec << "\n";
+    ostream << std::left << std::dec << std::endl;
+    // clang-format on
 }
 
-void CustomSection::write(std::ofstream* _file) {
-    header().sh_size = section_content.size();
+void CustomSection::write(std::ofstream& file)
+{
+    _header.sh_size = _data.size();
 
-    if (_file->tellp() % header().sh_addralign != 0) {
-        _file->write("\0", header().sh_addralign - (_file->tellp() % header().sh_addralign));
+    if (file.tellp() % _header.sh_addralign != 0) {
+        file.write("\0", _header.sh_addralign - (file.tellp() % _header.sh_addralign));
     }
 
-    header().sh_offset = _file->tellp();
-    _file->write(section_content.data(), section_content.size());
+    _header.sh_offset = file.tellp();
+    file.write(_data.data(), _data.size());
 
-    if (relocation_table != nullptr) {
-        relocation_table->write(_file);
+    if (_relocation_table != nullptr) {
+        _relocation_table->write(file);
     }
 }

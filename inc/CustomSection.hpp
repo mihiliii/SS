@@ -1,46 +1,63 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
+#include "Elf32.hpp"
 #include "Section.hpp"
 
 class RelocationTable;
-typedef uint32_t instruction_format_t;
+typedef uint32_t instruction_t;
 
-class CustomSection : public Section {
+struct CustomSection : public Section {
 public:
 
-    CustomSection(Elf32File* _elf32_file, const std::string& _name);
-    CustomSection(Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header,
-                  const std::vector<char>& _data);
-
-    CustomSection(const CustomSection&) = delete;
-    CustomSection& operator=(const CustomSection&) = delete;
-    CustomSection(CustomSection&&) = delete;
-
-    void append(void* _content, size_t _content_size);
-    void append(instruction_format_t _content);
-
-    void overwrite(void* _content, size_t _content_size, Elf32_Off _offset);
-    void replace(std::vector<char> _content);
-
-    char* content(Elf32_Off _offset);
-    std::vector<char>& content();
-
-    size_t size() const;
-
-    RelocationTable& relocationTable();
-    bool hasRelocationTable();
-    void setRelocationTable(RelocationTable* _relocation_table);
-
-    void print(std::ostream& _ostream) const;
-    void write(std::ofstream* _file) override;
+    friend class Elf32File;
 
     ~CustomSection() = default;
 
+    char get_data(Elf32_Off offset);
+
+    size_t get_size() const;
+
+    const std::string& get_name() const;
+
+    void add_data(void* data, size_t data_size);
+
+    void add_data(const std::vector<char>& data);
+
+    void add_data(instruction_t data);
+
+    void overwrite_data(void* data, size_t data_size, Elf32_Off offset);
+
+    RelocationTable& get_relocation_table();
+
+    bool has_relocation_table();
+
+    void set_relocation_table(RelocationTable& relocation_table);
+
+    void print(std::ostream& ostream) const;
+
+    void write(std::ofstream& file) override;
+
 private:
 
-    std::vector<char> section_content;
-    RelocationTable* relocation_table;
+    CustomSection(Elf32File& elf32_file, const std::string& name);
+
+    CustomSection(Elf32File& elf32_file, const std::string& name, Elf32_Shdr section_header,
+                  const std::vector<char>& data);
+
+    CustomSection(const CustomSection&) = delete;
+
+    CustomSection(CustomSection&&) = delete;
+
+    CustomSection& operator=(const CustomSection&) = delete;
+
+    CustomSection& operator=(CustomSection&&) = delete;
+
+    void replace_data(const std::vector<char>& data);
+
+    std::vector<char> _data;
+    RelocationTable* _relocation_table;
 };

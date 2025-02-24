@@ -1,0 +1,21 @@
+---
+BasedOnStyle: Google
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 100
+AllowAllArgumentsOnNextLine: false
+AccessModifierOffset: -4
+AlignConsecutiveMacros:
+  Enabled: true
+  AlignCompound: true
+  AcrossEmptyLines: true
+AllowShortFunctionsOnASingleLine: InlineOnly 
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: WebKit
+BitFieldColonSpacing: After
+EmptyLineAfterAccessModifier: Leave
+JavaScriptQuotes: Single
+SpaceAfterCStyleCast: true
+SpaceBeforeCpp11BracedList: true
+SpacesBeforeTrailingComments: 2
