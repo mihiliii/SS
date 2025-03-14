@@ -74,9 +74,9 @@ void CustomSection::replace_data(const std::vector<char>& data)
     _header.sh_size = sizeof(char) * _data.size();
 }
 
-char CustomSection::get_data(Elf32_Off offset)
+const char* CustomSection::get_data(Elf32_Off offset)
 {
-    return _data[offset];
+    return &_data[offset];
 }
 
 size_t CustomSection::get_size() const

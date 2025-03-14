@@ -88,10 +88,10 @@ struct Elf32_Shdr {
 /* Struct that represents the symbol table entry */
 struct Elf32_Sym {
     Elf32_Word st_name;   // Offset in the symbol string name table that matches that symbol name
-    Elf32_Byte st_info;   // Type attributes
-    Elf32_Half st_shndx;  // Section index which the symbol is defined
     Elf32_Addr st_value;  // Symbol value
     Elf32_Word st_size;   // Size of the symbol
+    Elf32_Half st_shndx;  // Section index which the symbol is defined
+    Elf32_Byte st_info;   // Type attributes
     bool st_defined;      // True if the symbol is defined in the ELF file
 };
 
@@ -111,6 +111,5 @@ struct Elf32_Sym {
 struct Elf32_Rela {
     Elf32_Addr r_offset;  // Offset in the section where the relocation should be applied
     Elf32_Word r_info;    // Symbol table index that is used to determine whose value should be used
-                          // in the relocation
     Elf32_SWord r_addend;  // Constant addend used to compute the value to be stored
 };

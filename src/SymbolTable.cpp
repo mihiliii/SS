@@ -8,13 +8,10 @@
 #include "../inc/StringTable.hpp"
 #include "../inc/misc/Exceptions.hpp"
 
-const Elf32_Sym SymbolTable::kNullSymbol = {0, ELF32_ST_INFO(STB_LOCAL, STT_NOTYPE), 0, 0, 0, true};
-const Elf32_Off SymbolTable::kNullSymbolIndex = 0;
-
 SymbolTable::SymbolTable(Elf32File& elf32_file)
     : Section(elf32_file),
       _str_table(elf32_file.get_string_table()),
-      _sym_table(std::deque<Elf32_Sym>({kNullSymbol}))
+      _sym_table(std::deque<Elf32_Sym>())
 {
 }
 
@@ -38,28 +35,33 @@ Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Addr value, bo
         name_offset = _str_table.add_string(name);
     }
 
-    Elf32_Sym symbol_entry = {name_offset, section_info, section_index, value, 0, defined};
+    Elf32_Sym symbol_entry = {.st_name = name_offset,
+                              .st_value = value,
+                              .st_size = 0,
+                              .st_shndx = section_index,
+                              .st_info = section_info,
+                              .st_defined = defined};
 
     _header.sh_size = _sym_table.size() * sizeof(Elf32_Sym);
     return _sym_table.emplace_back(symbol_entry);
 }
 
-Elf32_Sym& SymbolTable::get_symbol(const std::string& name)
+Elf32_Sym* SymbolTable::get_symbol(const std::string& name)
 {
     for (auto& symbol : _sym_table) {
         if (_str_table.get_string(symbol.st_name) == name) {
-            return symbol;
+            return &symbol;
         }
     }
-    return _sym_table.at(kNullSymbolIndex);
+    return nullptr;
 }
 
-Elf32_Sym& SymbolTable::get_symbol(Elf32_Word entry_index)
+Elf32_Sym* SymbolTable::get_symbol(Elf32_Word entry_index)
 {
     if (entry_index < _sym_table.size()) {
-        return _sym_table.at(entry_index);
+        return &_sym_table.at(entry_index);
     } else {
-        return _sym_table.at(kNullSymbolIndex);
+        return nullptr;
     }
 }
 
@@ -70,7 +72,7 @@ Elf32_Word SymbolTable::get_symbol_index(const std::string& name)
             return i;
         }
     }
-    return kNullSymbolIndex;
+    return -1;
 }
 
 Elf32_Word SymbolTable::get_symbol_index(const Elf32_Sym& symbol_entry)

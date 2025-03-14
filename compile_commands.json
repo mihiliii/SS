@@ -1,0 +1,212 @@
+[
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Elf32File.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Elf32File.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Section.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Section.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Assembler/LiteralTable.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Assembler/LiteralTable.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Assembler/Assembler.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Assembler/Assembler.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/SymbolTable.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/SymbolTable.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/CustomSection.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/CustomSection.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "build/lex.yy.c"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "build/lex.yy.c"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Assembler/Directives.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Assembler/Directives.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Assembler/ForwardReferenceTable.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Assembler/ForwardReferenceTable.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Assembler/main.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Assembler/main.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "build/bison.tab.c"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "build/bison.tab.c"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/RelocationTable.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/RelocationTable.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/Assembler/Instructions.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/Assembler/Instructions.cpp"
+    },
+    {
+        "arguments": [
+            "g++",
+            "-c",
+            "-Wall",
+            "-Iinc",
+            "-g",
+            "-std=c++2a",
+            "-o",
+            "assembler",
+            "src/StringTable.cpp"
+        ],
+        "directory": "/home/mihi/projects/SS",
+        "file": "src/StringTable.cpp"
+    }
+]

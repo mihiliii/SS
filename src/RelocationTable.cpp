@@ -8,9 +8,8 @@
 #include "../inc/Section.hpp"
 #include "../inc/StringTable.hpp"
 #include "../inc/SymbolTable.hpp"
-#include "../inc/misc/Exceptions.hpp"
 
-const std::string RelocationTable::kRelaNamePrefix = std::string(".rela");
+const std::string RelocationTable::Rela_Name_Prefix = std::string(".rela");
 
 RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_section)
     : Section(elf32_file),
@@ -19,7 +18,7 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
       _symbol_table(elf32_file.get_symbol_table()),
       _relocation_table()
 {
-    const std::string& relocation_table_name = kRelaNamePrefix + linked_section.get_name();
+    const std::string& relocation_table_name = Rela_Name_Prefix + linked_section.get_name();
     _header.sh_name = _string_table.add_string(relocation_table_name);
     _header.sh_type = SHT_RELA;
     _header.sh_entsize = sizeof(Elf32_Rela);
@@ -39,7 +38,7 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
       _symbol_table(elf32_file.get_symbol_table()),
       _relocation_table(relocation_table)
 {
-    const std::string& rela_table_name = kRelaNamePrefix + linked_section.get_name();
+    const std::string& rela_table_name = Rela_Name_Prefix + linked_section.get_name();
     _header.sh_name = _string_table.add_string(rela_table_name);
     linked_section.set_relocation_table(*this);
 }
@@ -79,9 +78,9 @@ void RelocationTable::print(std::ostream& ostream) const
     int num = 0;
     for (Elf32_Rela relocation_table_entry : _relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
-        Elf32_Sym symbol = _symbol_table.get_symbol(symbol_index);
+        const Elf32_Sym* symbol = _symbol_table.get_symbol(symbol_index);
 
-        const std::string& symbol_name = _string_table.get_string(symbol.st_name);
+        const std::string& symbol_name = _string_table.get_string(symbol->st_name);
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(relocation_table_entry.r_info)) {
@@ -116,23 +115,26 @@ void RelocationTable::write(std::ofstream& file)
     }
 }
 
-Elf32_Rela& RelocationTable::get_entry(size_t index)
+Elf32_Rela* RelocationTable::get_entry(size_t index)
 {
-    return _relocation_table.at(index);
+    if (index >= _relocation_table.size()) {
+        return nullptr;
+    }
+    return &_relocation_table[index];
 }
 
-Elf32_Rela& RelocationTable::get_entry(const std::string& symbol_name)
+Elf32_Rela* RelocationTable::get_entry(const std::string& symbol_name)
 {
     for (Elf32_Rela& relocation_table_entry : _relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(relocation_table_entry.r_info);
-        Elf32_Sym symbol = _symbol_table.get_symbol(symbol_index);
-        const std::string& current_symbol_name = _string_table.get_string(symbol.st_name);
+        const Elf32_Sym* symbol = _symbol_table.get_symbol(symbol_index);
+        const std::string& current_symbol_name = _string_table.get_string(symbol->st_name);
 
         if (current_symbol_name == symbol_name) {
-            return relocation_table_entry;
+            return &relocation_table_entry;
         }
     }
-    THROW_EXCEPTION("Can't find relocation table entry for symbol: " + symbol_name);
+    return nullptr;
 }
 
 void RelocationTable::add_entry(Elf32_Rela rela_entry)

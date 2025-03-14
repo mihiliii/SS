@@ -3,7 +3,6 @@
 #include <map>
 
 #include "../inc/Elf32File.hpp"
-#include "../inc/misc/Exceptions.hpp"
 
 StringTable::StringTable(Elf32File& _elf32_file)
     : Section(_elf32_file), _str_table(std::map<Elf32_Off, std::string>())
@@ -22,7 +21,7 @@ Elf32_Off StringTable::add_string(const std::string& string)
 const std::string& StringTable::get_string(Elf32_Off offset) const
 {
     if (_str_table.find(offset) == _str_table.end()) {
-        return _str_table.at(kNullStringOffset);
+        return _str_table.at(Null_String_Offset);
     } else {
         return _str_table.at(offset);
     }
@@ -35,7 +34,7 @@ Elf32_Off StringTable::get_string_offset(const std::string& string) const
             return pair.first;        // pair.first is the offset [Elf32_Off]
         }
     }
-    return kNullStringOffset;
+    return Null_String_Offset;
 }
 
 void StringTable::replace_data(const std::vector<char>& str_table_data)
@@ -59,7 +58,6 @@ void StringTable::replace_data(const std::vector<std::string>& str_table_data)
     for (const auto& str : str_table_data) {
         add_string(str);
     }
-    // _header.sh_size is updated in add_string method
 }
 
 void StringTable::write(std::ofstream& file)

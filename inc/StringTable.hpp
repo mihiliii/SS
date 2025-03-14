@@ -10,7 +10,7 @@
 class StringTable : public Section {
 public:
 
-    static const Elf32_Off kNullStringOffset = 0;
+    static const Elf32_Off Null_String_Offset = 0;
 
     friend class Elf32File;
 

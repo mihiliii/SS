@@ -12,16 +12,16 @@
 #include "../inc/SymbolTable.hpp"
 #include "../inc/misc/Exceptions.hpp"
 
-const Elf32_Ehdr Elf32File::kElf32HeaderInit = {.e_ident = {EI_IDENTIFIER},
-                                                .e_type = ET_NONE,
-                                                .e_entry = 0,
-                                                .e_shoff = sizeof(Elf32_Ehdr),
-                                                .e_shentsize = sizeof(Elf32_Shdr),
-                                                .e_shnum = 0,
-                                                .e_stroff = 0};
+const Elf32_Ehdr Elf32File::Elf32_Header_Init = {.e_ident = {EI_IDENTIFIER},
+                                                 .e_type = ET_NONE,
+                                                 .e_entry = 0,
+                                                 .e_shoff = sizeof(Elf32_Ehdr),
+                                                 .e_shentsize = sizeof(Elf32_Shdr),
+                                                 .e_shnum = 0,
+                                                 .e_stroff = 0};
 
 Elf32File::Elf32File()
-    : _elf32_header(kElf32HeaderInit),
+    : _elf32_header(Elf32_Header_Init),
       _section_header_table(std::vector<Elf32_Shdr>({Elf32_Shdr {}})),
       _string_table(*this),
       _symbol_table(*this),
@@ -40,7 +40,7 @@ Elf32File::Elf32File()
 }
 
 Elf32File::Elf32File(const std::string& file_name)
-    : _elf32_header(kElf32HeaderInit),
+    : _elf32_header(Elf32_Header_Init),
       _section_header_table(std::vector<Elf32_Shdr>({Elf32_Shdr {}})),
       _string_table(*this),
       _symbol_table(*this),
@@ -145,7 +145,7 @@ void Elf32File::load(const std::string& file_name)
                 section_name.push_back(ch);
             }
 
-            const size_t rela_str_size = RelocationTable::kRelaNamePrefix.size();
+            const size_t rela_str_size = RelocationTable::Rela_Name_Prefix.size();
             const std::string linked_section_name =
                 section_name.substr(rela_str_size, section_name.size() - rela_str_size);
 
@@ -239,8 +239,8 @@ void Elf32File::save(const std::string& file_name, Elf32OutputType type)
                 }
 
                 file << std::hex << std::setw(2) << std::setfill('0')
-                     << (uint32_t) (unsigned char) section_to_write->get_data(address_to_write -
-                                                                              first_address)
+                     << (uint32_t) (unsigned char) *section_to_write->get_data(address_to_write -
+                                                                               first_address)
                      << " ";
             }
         }
@@ -394,7 +394,7 @@ CustomSection& Elf32File::new_custom_section(const std::string& name)
 }
 
 CustomSection& Elf32File::new_custom_section(const std::string& name, Elf32_Shdr section_header,
-                                           const std::vector<char>& data)
+                                             const std::vector<char>& data)
 {
     auto return_value = _custom_section_map.try_emplace(name, this, name, section_header, data);
     if (!return_value.second) {
@@ -414,8 +414,8 @@ RelocationTable& Elf32File::new_relocation_table(CustomSection& linked_section)
 }
 
 RelocationTable& Elf32File::new_relocation_table(CustomSection& linked_section,
-                                               Elf32_Shdr section_header,
-                                               const std::vector<Elf32_Rela>& data)
+                                                 Elf32_Shdr section_header,
+                                                 const std::vector<Elf32_Rela>& data)
 {
     auto return_value = _relocation_table_map.try_emplace(&linked_section, *this, linked_section,
                                                           section_header, data);

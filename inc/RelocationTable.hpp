@@ -6,11 +6,13 @@
 #include "Section.hpp"
 
 class CustomSection;
+class StringTable;
+class SymbolTable;
 
 class RelocationTable : public Section {
 public:
 
-    static const std::string kRelaNamePrefix;
+    static const std::string Rela_Name_Prefix;
 
     friend class Elf32File;
 
@@ -24,13 +26,13 @@ public:
 
     void add_entry(Elf32_Addr offset, Elf32_Word info, Elf32_SWord addend);
 
+    Elf32_Rela* get_entry(size_t index);
+
+    Elf32_Rela* get_entry(const std::string& symbol_name);
+
     void print(std::ostream& file) const;
 
     void write(std::ofstream& file) override;
-
-    Elf32_Rela& get_entry(size_t index);
-
-    Elf32_Rela& get_entry(const std::string& symbol_name);
 
 private:
 

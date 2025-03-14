@@ -14,10 +14,10 @@ typedef Elf32_Ehdr Elf32Header;
 typedef std::map<std::string, CustomSection> CustomSectionMap;
 typedef std::map<CustomSection*, RelocationTable> RelocationTableMap;
 
-struct Elf32File {
+class Elf32File {
 public:
 
-    static const Elf32Header kElf32HeaderInit;
+    static const Elf32Header Elf32_Header_Init;
 
     static void ReadElf(const std::string& file_name);
 

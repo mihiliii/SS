@@ -17,7 +17,7 @@ public:
 
     ~CustomSection() = default;
 
-    char get_data(Elf32_Off offset);
+    const char* get_data(Elf32_Off offset);
 
     size_t get_size() const;
 
@@ -58,6 +58,7 @@ private:
 
     void replace_data(const std::vector<char>& data);
 
+    // TODO: Change to uint8_t instead of char
     std::vector<char> _data;
     RelocationTable* _relocation_table;
 };

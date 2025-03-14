@@ -13,17 +13,13 @@ class StringTable;
 class SymbolTable : public Section {
 public:
 
-    const static Elf32_Sym kNullSymbol;
-
-    const static Elf32_Off kNullSymbolIndex;
-
     friend class Elf32File;
 
     ~SymbolTable() = default;
 
-    Elf32_Sym& get_symbol(const std::string& symbol_name);
+    Elf32_Sym* get_symbol(const std::string& symbol_name);
 
-    Elf32_Sym& get_symbol(Elf32_Word symbol_index);
+    Elf32_Sym* get_symbol(Elf32_Word symbol_index);
 
     Elf32_Word get_symbol_index(const std::string& symbol_name);
 
