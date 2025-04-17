@@ -4,11 +4,16 @@
 
 typedef uint32_t instruction_t;
 
+constexpr uint8_t WordSize = 4;
 constexpr long MemSize = 0x100000000;
-constexpr uint8_t SP_Inc = 4;
-constexpr uint8_t SP_Dec = -4;
+constexpr uint8_t SP_Inc = WordSize;
+constexpr uint8_t SP_Dec = -WordSize;
 
-enum struct CSR { STATUS = 0x0, HANDLER = 0x1, CAUSE = 0x2 };
+enum struct CSR {
+    STATUS = 0x0,
+    HANDLER = 0x1,
+    CAUSE = 0x2
+};
 
 enum struct GPR {
     R0 = 0x0,
@@ -32,7 +37,7 @@ enum struct GPR {
     PC = 0xF
 };
 
-enum struct OpMode {
+enum struct OpMode : uint8_t {
     HALT = 0x00,
     INT = 0x10,
     CALL = 0x20,                // push PC; PC = gpr[A] + gpr[B] + DISP;

@@ -1,61 +1,80 @@
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
 
+#include <cstdint>
+
 #include "../../inc/Assembler/Assembler.hpp"
-#include "../../inc/Assembler/Instructions.hpp"
 #include "../../inc/Assembler/LiteralTable.hpp"
 #include "../../inc/CustomSection.hpp"
-#include "../../inc/Elf32File.hpp"
-#include "../../inc/StringTable.hpp"
+#include "../../inc/misc/Exceptions.hpp"
+#include "Elf32.hpp"
+#include "misc/Hardware.hpp"
+
+using namespace Assembler;
+
+ForwardReferenceTable::ForwardReferenceTable() : _forward_references()
+{
+}
 
 // Adds a symbol reference of the symbol that will be resolved in backpatching phase.
-void ForwardReferenceTable::add(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {
-    std::string symbol_name = Assembler::elf32_file.stringTable().get(_symbol_entry->st_name);
+void ForwardReferenceTable::add_reference(Elf32_Sym* _symbol_entry, Elf32_Addr _address)
+{
+    const std::string& symbol_name =
+        elf32_file.get_string_table().get_string(_symbol_entry->st_name);
 
-    if (forward_references.find(symbol_name) == forward_references.end()) {
-        forward_references[symbol_name] = std::list<SymbolReference>();
+    if (_forward_references.find(symbol_name) == _forward_references.end()) {
+        _forward_references[symbol_name] = std::list<SymbolReference>();
     }
 
-    Elf32_Half current_section_index = Assembler::current_section->index();
-    forward_references[symbol_name].push_back({_address, current_section_index});
+    Elf32_Half current_section_index = Assembler::current_section->get_index();
+    _forward_references[symbol_name].push_back({_address, current_section_index});
 }
 
-void ForwardReferenceTable::backpatch() {
-    for (auto& entry : forward_references) {
-        std::string symbol_name = entry.first;
-        Elf32_Sym* symbol_entry = Assembler::elf32_file.symbolTable().get(symbol_name);
+void ForwardReferenceTable::backpatch()
+{
+    for (auto& entry : _forward_references) {
+        const std::string& symbol_name = entry.first;
+        const std::list<SymbolReference>& list = entry.second;
+        Elf32_Sym* symbol_entry = elf32_file.get_symbol_table().get_symbol(symbol_name);
 
         // Check if symbol is defined and local.
-        if (symbol_entry->st_defined == false && ELF32_ST_BIND(symbol_entry->st_info) == STB_LOCAL) {
-            std::cerr << "Symbol " << Assembler::elf32_file.stringTable().get(symbol_entry->st_name)
-                      << " is not defined." << std::endl;
-            exit(-1);
+        if (symbol_entry->st_defined == false &&
+            ELF32_ST_BIND(symbol_entry->st_info) == STB_LOCAL) {
+            THROW_EXCEPTION("Symbol " + symbol_name + " is not defined.");
         }
 
-        for (SymbolReference& reference : entry.second) resolveSymbol(symbol_entry, reference);
+        for (const SymbolReference& reference : list) {
+            resolve_symbol(symbol_entry, reference);
+        }
     }
 }
 
-void ForwardReferenceTable::resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _reference) {
-    Elf32_Off sh_name = Assembler::elf32_file.sectionHeaderTable().at(_reference.section_index).sh_name;
-    CustomSection* section =
-        &Assembler::elf32_file.customSectionMap().at(Assembler::elf32_file.stringTable().get(sh_name));
+void ForwardReferenceTable::resolve_symbol(Elf32_Sym* symbol_entry,
+                                           const SymbolReference& reference)
+{
+    const Elf32_Off sh_name =
+        elf32_file.get_section_header_table().at(reference.section_index).sh_name;
+    CustomSection& section =
+        elf32_file.get_custom_section_map().at(elf32_file.get_string_table().get_string(sh_name));
 
-    instruction_format_t instruction = *(instruction_format_t*) section->content(_reference.address);
-    OP_CODE op_code = (OP_CODE) INSTRUCTION_FORMAT_OP_CODE(instruction);
-    uint32_t offset = _symbol_entry->st_value - _reference.address - sizeof(instruction_format_t);
+    instruction_t instruction = *(instruction_t*) section.get_data(reference.address);
+    Elf32_Off offset = symbol_entry->st_value - reference.address - sizeof(instruction_t);
 
-    // For branch instructions jump location can be changed to an symbol directly depending if that symbol definition is
-    // in the same section as the branch instruction. Other instructions have to access symbol value using PC relative
-    // addressing mode, where the symbol value is located in the literal table.
-    if (op_code == OP_CODE::JMP && offset < 0xFFF) {
-        uint8_t mod = INSTRUCTION_FORMAT_MOD(instruction);
-        mod = (mod >= 0x8) ? (mod - 0x8) : mod;
-        uint32_t reg_A = 15;
-        instruction = (instruction & 0xF00FF000) | ((uint32_t) mod << 24) | (reg_A << 20) | (offset & 0xFFF);
+    const uint8_t op_mask = 0xF0;
+    uint32_t instruction_op = INSTRUCTION_GET_OP_MODE(instruction) & op_mask;
+    uint32_t instruction_mode = INSTRUCTION_GET_OP_MODE(instruction) & ~op_mask;
+    const uint8_t jmp_op = (uint8_t) OpMode::JMP & op_mask;
 
-        section->overwrite(&instruction, sizeof(instruction_format_t), _reference.address);
-    }
-    else {
-        Assembler::literal_table_map.at(section).addRelocatableSymbolReference(_symbol_entry, _reference.address);
+    // For branch instructions jump location can be changed to an symbol directly depending if that
+    // symbol definition is in the same section as the branch instruction. Other instructions have
+    // to access symbol value using PC relative addressing mode, where the symbol value is located
+    // in the literal table.
+    if (instruction_op == jmp_op && offset < DispMask) {
+        instruction_mode = (instruction_mode >= 0x8) ? (instruction_mode - 0x8) : instruction_mode;
+        instruction = (instruction & 0xF00FF000) | (instruction_mode << OpModeShift) |
+                      ((uint8_t) GPR::PC << RegAShift) | (offset & DispMask);
+
+        section.overwrite_data(&instruction, sizeof(instruction_t), reference.address);
+    } else {
+        literal_table_map.at(&section).add_symbol_reference(symbol_entry, reference.address);
     }
 }

@@ -9,6 +9,7 @@ AlignConsecutiveMacros:
   Enabled: true
   AlignCompound: true
   AcrossEmptyLines: true
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: InlineOnly 
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false

@@ -12,28 +12,35 @@ class Elf32File;
 class LiteralTable {
 public:
 
-    LiteralTable(Elf32File* _elf32_file, CustomSection* _linked_section);
 
-    void addLiteralReference(int _literal, Elf32_Addr _address);
-    void addRelocatableSymbolReference(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
+    LiteralTable(Elf32File& elf32_file, CustomSection& linked_section);
+
+    void add_literal_reference(int literal, Elf32_Addr address);
+
+    void add_symbol_reference(Elf32_Sym* symbol_entry, Elf32_Addr address);
+
     void addLiteralPoolToSection();
 
-    uint32_t* get(uint32_t _index) { return &literal_pool[_index]; };
-    size_t size() const { return literal_pool.size(); };
+    uint32_t* get_literal(size_t index);
 
-    void write(std::ofstream* _file);
+    size_t get_pool_size() const;
 
-    void resolveReferences();
+    void resolve_references();
 
     ~LiteralTable() = default;
 
 private:
 
-    Elf32File* elf32_file;
-    CustomSection* linked_section;
+    struct References {
+        Elf32_Off pool_offset;
+        std::list<Elf32_Addr> addresses;
+    };
+
+    Elf32File& _elf32_file;
+    CustomSection& _linked_section;
 
     // literal -> offset in literal pool, list of addresses in section where literal is used
-    std::map<uint32_t, std::pair<Elf32_Off, std::list<Elf32_Addr>>> literal_table;
-    std::map<Elf32_Sym*, std::pair<Elf32_Off, std::list<Elf32_Addr>>> symbol_value_table;
-    std::vector<uint32_t> literal_pool;
+    std::map<uint32_t, References> _literal_references;
+    std::map<Elf32_Sym*, References> _symbol_references;
+    std::vector<uint32_t> _data_pool;
 };

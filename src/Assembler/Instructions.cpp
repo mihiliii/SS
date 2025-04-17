@@ -1,299 +1,295 @@
-#include "../../inc/Assembler/Instructions.hpp"
 
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 
 #include "../../inc/Assembler/Assembler.hpp"
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
-#include "../../inc/Elf32File.hpp"
 #include "../../inc/Assembler/LiteralTable.hpp"
+#include "../../inc/Elf32File.hpp"
+#include "../../inc/misc/Exceptions.hpp"
+#include "../../inc/misc/Hardware.hpp"
 
-typedef uint32_t instruction_format_t;
 extern uint32_t line;
 
-CustomSection*& Instructions::current_section = Assembler::current_section;
-Elf32File& Instructions::elf32_file = Assembler::elf32_file;
-ForwardReferenceTable& Instructions::forward_reference_table = Assembler::forward_reference_table;
-std::map<CustomSection*, LiteralTable>& Instructions::literal_table_map = Assembler::literal_table_map;
 
-void Instructions::halt() {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::HALT, 0, 0, 0, 0, 0));
+bool equals(const Elf32_Sym& a, const Elf32_Sym& b)
+{
+    return a.st_name == b.st_name && a.st_value == b.st_value && a.st_size == b.st_size &&
+           a.st_info == b.st_info && a.st_shndx == b.st_shndx;
 }
 
-void Instructions::interrupt() {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::INT, 0, 0, 0, 0, 0));
+void Assembler::Instruction::halt()
+{
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::HALT, 0, 0, 0, 0));
 }
 
-void Instructions::iret() {
-    current_section->append(CREATE_INSTRUCTION(
-        (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP2, (uint8_t) CSR::STATUS, (uint8_t) GPR::R14, 0, 4
-    ));
-
-    current_section->append(
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::POP, (uint8_t) GPR::R15, (uint8_t) GPR::R14, 0, 8)
-    );
+void Assembler::Instruction::interrupt()
+{
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::INT, 0, 0, 0, 0));
 }
 
-void Instructions::call(uint32_t _value) {
-    instruction_format_t instruction;
+void Assembler::Instruction::iret()
+{
+    current_section->add_data(
+        INSTRUCTION_CREATE(OpMode::LD_CSR_REGIND_DISP, CSR::STATUS, GPR::SP, 0, 4));
+
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::LD_GPR_POP, GPR::PC, GPR::SP, 0, 8));
+}
+
+void Assembler::Instruction::call(uint32_t _value)
+{
+    instruction_t instruction;
 
     if (_value < 0xFFF) {
-        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL, 0, 0, 0, _value);
+        instruction = INSTRUCTION_CREATE(OpMode::CALL, 0, 0, 0, _value);
     } else {
-        literal_table_map.at(current_section).addLiteralReference(_value, current_section->size());
+        literal_table_map.at(current_section)
+            .add_literal_reference(_value, current_section->get_size());
 
-        instruction =
-            CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL_IND, (uint8_t) GPR::PC, 0, 0, 0);
+        instruction = INSTRUCTION_CREATE(OpMode::CALL_IND, GPR::PC, 0, 0, 0);
     }
 
-    current_section->append(instruction);
+    current_section->add_data(instruction);
 }
 
-void Instructions::call(std::string _symbol) {
-    Elf32_Sym* symbol_entry = elf32_file.symbolTable().get(_symbol);
+void Assembler::Instruction::call(const std::string& _symbol)
+{
+    Elf32_Sym* symbol_entry = elf32_file.get_symbol_table().get_symbol(_symbol);
 
-    if (symbol_entry == nullptr)
-        symbol_entry = &elf32_file.symbolTable().add(_symbol, 0, false, current_section->index());
+    if (symbol_entry == nullptr) {
+        symbol_entry = &elf32_file.get_symbol_table().add_symbol(_symbol, 0, false,
+                                                                 current_section->get_index());
+    }
 
-    forward_reference_table.add(symbol_entry, current_section->size());
-    current_section->append(
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::CALL, (uint8_t) MOD_CALL::CALL_IND, (uint8_t) GPR::PC, 0, 0, 0)
-    );
+    forward_reference_table.add_reference(symbol_entry, current_section->get_size());
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::CALL_IND, GPR::PC, 0, 0, 0));
 }
 
-void Instructions::arithmetic_logic_shift(OP_CODE _op, MOD_ALU _mod, uint8_t _gprS, uint8_t _gprD) {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) _op, (uint8_t) _mod, _gprD, _gprD, _gprS, 0));
+void Assembler::Instruction::alu(OpMode op_mode, GPR source, GPR destination)
+{
+    current_section->add_data(INSTRUCTION_CREATE(op_mode, destination, destination, source, 0));
 }
 
-void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _disp) {
-    instruction_format_t instruction;
+void Assembler::Instruction::jump(OpMode op_mode, GPR gprA, GPR gprB, GPR gprC, uint32_t disp)
+{
+    instruction_t instruction;
 
-    if (_disp > 0xFFF) {
-        _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
-        literal_table_map.at(current_section).addLiteralReference(_disp, current_section->size());
-        instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, (uint8_t) GPR::PC, _gprB, _gprC, 0);
+    if (disp > 0xFFF) {
+        op_mode = (OpMode) ((uint8_t) op_mode + 0x8);
+        literal_table_map.at(current_section)
+            .add_literal_reference(disp, current_section->get_size());
+        instruction = INSTRUCTION_CREATE(op_mode, GPR::PC, gprB, gprC, 0);
     } else {
-        instruction =
-            CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, (uint8_t) GPR::R0, _gprB, _gprC, _disp);
+        instruction = INSTRUCTION_CREATE(op_mode, GPR::R0, gprB, gprC, disp);
     }
 
-    current_section->append(instruction);
+    current_section->add_data(instruction);
 }
 
-void Instructions::jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
-    if ((uint8_t) _mod < 0x8)
-        _mod = (MOD_JMP) ((uint8_t) _mod + 0x8);
+void Assembler::Instruction::jump(OpMode op_mode, GPR gprA, GPR gprB, GPR gprC,
+                                  const std::string& symbol)
+{
+    const int ind_jump_mode = 0x8;
 
-    Elf32_Sym* symbol_entry = elf32_file.symbolTable().get(_symbol);
+    if ((uint8_t) op_mode < ind_jump_mode) {
+        op_mode = (OpMode) ((uint8_t) op_mode + 0x8);
+    }
+
+    Elf32_Sym* symbol_entry = elf32_file.get_symbol_table().get_symbol(symbol);
+
+    if (symbol_entry == nullptr) {
+        symbol_entry = &elf32_file.get_symbol_table().add_symbol(symbol, 0, false,
+                                                                 current_section->get_index());
+    }
+
+    forward_reference_table.add_reference(symbol_entry, current_section->get_size());
+    instruction_t instruction = INSTRUCTION_CREATE(op_mode, GPR::PC, gprB, gprC, 0);
+
+    current_section->add_data(instruction);
+}
+
+void Assembler::Instruction::push(GPR gpr)
+{
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::ST_PUSH, GPR::SP, 0, gpr, -4));
+}
+
+void Assembler::Instruction::pop(GPR gpr)
+{
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::LD_GPR_POP, gpr, GPR::SP, 0, 4));
+}
+
+void Assembler::Instruction::load(AddrMode addr_mode, GPR gprA, GPR gprB, uint32_t disp)
+{
+    instruction_t instruction;
+
+    switch (addr_mode) {
+        case AddrMode::IMMEDIATE: {
+            if (disp < 0xFFF) {
+                instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_GPR_DISP, gprA, 0, 0, disp);
+            } else {
+                literal_table_map.at(current_section)
+                    .add_literal_reference(disp, current_section->get_size());
+
+                instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, GPR::PC, 0, 0);
+            }
+            break;
+        }
+        case AddrMode::MEM_DIR: {
+            if (disp < 0xFFF) {
+                instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, 0, 0, disp);
+            } else {
+                literal_table_map.at(current_section)
+                    .add_literal_reference(disp, current_section->get_size());
+
+                instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, GPR::PC, 0, 0);
+
+                current_section->add_data(instruction);
+
+                instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, gprA, 0, 0);
+            }
+            break;
+        }
+        case AddrMode::REG_DIR: {
+            instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_GPR_DISP, gprA, gprB, 0, 0);
+            break;
+        }
+        case AddrMode::REG_IND: {
+            instruction = INSTRUCTION_CREATE(OpMode::LD_CSR_REGIND_DISP, gprA, gprB, 0, 0);
+            break;
+        }
+        case AddrMode::REG_IND_OFF: {
+            if (disp > 0xFFF) {
+                THROW_EXCEPTION("Offset is too large");
+            }
+            instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, gprB, 0, disp);
+        }
+        default:
+            THROW_EXCEPTION("Invalid addressing mode");
+            break;
+    }
+
+    current_section->add_data(instruction);
+}
+
+void Assembler::Instruction::load(AddrMode addr_mode, GPR gprA, GPR gprB, const std::string& symbol)
+{
+    instruction_t instruction;
+
+    Elf32_Sym* symbol_entry = elf32_file.get_symbol_table().get_symbol(symbol);
 
     if (symbol_entry == nullptr)
-        symbol_entry = &elf32_file.symbolTable().add(_symbol, 0, false, current_section->index());
+        symbol_entry = &elf32_file.get_symbol_table().add_symbol(symbol, 0, false,
+                                                                 current_section->get_index());
 
-    forward_reference_table.add(symbol_entry, current_section->size());
-    instruction_format_t instruction =
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::JMP, (uint8_t) _mod, (uint32_t) GPR::PC, _gprB, _gprC, 0);
-
-    current_section->append(instruction);
-}
-
-void Instructions::push(uint8_t _gpr) {
-    current_section->append(
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::PUSH, (uint32_t) GPR::SP, 0, _gpr, -4)
-    );
-}
-
-void Instructions::pop(uint8_t _gpr) {
-    current_section->append(
-        CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::POP, _gpr, (uint32_t) GPR::SP, 0, 4)
-    );
-}
-
-void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint32_t _value) {
-    instruction_format_t instruction;
-
-    switch (_addr) {
-        case ADDR::IMMEDIATE: {
-            if (_value < 0xFFF) {
-                instruction =
-                    CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::GPR_DISP, _gprA, 0, 0, _value);
-            } else {
-                literal_table_map.at(current_section).addLiteralReference(_value, current_section->size());
-
-                instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
-                );
-            }
-            break;
-        }
-        case ADDR::MEM_DIR: {
-            if (_value < 0xFFF) {
-                instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, 0, 0, _value
-                );
-            } else {
-                literal_table_map.at(current_section).addLiteralReference(_value, current_section->size());
-
-                instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
-                );
-
-                current_section->append(instruction);
-
-                instruction =
-                    CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, _gprA, 0, 0);
-            }
-            break;
-        }
-        case ADDR::REG_DIR: {
-            instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::GPR_DISP, _gprA, _gprB, 0, 0);
-            break;
-        }
-        case ADDR::REG_IND: {
+    switch (addr_mode) {
+        case AddrMode::IMMEDIATE: {
+            forward_reference_table.add_reference(symbol_entry, current_section->get_size());
             instruction =
-                CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, _gprB, 0, 0);
+                INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, (uint32_t) GPR::PC, 0, 0);
             break;
         }
-        case ADDR::REG_IND_OFF: {
-            if (_value > 0xFFF) {
-                std::cout << std::dec << "Error at line " << line << ": ";
-                std::cout << "offset is too large" << std::endl;
-                exit(-1);
-            }
-            instruction = CREATE_INSTRUCTION(
-                (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, _gprB, 0, _value
-            );
-        }
-        default:
-            break;
-    }
-
-    current_section->append(instruction);
-}
-
-void Instructions::load(ADDR _addr, uint8_t _gprA, uint8_t _gprB, std::string _symbol) {
-    instruction_format_t instruction;
-
-    Elf32_Sym* symbol_entry = elf32_file.symbolTable().get(_symbol);
-
-    if (symbol_entry == nullptr)
-        symbol_entry = &elf32_file.symbolTable().add(_symbol, 0, false, current_section->index());
-
-    switch (_addr) {
-        case ADDR::IMMEDIATE: {
-            forward_reference_table.add(symbol_entry, current_section->size());
-            instruction = CREATE_INSTRUCTION(
-                (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
-            );
-            break;
-        }
-        case ADDR::MEM_DIR: {
-            forward_reference_table.add(symbol_entry, current_section->size());
-            instruction = CREATE_INSTRUCTION(
-                (uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, (uint32_t) GPR::PC, 0, 0
-            );
-
-            current_section->append(instruction);
-
+        case AddrMode::MEM_DIR: {
+            forward_reference_table.add_reference(symbol_entry, current_section->get_size());
             instruction =
-                CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::MEM_GPRB_GPRC_DISP, _gprA, _gprA, 0, 0);
+                INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, (uint32_t) GPR::PC, 0, 0);
+
+            current_section->add_data(instruction);
+
+            instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_REGIND_DISP, gprA, gprA, 0, 0);
             break;
         }
         default:
+            THROW_EXCEPTION("Invalid addressing mode");
             break;
     }
 
-    current_section->append(instruction);
+    current_section->add_data(instruction);
 }
 
-void Instructions::csr_read(uint8_t _csr, uint8_t _gpr) {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::CSR, _gpr, _csr, 0, 0));
+void Assembler::Instruction::csr_read(CSR csr, GPR gpr)
+{
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::LD_GPR_CSR, gpr, csr, 0, 0));
 }
 
-void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value) {
-    instruction_format_t instruction;
+void Assembler::Instruction::store(AddrMode addr_mode, GPR gprA, GPR gprB, GPR gprC, uint32_t disp)
+{
+    instruction_t instruction;
 
-    switch (_addr) {
-        case ADDR::IMMEDIATE: {
-            std::cout << std::dec << "Error at line " << line << ": ";
-            std::cout << "immediate addressing usage in store instruction" << std::endl;
-            exit(-1);
+    switch (addr_mode) {
+        case AddrMode::IMMEDIATE: {
+            THROW_EXCEPTION("Immediate addressing usage in store instruction");
             break;
         }
-        case ADDR::MEM_DIR: {
-            if (_value < 0xFFF) {
-                instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_GPRA_GPRB_DISP, 0, 0, _gprC, _value
-                );
+        case AddrMode::MEM_DIR: {
+            if (disp < 0xFFF) {
+                instruction = INSTRUCTION_CREATE(OpMode::ST_REGIND_DISP, 0, 0, gprC, disp);
             } else {
-                literal_table_map.at(current_section).addLiteralReference(_value, current_section->size());
+                literal_table_map.at(current_section)
+                    .add_literal_reference(disp, current_section->get_size());
 
-                instruction = CREATE_INSTRUCTION(
-                    (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_MEM_GPRA_GPRB_DISP, (uint32_t) GPR::PC, 0, _gprC, 0
-                );
+                instruction = INSTRUCTION_CREATE(OpMode::ST_MEM_REGIND_DISP, GPR::PC, 0, gprC, 0);
             }
             break;
         }
-        case ADDR::REG_DIR: {
-            instruction = CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::GPR_DISP, _gprA, _gprB, 0, 0);
+        case AddrMode::REG_DIR: {
+            instruction = INSTRUCTION_CREATE(OpMode::LD_GPR_GPR_DISP, gprA, gprB, 0, 0);
             break;
         }
-        case ADDR::REG_IND: {
-            instruction =
-                CREATE_INSTRUCTION((uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_GPRA_GPRB_DISP, _gprA, 0, _gprC, 0);
+        case AddrMode::REG_IND: {
+            instruction = INSTRUCTION_CREATE(OpMode::ST_REGIND_DISP, gprA, 0, gprC, 0);
             break;
         }
-        case ADDR::REG_IND_OFF: {
-            if (_value > 0xFFF) {
-                std::cout << std::dec << "Error at line " << line << ": ";
-                std::cout << "offset is too large" << std::endl;
-                exit(-1);
+        case AddrMode::REG_IND_OFF: {
+            if (disp > 0xFFF) {
+                THROW_EXCEPTION("Offset is too large");
             }
-            instruction = CREATE_INSTRUCTION(
-                (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_GPRA_GPRB_DISP, _gprA, 0, _gprC, _value
-            );
+            instruction = INSTRUCTION_CREATE(OpMode::ST_REGIND_DISP, gprA, 0, gprC, disp);
             break;
         }
         default:
+            THROW_EXCEPTION("Invalid addressing mode");
             break;
     }
 
-    current_section->append(instruction);
+    current_section->add_data(instruction);
 }
 
-void Instructions::store(ADDR _addr, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol) {
-    instruction_format_t instruction;
+void Assembler::Instruction::store(AddrMode addr_mode, GPR gprA, GPR gprB, GPR gprC,
+                                   const std::string& symbol)
+{
+    instruction_t instruction;
 
-    Elf32_Sym* symbol_entry = elf32_file.symbolTable().get(_symbol);
+    Elf32_Sym* symbol_entry = elf32_file.get_symbol_table().get_symbol(symbol);
 
-    if (symbol_entry == nullptr)
-        symbol_entry = &elf32_file.symbolTable().add(_symbol, 0, false, current_section->index());
+    if (symbol_entry == nullptr) {
+        symbol_entry = &elf32_file.get_symbol_table().add_symbol(symbol, 0, false,
+                                                                 current_section->get_index());
+    }
 
-    switch (_addr) {
-        case ADDR::IMMEDIATE: {
-            std::cout << std::dec << "Error at line " << line << ": ";
-            std::cout << "immediate addressing usage in store instruction" << std::endl;
-            exit(-1);
+    switch (addr_mode) {
+        case AddrMode::IMMEDIATE: {
+            THROW_EXCEPTION("Immediate addressing usage in store instruction");
             break;
         }
-        case ADDR::MEM_DIR: {
-            forward_reference_table.add(symbol_entry, current_section->size());
-            instruction = CREATE_INSTRUCTION(
-                (uint8_t) OP_CODE::ST, (uint8_t) MOD_ST::MEM_MEM_GPRA_GPRB_DISP, (uint32_t) GPR::PC, 0, _gprC, 0
-            );
+        case AddrMode::MEM_DIR: {
+            forward_reference_table.add_reference(symbol_entry, current_section->get_size());
+            instruction = INSTRUCTION_CREATE(OpMode::ST_MEM_REGIND_DISP, GPR::PC, 0, gprC, 0);
             break;
         }
         default:
+            THROW_EXCEPTION("Invalid addressing mode");
             break;
     }
 
-    current_section->append(instruction);
+    current_section->add_data(instruction);
 }
 
-void Instructions::csr_write(uint8_t _gpr, uint8_t _csr) {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::LD, (uint8_t) MOD_LD::GPR, _csr, _gpr, 0, 0));
+void Assembler::Instruction::csr_write(GPR gpr, CSR csr)
+{
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::LD_CSR_GPR, csr, gpr, 0, 0));
 }
 
-void Instructions::exchange(uint8_t _gprS, uint8_t _gprD) {
-    current_section->append(CREATE_INSTRUCTION((uint8_t) OP_CODE::XCHG, 0, 0, _gprD, _gprS, 0));
+void Assembler::Instruction::exchange(GPR gprB, GPR gprC)
+{
+    current_section->add_data(INSTRUCTION_CREATE(OpMode::XCHG, 0, gprB, gprC, 0));
 }

@@ -1,33 +1,42 @@
 #pragma once
 
-#include <map>
 #include <list>
+#include <map>
 #include <string>
 
 #include "../Elf32.hpp"
 
+class Elf32File;
+
 class ForwardReferenceTable {
 public:
 
-    ForwardReferenceTable() = default;
+    ForwardReferenceTable();
 
-    void add(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
+    void add_reference(Elf32_Sym* symbol_entry, Elf32_Addr address);
 
     void backpatch();
-
-    ForwardReferenceTable(const ForwardReferenceTable&) = delete;
-    ForwardReferenceTable& operator=(const ForwardReferenceTable&) = delete;
 
     ~ForwardReferenceTable() = default;
 
 private:
 
     struct SymbolReference {
-        Elf32_Addr address;        // Address of the section that needs to be replaced with the symbol value.
-        Elf32_Half section_index;  // Index of the section that needs to be replaced with the symbol value.
+        Elf32_Addr
+            address;  // Address of the section that needs to be replaced with the symbol value.
+        Elf32_Half
+            section_index;  // Index of the section that needs to be replaced with the symbol value.
     };
 
-    void resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _address);
+    ForwardReferenceTable(const ForwardReferenceTable&) = delete;
 
-    std::map<std::string, std::list<SymbolReference>> forward_references;
+    ForwardReferenceTable(ForwardReferenceTable&&) = delete;
+
+    ForwardReferenceTable& operator=(const ForwardReferenceTable&) = delete;
+
+    ForwardReferenceTable& operator=(ForwardReferenceTable&&) = delete;
+
+    void resolve_symbol(Elf32_Sym* symbol_entry, const SymbolReference& address);
+
+    std::map<std::string, std::list<SymbolReference>> _forward_references;
 };

@@ -20,6 +20,4 @@ private:
     std::string _message;
 };
 
-// clang-format on
-
 #define THROW_EXCEPTION(msg) throw MsgException(msg, __FILE__, __LINE__)
