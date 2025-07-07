@@ -1,4 +1,5 @@
-/build
+build/
+.cache/
 assembler
 linker
 emulator
@@ -7,3 +8,5 @@ emulator
 *.txt
 *.hex
 *.sh
+.clang-format
+compile_commands.json

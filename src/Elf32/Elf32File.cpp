@@ -221,7 +221,7 @@ void Elf32File::readElf(std::string _file_name) {
               << std::hex << "  String table offset: 0x" << elf_file.elf32_header.e_stroff << std::endl
               << std::endl;
 
-    std::cout << "Section Header Table:" << std::endl << "  " 
+    std::cout << "Section Header Table:" << std::endl << "  "
               << std::left << std::setfill(' ')
               << std::setw(4) << "NUM"
               << std::setw(25) << "NAME"
@@ -247,7 +247,7 @@ void Elf32File::readElf(std::string _file_name) {
                   << std::setw(8) << section.sh_size << " "
                   << std::setw(4) << section.sh_link << " "
                   << std::setw(4) << section.sh_info << " "
-                  << std::dec << std::setfill(' ') << std::left 
+                  << std::dec << std::setfill(' ') << std::left
                   << std::setw(5) << section.sh_addralign << " "
                   << std::setw(8) << section.sh_entsize << std::endl;
         index += 1;

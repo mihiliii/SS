@@ -1,11 +1,10 @@
 #include <getopt.h>
 
+#include "../../inc/Linker/Linker.hpp"
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include "../../inc/Linker/Linker.hpp"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -28,52 +27,53 @@ int main(int argc, char* argv[]) {
 
     while ((opt_val = getopt_long_only(argc, argv, "o:", long_options, &option_index)) != -1) {
         switch (opt_val) {
-            case 'o':
+        case 'o':
+            if (optarg == nullptr) {
+                std::cerr << "Error: incorrect -o argument usage in " << argv[0] << "."
+                          << std::endl;
+                std::cerr << "Correct usage: " << argv[0] << " -o <output_file>" << std::endl;
+                return -1;
+            }
+            output_file_name = optarg;
+            break;
+        case 0:
+            switch (option_index) {
+            case 0:
                 if (optarg == nullptr) {
-                    std::cerr << "Error: incorrect -o argument usage in " << argv[0] << "." << std::endl;
-                    std::cerr << "Correct usage: " << argv[0] << " -o <output_file>" << std::endl;
+                    std::cerr << "Error: incorrect --place argument usage." << std::endl;
+                    std::cerr << "Correct usage: " << argv[0] << " --place=<section>@<address>"
+                              << std::endl;
+                    return -1;
+                } else {
+                    // split optarg into section and address
+                    std::string argument = std::string(optarg);
+                    size_t at_pos = argument.find('@');
+                    if (at_pos == std::string::npos) {
+                        std::cerr << "Error: incorrect --place argument usage." << std::endl;
+                        std::cerr << "Correct usage: " << argv[0] << " --place=<section>@<address>"
+                                  << std::endl;
+                        return -1;
+                    }
+                    std::string section = argument.substr(0, at_pos);
+                    std::string address = argument.substr(at_pos + 1);
+                    Linker::addArgument({section, (Elf32_Addr) std::stoul(address, nullptr, 0)});
+                }
+                break;
+            case 1:
+                if (is_hex != 0) {
+                    std::cerr << "Error: -hex argument already provided." << std::endl;
                     return -1;
                 }
-                output_file_name = optarg;
-                break;
-            case 0:
-                switch (option_index) {
-                    case 0:
-                        if (optarg == nullptr) {
-                            std::cerr << "Error: incorrect --place argument usage." << std::endl;
-                            std::cerr << "Correct usage: " << argv[0] << " --place=<section>@<address>" << std::endl;
-                            return -1;
-                        }
-                        else {
-                            // split optarg into section and address
-                            std::string argument = std::string(optarg);
-                            size_t at_pos = argument.find('@');
-                            if (at_pos == std::string::npos) {
-                                std::cerr << "Error: incorrect --place argument usage." << std::endl;
-                                std::cerr << "Correct usage: " << argv[0] << " --place=<section>@<address>"
-                                          << std::endl;
-                                return -1;
-                            }
-                            std::string section = argument.substr(0, at_pos);
-                            std::string address = argument.substr(at_pos + 1);
-                            Linker::addArgument({section, (Elf32_Addr) std::stoul(address, nullptr, 0)});
-                        }
-                        break;
-                    case 1:
-                        if (is_hex != 0) {
-                            std::cerr << "Error: -hex argument already provided." << std::endl;
-                            return -1;
-                        }
-                        is_hex = 1;
-                        break;
-                    default:
-                        break;
-                }
+                is_hex = 1;
                 break;
             default:
-                std::cerr << "Error: invalid arguments." << std::endl;
-                return -1;
                 break;
+            }
+            break;
+        default:
+            std::cerr << "Error: invalid arguments." << std::endl;
+            return -1;
+            break;
         }
     }
 
@@ -81,9 +81,10 @@ int main(int argc, char* argv[]) {
     if (optind >= argc) {
         std::cerr << "Error: object files are missing." << std::endl;
         return -1;
-    }
-    else {
-        for (int i = optind; i < argc; i++) object_file_names.push_back(argv[i]);
+    } else {
+        for (int i = optind; i < argc; i++) {
+            object_file_names.push_back(argv[i]);
+        }
     }
     if (is_hex == 0) {
         std::cerr << "Error: -hex argument not provided." << std::endl;

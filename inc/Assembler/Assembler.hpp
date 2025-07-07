@@ -16,7 +16,6 @@ struct Operand {
 
 class Assembler {
 public:
-
     friend class Instructions;
 
     friend class Directives;

@@ -1,104 +1,98 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++: g++ build and debug assembler (makefile)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/assembler",
+      "args": ["-o", "./tests/testB/test.o", "./tests/testB/test.s"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
         {
-            "name": "C/C++: g++ build and debug assembler (makefile)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/assembler",
-            "args": [
-                "-o",
-                "./tests/testB/test.o",
-                "./tests/testB/test.s"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set Disassembly Flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "C/C++: g++ build assembler (makefile)",
-            "miDebuggerPath": "/usr/bin/gdb"
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         },
         {
-            "name": "C/C++: g++ build and debug linker (makefile)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/linker",
-            "args": [
-                "-hex",
-                "-place=my_code@0x40000000",
-                "-place=math@0xF0000000",
-                "-o",
-                "./tests/testA/program.hex",
-                "./tests/testA/handler.o",
-                "./tests/testA/math.o",
-                "./tests/testA/main.o",
-                "./tests/testA/isr_terminal.o",
-                "./tests/testA/isr_timer.o",
-                "./tests/testA/isr_software.o"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set Disassembly Flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "C/C++: g++ build linker (makefile)",
-            "miDebuggerPath": "/usr/bin/gdb"
-        },
-        {
-            "name": "C/C++: g++ build and debug emulator (makefile)",
-            "type": "cppdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/emulator",
-            "args": [
-                "tests/testA/program.o"
-            ],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                },
-                {
-                    "description": "Set Disassembly Flavor to Intel",
-                    "text": "-gdb-set disassembly-flavor intel",
-                    "ignoreFailures": true
-                }
-            ],
-            "preLaunchTask": "C/C++: g++ build emulator (makefile)",
-            "miDebuggerPath": "/usr/bin/gdb"
+          "description": "Set Disassembly Flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
         }
-    ]
+      ],
+      "preLaunchTask": "C/C++: g++ build assembler (makefile)",
+      "miDebuggerPath": "/usr/bin/gdb"
+    },
+    {
+      "name": "C/C++: g++ build and debug linker (makefile)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/linker",
+      "args": [
+        "-hex",
+        "-place=my_code@0x40000000",
+        "-place=math@0xF0000000",
+        "-o",
+        "./tests/testA/program.hex",
+        "./tests/testA/handler.o",
+        "./tests/testA/math.o",
+        "./tests/testA/main.o",
+        "./tests/testA/isr_terminal.o",
+        "./tests/testA/isr_timer.o",
+        "./tests/testA/isr_software.o"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set Disassembly Flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "C/C++: g++ build linker (makefile)",
+      "miDebuggerPath": "/usr/bin/gdb"
+    },
+    {
+      "name": "C/C++: g++ build and debug emulator (makefile)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/emulator",
+      "args": ["tests/testA/program.o"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set Disassembly Flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "C/C++: g++ build emulator (makefile)",
+      "miDebuggerPath": "/usr/bin/gdb"
+    }
+  ]
 }
