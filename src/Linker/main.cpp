@@ -12,13 +12,11 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    // clang-format off
     struct option long_options[] = {
         {"place", required_argument, nullptr, 0},
-        {"hex", no_argument, nullptr, 0},
-        {0, 0, 0, 0}
+        {  "hex",       no_argument, nullptr, 0},
+        {      0,                 0,       0, 0}
     };
-    // clang-format on
 
     int opt_val;
     int option_index;

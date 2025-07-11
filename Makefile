@@ -21,8 +21,8 @@ $(wildcard src/Linker/*.cpp) \
 EMULATOR_FILES =\
 $(wildcard src/Emulator/*.cpp) \
 
-COMMON_FILES =\
-$(wildcard src/*.cpp) \
+ELF32_FILES =\
+$(wildcard src/Elf32/*.cpp) \
 
 CXXFLAGS = -Wall -Iinc -g -std=c++2a
 FLEXFLAGS =
@@ -34,7 +34,7 @@ endif
 
 all: assembler linker emulator
 
-assembler: $(ASSEMBLER_FILES) $(COMMON_FILES) $(C_FILES) 
+assembler: $(ASSEMBLER_FILES) $(COMMON_FILES) $(C_FILES)
 	g++ $(CXXFLAGS) -o $(ASSEMBLER_PROGRAM_NAME) $(^) -lfl
 
 linker: $(LINKER_FILES) $(COMMON_FILES)

@@ -17,9 +17,8 @@ public:
     void write(std::ofstream* _file);
 
     Elf32_Sym& add(const std::string& _name, Elf32_Sym _symbol_entry);
-    Elf32_Sym& add(
-        const std::string& _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index, unsigned char _info = 0
-    );
+    Elf32_Sym& add(const std::string& _name, Elf32_Addr _value, bool _defined,
+                   Elf32_Half _section_index, unsigned char _info = 0);
 
     Elf32_Sym* get(const std::string& _name);
     Elf32_Sym* get(uint32_t _entry_index);

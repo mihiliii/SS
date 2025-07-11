@@ -3,9 +3,9 @@
 #include "../../inc/Assembler/Assembler.hpp"
 #include "../../inc/Assembler/Instructions.hpp"
 #include "../../inc/Assembler/LiteralTable.hpp"
-#include "../../inc/CustomSection.hpp"
-#include "../../inc/Elf32File.hpp"
-#include "../../inc/StringTable.hpp"
+#include "../../inc/Elf32/CustomSection.hpp"
+#include "../../inc/Elf32/Elf32File.hpp"
+#include "../../inc/Elf32/StringTable.hpp"
 
 // Adds a symbol reference of the symbol that will be resolved in backpatching phase.
 void ForwardReferenceTable::add(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {
@@ -25,37 +25,44 @@ void ForwardReferenceTable::backpatch() {
         Elf32_Sym* symbol_entry = Assembler::elf32_file.symbolTable().get(symbol_name);
 
         // Check if symbol is defined and local.
-        if (symbol_entry->st_defined == false && ELF32_ST_BIND(symbol_entry->st_info) == STB_LOCAL) {
+        if (symbol_entry->st_defined == false &&
+            ELF32_ST_BIND(symbol_entry->st_info) == STB_LOCAL) {
             std::cerr << "Symbol " << Assembler::elf32_file.stringTable().get(symbol_entry->st_name)
                       << " is not defined." << std::endl;
             exit(-1);
         }
 
-        for (SymbolReference& reference : entry.second) resolveSymbol(symbol_entry, reference);
+        for (SymbolReference& reference : entry.second) {
+            resolveSymbol(symbol_entry, reference);
+        }
     }
 }
 
 void ForwardReferenceTable::resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _reference) {
-    Elf32_Off sh_name = Assembler::elf32_file.sectionHeaderTable().at(_reference.section_index).sh_name;
-    CustomSection* section =
-        &Assembler::elf32_file.customSectionMap().at(Assembler::elf32_file.stringTable().get(sh_name));
+    Elf32_Off sh_name =
+        Assembler::elf32_file.sectionHeaderTable().at(_reference.section_index).sh_name;
+    CustomSection* section = &Assembler::elf32_file.customSectionMap().at(
+        Assembler::elf32_file.stringTable().get(sh_name));
 
-    instruction_format_t instruction = *(instruction_format_t*) section->content(_reference.address);
+    instruction_format_t instruction =
+        *(instruction_format_t*) section->content(_reference.address);
     OP_CODE op_code = (OP_CODE) INSTRUCTION_FORMAT_OP_CODE(instruction);
     uint32_t offset = _symbol_entry->st_value - _reference.address - sizeof(instruction_format_t);
 
-    // For branch instructions jump location can be changed to an symbol directly depending if that symbol definition is
-    // in the same section as the branch instruction. Other instructions have to access symbol value using PC relative
-    // addressing mode, where the symbol value is located in the literal table.
+    // For branch instructions jump location can be changed to an symbol directly depending if that
+    // symbol definition is in the same section as the branch instruction. Other instructions have
+    // to access symbol value using PC relative addressing mode, where the symbol value is located
+    // in the literal table.
     if (op_code == OP_CODE::JMP && offset < 0xFFF) {
         uint8_t mod = INSTRUCTION_FORMAT_MOD(instruction);
         mod = (mod >= 0x8) ? (mod - 0x8) : mod;
         uint32_t reg_A = 15;
-        instruction = (instruction & 0xF00FF000) | ((uint32_t) mod << 24) | (reg_A << 20) | (offset & 0xFFF);
+        instruction =
+            (instruction & 0xF00FF000) | ((uint32_t) mod << 24) | (reg_A << 20) | (offset & 0xFFF);
 
         section->overwrite(&instruction, sizeof(instruction_format_t), _reference.address);
-    }
-    else {
-        Assembler::literal_table_map.at(section).addRelocatableSymbolReference(_symbol_entry, _reference.address);
+    } else {
+        Assembler::literal_table_map.at(section).addRelocatableSymbolReference(_symbol_entry,
+                                                                               _reference.address);
     }
 }

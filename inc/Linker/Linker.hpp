@@ -1,11 +1,10 @@
 #pragma once
 
-#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
 
-#include "../Elf32.hpp"
+#include "../Elf32/Elf32.hpp"
 
 class Elf32File;
 
@@ -19,8 +18,7 @@ public:
 
     static void addArgument(Place_arg place_arg);
 
-    static int startLinking(const std::string& _output_file,
-                            std::vector<std::string> _input_files);
+    static int startLinking(const std::string& _output_file, std::vector<std::string> _input_files);
 
     static void map(Elf32File& _in_elf32_file);
 

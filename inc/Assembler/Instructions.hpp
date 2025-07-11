@@ -1,13 +1,12 @@
 #pragma once
 
 #include <cstdint>
-#include <functional>
-#include <string>
 #include <map>
+#include <string>
 
-#define CREATE_INSTRUCTION(OP_CODE, MOD, RegA, RegB, RegC, disp)                                           \
-    ((((OP_CODE) & 0xF) << 28) | (((MOD) & 0xF) << 24) | (((RegA) & 0xF) << 20) | (((RegB) & 0xF) << 16) | \
-     (((RegC) & 0xF) << 12) | ((disp) & 0xFFF))
+#define CREATE_INSTRUCTION(OP_CODE, MOD, RegA, RegB, RegC, disp)                                   \
+    ((((OP_CODE) & 0xF) << 28) | (((MOD) & 0xF) << 24) | (((RegA) & 0xF) << 20) |                  \
+     (((RegB) & 0xF) << 16) | (((RegC) & 0xF) << 12) | ((disp) & 0xFFF))
 
 #define INSTRUCTION_FORMAT_OP_CODE(instruction) ((instruction & 0xF0000000) >> 28)
 #define INSTRUCTION_FORMAT_MOD(instruction)     ((instruction & 0x0F000000) >> 24)
@@ -16,8 +15,13 @@
 #define INSTRUCTION_FORMAT_GPR_C(instruction)   ((instruction & 0x0000F000) >> 12)
 #define INSTRUCTION_FORMAT_DISP(instruction)    (instruction & 0x00000FFF)
 
+// clang-format off
 
-enum struct CSR { STATUS = 0x0, HANDLER = 0x1, CAUSE = 0x2 };
+enum struct CSR { 
+    STATUS = 0x0,
+    HANDLER = 0x1,
+    CAUSE = 0x2
+};
 
 enum struct GPR {
     R0 = 0x0,
@@ -54,7 +58,10 @@ enum struct OP_CODE {
     LD = 0x9
 };
 
-enum struct MOD_CALL { CALL = 0x0, CALL_IND = 0x1 };
+enum struct MOD_CALL {
+    CALL = 0x0,
+    CALL_IND = 0x1
+};
 
 enum struct MOD_JMP {
     JMP = 0x0,
@@ -95,7 +102,13 @@ enum struct MOD_ST {
     MEM_MEM_GPRA_GPRB_DISP = 0x2,
 };
 
-enum struct ADDR { IMMEDIATE, MEM_DIR, REG_DIR, REG_IND, REG_IND_OFF };
+enum struct ADDR {
+    IMMEDIATE,
+    MEM_DIR,
+    REG_DIR,
+    REG_IND,
+    REG_IND_OFF
+};
 
 class CustomSection;
 class Elf32File;
@@ -119,7 +132,8 @@ public:
 
     static void jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, uint32_t _value);
 
-    static void jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC, std::string _symbol);
+    static void jump(MOD_JMP _mod, uint8_t _gprA, uint8_t _gprB, uint8_t _gprC,
+                     std::string _symbol);
 
     static void push(uint8_t _gpr);
 

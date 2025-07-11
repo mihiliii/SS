@@ -1,18 +1,18 @@
-#include "../inc/RelocationTable.hpp"
+#include "../../inc/Elf32/RelocationTable.hpp"
 
 #include <iomanip>
 
-#include "../inc/CustomSection.hpp"
-#include "../inc/Elf32.hpp"
-#include "../inc/Elf32File.hpp"
-#include "../inc/Section.hpp"
-#include "../inc/StringTable.hpp"
-#include "../inc/SymbolTable.hpp"
+#include "../../inc/Elf32/CustomSection.hpp"
+#include "../../inc/Elf32/Elf32.hpp"
+#include "../../inc/Elf32/Elf32File.hpp"
+#include "../../inc/Elf32/Section.hpp"
+#include "../../inc/Elf32/StringTable.hpp"
+#include "../../inc/Elf32/SymbolTable.hpp"
 
 const std::string RelocationTable::NAME_PREFIX = std::string(".rela");
 
-RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section)
-    : Section(_elf32_file), linked_section(_linked_section), relocation_table() {
+RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section) :
+    Section(_elf32_file), linked_section(_linked_section), relocation_table() {
     const std::string& relocation_table_name = NAME_PREFIX + _linked_section->name();
     header().sh_name = _elf32_file->stringTable().add(relocation_table_name);
     header().sh_type = SHT_RELA;
@@ -24,13 +24,11 @@ RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_
     _linked_section->setRelocationTable(this);
 }
 
-RelocationTable::RelocationTable(
-    Elf32File* _elf32_file,
-    CustomSection* _linked_section,
-    Elf32_Shdr _section_header,
-    const std::vector<Elf32_Rela>& _relocation_table
-)
-    : Section(_elf32_file, _section_header), linked_section(_linked_section), relocation_table(_relocation_table) {
+RelocationTable::RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section,
+                                 Elf32_Shdr _section_header,
+                                 const std::vector<Elf32_Rela>& _relocation_table) :
+    Section(_elf32_file, _section_header), linked_section(_linked_section),
+    relocation_table(_relocation_table) {
     const std::string& relocation_table_name = NAME_PREFIX + _linked_section->name();
     header().sh_name = _elf32_file->stringTable().add(relocation_table_name);
     _linked_section->setRelocationTable(this);
@@ -55,11 +53,11 @@ void RelocationTable::print(std::ostream& _ostream) const {
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(relocation_table_entry.r_info)) {
-            case ELF32_R_TYPE_ABS32:
-                relocation_type = "ABS32";
-                break;
-            default:
-                break;
+        case ELF32_R_TYPE_ABS32:
+            relocation_type = "ABS32";
+            break;
+        default:
+            break;
         }
 
         _ostream << std::right << std::dec << std::setfill(' ') << std::setw(5) << i++ << " ";

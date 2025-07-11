@@ -1,10 +1,10 @@
 #pragma once
 
-#include <map>
 #include <list>
+#include <map>
 #include <string>
 
-#include "../Elf32.hpp"
+#include "../Elf32/Elf32.hpp"
 
 class ForwardReferenceTable {
 public:
@@ -23,8 +23,8 @@ public:
 private:
 
     struct SymbolReference {
-        Elf32_Addr address;        // Address of the section that needs to be replaced with the symbol value.
-        Elf32_Half section_index;  // Index of the section that needs to be replaced with the symbol value.
+        Elf32_Addr address;
+        Elf32_Half section_index;
     };
 
     void resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _address);

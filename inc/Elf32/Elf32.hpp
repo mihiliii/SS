@@ -32,10 +32,6 @@ struct Elf32_Ehdr {
     Elf32_Half e_shentsize; // Section header table entry size
     Elf32_Half e_shnum;     // Section header table entry count
     Elf32_Off e_stroff;     // String table file offset
-
-    Elf32_Ehdr() :
-        e_type(ET_NONE), e_entry(0), e_shoff(0), e_phentsize(0), e_phnum(0), e_shentsize(0),
-        e_shnum(0), e_stroff(0) {}
 };
 
 // ****************************************************************************
@@ -56,6 +52,7 @@ struct Elf32_Ehdr {
 #define SHT_PROGBITS 0x5 // Program data
 
 /* Struct that represents the section table entry */
+
 struct Elf32_Shdr {
     Elf32_Word sh_name;      // Section name (string table index)
     Elf32_Word sh_type;      // Section type
@@ -95,6 +92,7 @@ struct Elf32_Shdr {
 #define STV_DEFAULT 0 // Default visibility
 
 /* Struct that represents the symbol table entry */
+
 struct Elf32_Sym {
     Elf32_Word st_name;  // Offset in the symbol string name table that matches that symbol name
     Elf32_Byte st_info;  // Type attributes
@@ -112,6 +110,7 @@ struct Elf32_Sym {
 #define ELF32_R_TYPE_ABS32 0x0                         // Absolute relocation
 
 /* Struct that represents the relocation table entry */
+
 struct Elf32_Rela {
     Elf32_Addr r_offset; // Offset in the section where the relocation should be applied
     Elf32_Word r_info; // Symbol table index that is used to determine whose value should be used in
@@ -127,6 +126,7 @@ struct Elf32_Rela {
 #define PT_LOAD 1 // Loadable segment
 
 /* Struct that represents the program header table entry */
+
 struct Elf32_Phdr {
     Elf32_Word p_type;   // Type of the segment
     Elf32_Off p_offset;  // Offset of the segment in the ELF file

@@ -1,9 +1,9 @@
-#include "../inc/SymbolTable.hpp"
+#include "../../inc/Elf32/SymbolTable.hpp"
 
 #include <iomanip>
 
-#include "../inc/Elf32File.hpp"
-#include "../inc/StringTable.hpp"
+#include "../../inc/Elf32/Elf32File.hpp"
+#include "../../inc/Elf32/StringTable.hpp"
 
 SymbolTable::SymbolTable(Elf32File* _elf32_file) : Section(_elf32_file), symbol_table() {}
 
@@ -19,8 +19,8 @@ Elf32_Sym& SymbolTable::add(const std::string& _name, Elf32_Sym _symbol_entry) {
     return symbol_table.back();
 }
 
-Elf32_Sym& SymbolTable::add(const std::string& _name, Elf32_Addr _value, bool _defined, Elf32_Half _section_index,
-                            unsigned char _info) {
+Elf32_Sym& SymbolTable::add(const std::string& _name, Elf32_Addr _value, bool _defined,
+                            Elf32_Half _section_index, unsigned char _info) {
     Elf32_Off name = elf32_file->stringTable().get(_name);
     if (name == 0) {
         name = elf32_file->stringTable().add(_name);
@@ -54,9 +54,7 @@ Elf32_Sym* SymbolTable::get(uint32_t _entry_index) {
     return nullptr;
 }
 
-std::deque<Elf32_Sym>& SymbolTable::symbolTable() {
-    return symbol_table;
-}
+std::deque<Elf32_Sym>& SymbolTable::symbolTable() { return symbol_table; }
 
 void SymbolTable::replaceTable(const std::vector<Elf32_Sym>& _symbol_table) {
     symbol_table.clear();
@@ -72,11 +70,13 @@ void SymbolTable::changeValues(Elf32_Sym& _old_symbol, Elf32_Sym _new_symbol) {
 }
 
 void SymbolTable::sort() {
-    // Sort the symbol table by type (STT_SECTION, STT_NOTYPE) and then by binding (STB_LOCAL, STB_GLOBAL, STB_WEAK) 
+    // Sort the symbol table by type (STT_SECTION, STT_NOTYPE) and then by binding (STB_LOCAL,
+    // STB_GLOBAL, STB_WEAK)
     std::sort(symbol_table.begin(), symbol_table.end(), [](const Elf32_Sym& a, const Elf32_Sym& b) {
         if (ELF32_ST_TYPE(a.st_info) == STT_SECTION && ELF32_ST_TYPE(b.st_info) != STT_SECTION) {
             return true;
-        } else if (ELF32_ST_TYPE(a.st_info) != STT_SECTION && ELF32_ST_TYPE(b.st_info) == STT_SECTION) {
+        } else if (ELF32_ST_TYPE(a.st_info) != STT_SECTION &&
+                   ELF32_ST_TYPE(b.st_info) == STT_SECTION) {
             return false;
         } else if (ELF32_ST_BIND(a.st_info) == STB_LOCAL && ELF32_ST_BIND(b.st_info) != STB_LOCAL) {
             return true;
@@ -90,8 +90,9 @@ void SymbolTable::sort() {
 
 uint32_t SymbolTable::getIndex(const std::string& _name) {
     for (uint32_t i = 0; i < symbol_table.size(); i++) {
-        if (elf32_file->stringTable().get(symbol_table[i].st_name) == _name)
+        if (elf32_file->stringTable().get(symbol_table[i].st_name) == _name) {
             return i;
+        }
     }
     return -1;
 }
@@ -100,7 +101,8 @@ uint32_t SymbolTable::getIndex(Elf32_Sym& _symbol_entry) {
     return getIndex(elf32_file->stringTable().get(_symbol_entry.st_name));
 }
 
-void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value, Elf32_Half _section_index) {
+void SymbolTable::defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value,
+                               Elf32_Half _section_index) {
     _symbol_entry->st_value = _value;
     _symbol_entry->st_defined = true;
     _symbol_entry->st_shndx = _section_index;
@@ -123,41 +125,41 @@ void SymbolTable::print(std::ostream& _ostream) const {
     for (const Elf32_Sym& symbol_entry : symbol_table) {
         std::string bind, type, section_index;
         switch (symbol_entry.st_shndx) {
-            case SHN_ABS:
-                section_index = "ABS";
-                break;
-            default:
-                section_index = std::to_string(symbol_entry.st_shndx);
-                break;
+        case SHN_ABS:
+            section_index = "ABS";
+            break;
+        default:
+            section_index = std::to_string(symbol_entry.st_shndx);
+            break;
         }
 
         switch (ELF32_ST_BIND(symbol_entry.st_info)) {
-            case STB_LOCAL:
-                bind = "LOC";
-                break;
-            case STB_GLOBAL:
-                bind = "GLOB";
-                break;
-            case STB_WEAK:
-                bind = "WEAK";
-                break;
-            default:
-                bind = "UNK";
-                break;
+        case STB_LOCAL:
+            bind = "LOC";
+            break;
+        case STB_GLOBAL:
+            bind = "GLOB";
+            break;
+        case STB_WEAK:
+            bind = "WEAK";
+            break;
+        default:
+            bind = "UNK";
+            break;
         }
         switch (ELF32_ST_TYPE(symbol_entry.st_info)) {
-            case STT_NOTYPE:
-                type = "NOTYPE";
-                break;
-            case STT_SECTION:
-                type = "SECTION";
-                break;
-            case STT_FILE:
-                type = "FILE";
-                break;
-            default:
-                type = "UNK";
-                break;
+        case STT_NOTYPE:
+            type = "NOTYPE";
+            break;
+        case STT_SECTION:
+            type = "SECTION";
+            break;
+        case STT_FILE:
+            type = "FILE";
+            break;
+        default:
+            type = "UNK";
+            break;
         }
         _ostream << "  ";
         _ostream << std::right << std::setfill(' ') << std::dec;

@@ -1,16 +1,15 @@
 #pragma once
 
-#include <vector>
-#include <string>
+#include "../Elf32/Elf32File.hpp"
 #include "CPU.hpp"
-#include "../Elf32File.hpp"
+#include <vector>
 
 typedef std::vector<char> Memory;
 
 class Emulator {
 public:
 
-    Emulator(Elf32File& _program); 
+    Emulator(Elf32File& _program);
 
     void start();
 
@@ -19,8 +18,7 @@ public:
 private:
 
     Elf32File& program;
-    
+
     Memory memory;
     CPU cpu;
-
 };

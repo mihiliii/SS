@@ -9,4 +9,5 @@ emulator
 *.hex
 *.sh
 .clang-format
+.clangd
 compile_commands.json

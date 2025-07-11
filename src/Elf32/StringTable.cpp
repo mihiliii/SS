@@ -1,8 +1,6 @@
-#include "../inc/StringTable.hpp"
+#include "../../inc/Elf32/StringTable.hpp"
 
-#include <iomanip>
-
-#include "../inc/Elf32File.hpp"
+#include "../../inc/Elf32/Elf32File.hpp"
 
 StringTable::StringTable(Elf32File* _elf32_file) : Section(_elf32_file), string_table() {}
 
@@ -15,16 +13,18 @@ Elf32_Off StringTable::add(std::string _string) {
 }
 
 std::string StringTable::get(Elf32_Off _offset) {
-    if (string_table.find(_offset) == string_table.end())
+    if (string_table.find(_offset) == string_table.end()) {
         return "";
-    else
+    } else {
         return string_table.at(_offset);
+    }
 }
 
 Elf32_Off StringTable::get(std::string _string) {
     for (auto& pair : string_table) {
-        if (pair.second == _string)
+        if (pair.second == _string) {
             return pair.first;
+        }
     }
     return 0;
 }

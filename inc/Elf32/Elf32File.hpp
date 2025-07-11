@@ -1,9 +1,6 @@
 #pragma once
 
-#include <fstream>
-#include <list>
 #include <map>
-#include <memory>
 #include <vector>
 
 #include "CustomSection.hpp"

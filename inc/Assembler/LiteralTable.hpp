@@ -1,10 +1,11 @@
 #pragma once
 
+#include <fstream>
 #include <list>
 #include <map>
 #include <vector>
 
-#include "../Elf32.hpp"
+#include "../Elf32/Elf32.hpp"
 
 class CustomSection;
 class Elf32File;

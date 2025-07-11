@@ -13,8 +13,8 @@ public:
     static const std::string NAME_PREFIX;
 
     RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section);
-    RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section, Elf32_Shdr _section_header,
-                    const std::vector<Elf32_Rela>& _relocation_table);
+    RelocationTable(Elf32File* _elf32_file, CustomSection* _linked_section,
+                    Elf32_Shdr _section_header, const std::vector<Elf32_Rela>& _relocation_table);
 
     RelocationTable(const RelocationTable&) = delete;
     RelocationTable& operator=(const RelocationTable&) = delete;

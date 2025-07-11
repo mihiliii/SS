@@ -1,4 +1,4 @@
-#include "../../inc/Elf32File.hpp"
+#include "../../inc/Elf32/Elf32File.hpp"
 #include "../../inc/Emulator/Emulator.hpp"
 
 int main(int argc, char* argv[]) {

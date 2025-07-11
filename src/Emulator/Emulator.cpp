@@ -3,8 +3,8 @@
 #include <iomanip>
 #include <stdexcept>
 
-#include "../../inc/CustomSection.hpp"
-#include "../../inc/Elf32File.hpp"
+#include "../../inc/Elf32/CustomSection.hpp"
+#include "../../inc/Elf32/Elf32File.hpp"
 
 Emulator::Emulator(Elf32File& _program) : program(_program), memory(0x100000000, 0), cpu(memory) {
     if (_program.elf32Header().e_type != ET_EXEC) {
@@ -19,9 +19,7 @@ Emulator::Emulator(Elf32File& _program) : program(_program), memory(0x100000000,
     }
 }
 
-void Emulator::start() {
-    cpu.run();
-}
+void Emulator::start() { cpu.run(); }
 
 void Emulator::printEndState() {
     std::cout << "-----------------------------------------------------------------" << std::endl;
@@ -31,8 +29,8 @@ void Emulator::printEndState() {
             if (column * 4 + row < 10) {
                 std::cout << " ";
             }
-            std::cout << "r" << std::dec << column * 4 + row << "=0x" << std::setw(8) << std::setfill('0') << std::hex
-                      << cpu.GPR[column * 4 + row] << "   ";
+            std::cout << "r" << std::dec << column * 4 + row << "=0x" << std::setw(8)
+                      << std::setfill('0') << std::hex << cpu.GPR[column * 4 + row] << "   ";
         }
         std::cout << std::endl;
     }

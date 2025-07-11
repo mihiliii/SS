@@ -1,13 +1,10 @@
 #include "../../inc/Assembler/Assembler.hpp"
 
-#include <cstddef>
-#include <fstream>
-#include <iomanip>
 #include <iostream>
 
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
 #include "../../inc/Assembler/LiteralTable.hpp"
-#include "../../inc/Elf32File.hpp"
+#include "../../inc/Elf32/Elf32File.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -31,8 +28,9 @@ int Assembler::startAssembler(const char* _input_file_name, const char* _output_
     yyin = f_input;
 
     // Parse through the input:
-    if (yyparse())
+    if (yyparse()) {
         return -1;
+    }
 
     // Close the file handle:
     fclose(f_input);
