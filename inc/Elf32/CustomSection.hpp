@@ -11,36 +11,36 @@ typedef uint32_t instruction_format_t;
 class CustomSection : public Section {
 public:
 
-    CustomSection(Elf32File* _elf32_file, const std::string& _name);
-    CustomSection(Elf32File* _elf32_file, const std::string& _name, Elf32_Shdr _section_header,
-                  const std::vector<char>& _data);
+    CustomSection(Elf32File& elf32_file, const std::string& name);
+    CustomSection(Elf32File& elf32_file, const std::string& name, Elf32_Shdr section_header,
+                  const std::vector<char>& data);
 
     CustomSection(const CustomSection&) = delete;
     CustomSection& operator=(const CustomSection&) = delete;
     CustomSection(CustomSection&&) = delete;
 
-    void append(void* _content, size_t _content_size);
-    void append(instruction_format_t _content);
+    void append(void* content, size_t content_size);
+    void append(instruction_format_t content);
 
-    void overwrite(void* _content, size_t _content_size, Elf32_Off _offset);
-    void replace(std::vector<char> _content);
+    void overwrite(void* content, size_t content_size, Elf32_Off offset);
+    void replace(std::vector<char> content);
 
-    char* content(Elf32_Off _offset);
+    char* content(Elf32_Off offset);
     std::vector<char>& content();
 
     size_t size() const;
 
     RelocationTable& relocationTable();
     bool hasRelocationTable();
-    void setRelocationTable(RelocationTable* _relocation_table);
+    void setRelocationTable(RelocationTable* relocation_table);
 
-    void print(std::ostream& _ostream) const;
-    void write(std::ofstream* _file) override;
+    void print(std::ostream& ostream) const;
+    void write(std::ofstream* file) override;
 
     ~CustomSection() = default;
 
 private:
 
-    std::vector<char> section_content;
-    RelocationTable* relocation_table;
+    std::vector<char> _section_content;
+    RelocationTable* _relocation_table;
 };

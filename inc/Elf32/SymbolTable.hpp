@@ -12,33 +12,38 @@ class Elf32File;
 class SymbolTable : public Section {
 public:
 
-    SymbolTable(Elf32File* _elf32_file);
+    SymbolTable(Elf32File& elf32_file);
 
-    void write(std::ofstream* _file);
+    Elf32_Sym& add_symbol(const std::string& name, Elf32_Sym symbol_entry);
 
-    Elf32_Sym& add(const std::string& _name, Elf32_Sym _symbol_entry);
-    Elf32_Sym& add(const std::string& _name, Elf32_Addr _value, bool _defined,
-                   Elf32_Half _section_index, unsigned char _info = 0);
+    Elf32_Sym& add_symbol(const std::string& name, Elf32_Addr value, bool defined,
+                          Elf32_Half section_index, unsigned char info = 0);
 
-    Elf32_Sym* get(const std::string& _name);
-    Elf32_Sym* get(uint32_t _entry_index);
+    Elf32_Sym* get_symbol(const std::string& name);
 
-    std::deque<Elf32_Sym>& symbolTable();
-    void replaceTable(const std::vector<Elf32_Sym>& _symbol_table);
-    void changeValues(Elf32_Sym& _old_symbol, Elf32_Sym _new_symbol);
+    Elf32_Sym* get_symbol(Elf32_Word entry_index);
 
-    void sort();
+    std::deque<Elf32_Sym>& get_symbol_table(); // NOTE: CHECK IF NEEDED
 
-    uint32_t getIndex(const std::string& _name);
-    uint32_t getIndex(Elf32_Sym& _symbol_entry);
+    void replace_table(const std::vector<Elf32_Sym>& symbol_table);
 
-    void defineSymbol(Elf32_Sym* _symbol_entry, Elf32_Addr _value, Elf32_Half _section_index);
+    void change_values(Elf32_Sym& old_symbol, Elf32_Sym new_symbol);
 
-    void print(std::ostream& _ostream) const;
+    void sort(); // NOTE: CHECK IF NEEDED
+
+    Elf32_Word get_index(const std::string& name);
+
+    Elf32_Word get_index(Elf32_Sym& symbol_entry);
+
+    void define_symbol(Elf32_Sym* symbol_entry, Elf32_Addr value, Elf32_Half section_index);
+
+    void print(std::ostream& ostream) const;
+
+    void write(std::ofstream* file);
 
     ~SymbolTable() = default;
 
 private:
 
-    std::deque<Elf32_Sym> symbol_table;
+    std::deque<Elf32_Sym> _symbol_table;
 };

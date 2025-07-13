@@ -9,9 +9,11 @@ class Elf32File;
 class Section {
 public:
 
-    Elf32_Shdr& header();
-    Elf32_Half index() const;
-    std::string name() const;
+    Elf32_Shdr& get_header();
+
+    const Elf32_Word get_index() const;
+
+    const std::string& name() const;
 
     virtual void write(std::ofstream* _file) {};
 
@@ -19,9 +21,10 @@ public:
 
 protected:
 
-    Section(Elf32File* _elf32_file);
-    Section(Elf32File* _elf32_file, Elf32_Shdr _section_header);
+    Section(Elf32File& elf32_file);
+    Section(Elf32File& elf32_file, Elf32_Shdr setcion_header);
 
-    Elf32File* elf32_file;
-    uint32_t sh_table_index;
+    Elf32File& _elf32_file;
+    Elf32_Shdr _header;
+    Elf32_Word _header_index;
 };

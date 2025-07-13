@@ -12,20 +12,21 @@ class Elf32File;
 class StringTable : public Section {
 public:
 
-    StringTable(Elf32File* _elf32_file);
+    StringTable(Elf32File& elf32_file);
 
-    Elf32_Off add(std::string _string);
+    const Elf32_Off add_string(const std::string& string);
 
-    Elf32_Off get(std::string _string);
-    std::string get(Elf32_Off _offset);
+    const Elf32_Off get_offset(const std::string& string);
 
-    void replace(const std::vector<char>& _str_table_data);
+    const std::string& get_string(Elf32_Off offset);
 
-    void write(std::ofstream* _file);
+    void replace(const std::vector<char>& str_table_data); // NOTE: check if needed
+
+    void write(std::ofstream* file);
 
     ~StringTable() = default;
 
 private:
 
-    std::map<Elf32_Off, std::string> string_table;
+    std::map<Elf32_Off, std::string> _string_table;
 };
