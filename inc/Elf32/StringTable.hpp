@@ -1,30 +1,36 @@
 #pragma once
 
-#include <fstream>
 #include <map>
 #include <vector>
 
-#include "Elf32.hpp"
 #include "Section.hpp"
-
-class Elf32File;
 
 class StringTable : public Section {
 public:
 
     StringTable(Elf32File& elf32_file);
 
-    const Elf32_Off add_string(const std::string& string);
+    StringTable(const StringTable&) = delete;
 
-    const Elf32_Off get_offset(const std::string& string);
+    StringTable(StringTable&&) = delete;
 
-    const std::string& get_string(Elf32_Off offset);
+    StringTable operator=(const StringTable&) = delete;
 
-    void replace(const std::vector<char>& str_table_data); // NOTE: check if needed
-
-    void write(std::ofstream* file);
+    StringTable operator=(StringTable&&) = delete;
 
     ~StringTable() = default;
+
+    const Elf32_Off add_string(const std::string& string);
+
+    Elf32_Off get_offset(const std::string& string) const;
+
+    const std::string& get_string(Elf32_Off offset) const;
+
+    void set_string_table(const std::vector<char>& str_table_data);
+
+    void write(std::ostream& ostream) override;
+
+    void print(std::ostream& ostream) const override;
 
 private:
 
