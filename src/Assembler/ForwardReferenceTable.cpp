@@ -1,68 +1,85 @@
 #include "../../inc/Assembler/ForwardReferenceTable.hpp"
-
 #include "../../inc/Assembler/Assembler.hpp"
-#include "../../inc/Assembler/Instructions.hpp"
-#include "../../inc/Assembler/LiteralTable.hpp"
-#include "../../inc/Elf32/CustomSection.hpp"
-#include "../../inc/Elf32/Elf32File.hpp"
-#include "../../inc/Elf32/StringTable.hpp"
+#include "../../inc/Assembler/InstructionFormat.hpp"
 
-// Adds a symbol reference of the symbol that will be resolved in backpatching phase.
-void ForwardReferenceTable::add(Elf32_Sym* _symbol_entry, Elf32_Addr _address) {
-    std::string symbol_name = Assembler::elf32_file.stringTable().get(_symbol_entry->st_name);
-
-    if (forward_references.find(symbol_name) == forward_references.end()) {
-        forward_references[symbol_name] = std::list<SymbolReference>();
-    }
-
-    Elf32_Half current_section_index = Assembler::current_section->index();
-    forward_references[symbol_name].push_back({_address, current_section_index});
+ForwardReferenceTable::ForwardReferenceTable(Assembler& assembler)
+    : _assembler(assembler),
+      _elf32_file(assembler._elf32_file),
+      forward_references()
+{
 }
 
-void ForwardReferenceTable::backpatch() {
-    for (auto& entry : forward_references) {
-        std::string symbol_name = entry.first;
-        Elf32_Sym* symbol_entry = Assembler::elf32_file.symbolTable().get(symbol_name);
+// Adds a symbol reference of the symbol that will be resolved in backpatching phase.
+void ForwardReferenceTable::add_reference(Elf32_Sym& symbol_entry, Elf32_Addr address)
+{
+    Elf32_Sym* symbol_entry_ptr = &symbol_entry;
 
-        // Check if symbol is defined and local.
-        if (symbol_entry->st_defined == false &&
-            ELF32_ST_BIND(symbol_entry->st_info) == STB_LOCAL) {
-            std::cerr << "Symbol " << Assembler::elf32_file.stringTable().get(symbol_entry->st_name)
+    if (forward_references.find(symbol_entry_ptr) == forward_references.end()) {
+        forward_references[symbol_entry_ptr] = std::list<SymbolReference>();
+    }
+
+    forward_references[symbol_entry_ptr].push_back({address, _assembler._current_section});
+}
+
+void ForwardReferenceTable::backpatch()
+{
+    for (const auto& entry : forward_references) {
+        Elf32_Sym& symbol_entry = *entry.first;
+
+        // Check if symbol is not defined and local since every symbol should be defined at the
+        // backpatching phase.
+        if (symbol_entry.st_defined == false && ELF32_ST_BIND(symbol_entry.st_info) == STB_LOCAL) {
+            std::cerr << "Symbol " << _elf32_file._string_table.get_string(symbol_entry.st_name)
                       << " is not defined." << std::endl;
             exit(-1);
         }
 
-        for (SymbolReference& reference : entry.second) {
-            resolveSymbol(symbol_entry, reference);
+        for (SymbolReference reference : entry.second) {
+            resolve_symbol(symbol_entry, reference);
         }
     }
 }
 
-void ForwardReferenceTable::resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _reference) {
-    Elf32_Off sh_name =
-        Assembler::elf32_file.sectionHeaderTable().at(_reference.section_index).sh_name;
-    CustomSection* section = &Assembler::elf32_file.customSectionMap().at(
-        Assembler::elf32_file.stringTable().get(sh_name));
+void ForwardReferenceTable::resolve_symbol(Elf32_Sym& symbol_entry, SymbolReference& reference)
+{
+    CustomSection* section = reference.section;
 
-    instruction_format_t instruction =
-        *(instruction_format_t*) section->content(_reference.address);
-    OP_CODE op_code = (OP_CODE) INSTRUCTION_FORMAT_OP_CODE(instruction);
-    uint32_t offset = _symbol_entry->st_value - _reference.address - sizeof(instruction_format_t);
+    instruction_format instruction = section->get_data()[reference.address];
+    OC oc = if_get_oc(instruction);
+    uint32_t offset = symbol_entry.st_value - reference.address - sizeof(instruction);
 
-    // For branch instructions jump location can be changed to an symbol directly depending if that
-    // symbol definition is in the same section as the branch instruction. Other instructions have
+    // For branch instructions jump location can be changed to label directly depending if that
+    // label definition is in the same section as the branch instruction. Other instructions have
     // to access symbol value using PC relative addressing mode, where the symbol value is located
-    // in the literal table.
-    if (op_code == OP_CODE::JMP && offset < 0xFFF) {
-        uint8_t mod = INSTRUCTION_FORMAT_MOD(instruction);
-        mod = (mod >= 0x8) ? (mod - 0x8) : mod;
-        uint32_t reg_A = 15;
-        instruction =
-            (instruction & 0xF00FF000) | ((uint32_t) mod << 24) | (reg_A << 20) | (offset & 0xFFF);
-
-        section->overwrite(&instruction, sizeof(instruction_format_t), _reference.address);
-    } else {
-        Assembler::literal_table_map.at(section).addRelocatableSymbolReference(_symbol_entry,
-                                                                               _reference.address);
+    // in the constant pool.
+    if (oc == OC::JMP && offset < MAX_DISP) {
+        MOD mod = if_get_mod(instruction);
+        if (mod >= MOD::JMP_IND) {
+            switch (mod) {
+            case MOD::JMP_IND:
+                mod = MOD::JMP;
+                break;
+            case MOD::BEQ_IND:
+                mod = MOD::BEQ;
+                break;
+            case MOD::BNE_IND:
+                mod = MOD::BNE;
+                break;
+            case MOD::BGT_IND:
+                mod = MOD::BGT;
+                break;
+            default:
+                std::cerr << "Error: something is not right.";
+                exit(-1);
+                break;
+            }
+        }
+        instruction = if_create(oc, mod, REG::PC, if_get_reg_b(instruction),
+                                if_get_reg_c(instruction), offset);
+        section->overwrite_data(&instruction, sizeof(instruction), reference.address);
+    }
+    else {
+        _assembler._constant_table_map.at(section).add_symbol_reference(symbol_entry,
+                                                                        reference.address);
     }
 }

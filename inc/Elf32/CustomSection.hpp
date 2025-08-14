@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "../Assembler/InstructionFormat.hpp"
 #include "Section.hpp"
 
 class RelocationTable;
@@ -37,6 +38,8 @@ public:
     void replace_data(std::vector<Elf32_Byte> content);
 
     const std::vector<Elf32_Byte>& get_data() const;
+
+    instruction_format get_instruction(size_t index) const;
 
     size_t get_size() const;
 

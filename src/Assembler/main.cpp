@@ -1,47 +1,49 @@
+#include "../../inc/Assembler/Assembler.hpp"
 #include <getopt.h>
-
 #include <iostream>
 
-#include "../../inc/Assembler/Assembler.hpp"
+extern int yylex();
+extern int yyparse();
+extern FILE* yyin;
 
-int main(int argc, char* argv[]) {
-    const char* input_file_name = nullptr;
-    const char* output_file_name = nullptr;
+extern uint32_t line;
+
+inline int bad_argument_usage_error(const std::string& program_name)
+{
+    std::cerr << "Error, incorrect argument usage in " << program_name << ".\n"
+              << "Correct usage: " << program_name << " -o <output_file> <input_file>" << std::endl;
+    return -1;
+}
+
+Assembler* assembler = nullptr;
+
+int main(int argc, char* argv[])
+{
+    if (argc != 4) {
+        bad_argument_usage_error(argv[0]);
+    }
+
+    std::string input_file_name;
+    std::string output_file_name;
 
     int opt_val;
     while ((opt_val = getopt(argc, argv, "o:")) != -1) {
         switch (opt_val) {
         case 'o':
-            if (optarg == nullptr) {
-                std::cerr << "Error, incorrect -o argument usage in " << argv[0] << "."
-                          << std::endl;
-                std::cerr << "Correct usage: " << argv[0] << " -o <output_file> <input_file>\n";
-                return -1;
+            if (optarg == nullptr || optind != argc - 1) {
+                bad_argument_usage_error(argv[0]);
             }
             output_file_name = optarg;
-            if (optind != argc - 1) {
-                std::cerr << "Error, incorrect -o argument usage in " << argv[0] << "."
-                          << std::endl;
-                std::cerr << "Correct usage: " << argv[0] << " -o <output_file> <input_file>\n";
-                return -1;
-            }
             input_file_name = argv[optind];
             break;
         default:
-            std::cerr << "Error, invalid arguments." << std::endl;
-            return -1;
+            bad_argument_usage_error(argv[0]);
             break;
         }
     }
 
-    if (input_file_name == nullptr || output_file_name == nullptr) {
-        std::cerr << "Error, invalid arguments." << std::endl;
-        return -1;
-    }
-
-    if (Assembler::startAssembler(input_file_name, output_file_name) == -1) {
-        std::cerr << "Error: assembler failed to start. \n";
-    }
+    assembler = new Assembler();
+    assembler->start_assembler(input_file_name, output_file_name);
 
     return 0;
 }

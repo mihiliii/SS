@@ -1,22 +1,25 @@
 #pragma once
 
+#include "../Elf32/Elf32File.hpp"
 #include <list>
-#include <map>
-#include <string>
+#include <unordered_map>
 
-#include "../Elf32/Elf32.hpp"
+class Assembler;
 
 class ForwardReferenceTable {
 public:
 
-    ForwardReferenceTable() = default;
-
-    void add(Elf32_Sym* _symbol_entry, Elf32_Addr _address);
-
-    void backpatch();
+    ForwardReferenceTable(Assembler& assembler);
 
     ForwardReferenceTable(const ForwardReferenceTable&) = delete;
+    ForwardReferenceTable(ForwardReferenceTable&&) = default;
+
     ForwardReferenceTable& operator=(const ForwardReferenceTable&) = delete;
+    ForwardReferenceTable& operator=(ForwardReferenceTable&&) = delete;
+
+    void add_reference(Elf32_Sym& symbol_entry, Elf32_Addr address);
+
+    void backpatch();
 
     ~ForwardReferenceTable() = default;
 
@@ -24,10 +27,12 @@ private:
 
     struct SymbolReference {
         Elf32_Addr address;
-        Elf32_Half section_index;
+        CustomSection* section;
     };
 
-    void resolveSymbol(Elf32_Sym* _symbol_entry, SymbolReference& _address);
+    void resolve_symbol(Elf32_Sym& symbol_entry, SymbolReference& address);
 
-    std::map<std::string, std::list<SymbolReference>> forward_references;
+    Assembler& _assembler;
+    Elf32File& _elf32_file;
+    std::unordered_map<Elf32_Sym*, std::list<SymbolReference>> forward_references;
 };

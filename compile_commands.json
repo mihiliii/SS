@@ -1,0 +1,130 @@
+[
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Assembler/Assembler.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Assembler/Assembler.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Assembler/Directives.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Assembler/Directives.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Assembler/ForwardReferenceTable.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Assembler/ForwardReferenceTable.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Assembler/Instructions.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Assembler/Instructions.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Assembler/LiteralTable.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Assembler/LiteralTable.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Assembler/main.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Assembler/main.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "build/bison.tab.c"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/build/bison.tab.c",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "build/lex.yy.c"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/build/lex.yy.c",
+    "output": "/home/mix/Projects/SS/assembler"
+  }
+]

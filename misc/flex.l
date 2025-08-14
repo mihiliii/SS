@@ -1,8 +1,8 @@
-%{  
+%{
     #include "bison.tab.h"
     #include "../inc/Assembler/Assembler.hpp"
     #include "../inc/Assembler/Instructions.hpp"
-    
+ 
     extern int yyerror(const char* s);
     uint32_t line = 1;
 %}
@@ -63,7 +63,7 @@ PC "%pc"
 "["                         { return '['; }
 "]"                         { return ']'; }
 "+"                         { return '+'; }
-"-"                         { return '-'; }  
+"-"                         { return '-'; }
 {HALT}                      { return HALT; }
 {INT}                       { return INT; }
 {IRET}                      { return IRET; }
@@ -79,7 +79,7 @@ PC "%pc"
 {ADD}                       { return ADD; }
 {SUB}                       { return SUB; }
 {MUL}                       { return MUL; }
-{DIV}                       { return DIV; }      
+{DIV}                       { return DIV; }
 {NOT}                       { return NOT; }
 {AND}                       { return AND; }
 {OR}                        { return OR; }
@@ -92,18 +92,18 @@ PC "%pc"
 {CSRWR}                     { return CSRWR; }
 
 {SECTION}                   { return SECTION; }
-{SKIP}                      { return SKIP; } 
+{SKIP}                      { return SKIP; }
 {WORD}                      { return WORD; }
 {END}                       { return END; }
 {GLOBAL}                    { return GLOBAL; }
 {EXTERN}                    { return EXTERN; }
 
-{STATUS}                    { yylval.uint_val = (uint32_t) CSR::STATUS; return CSR; }
-{HANDLER}                   { yylval.uint_val = (uint32_t) CSR::HANDLER; return CSR; }
-{CAUSE}                     { yylval.uint_val = (uint32_t) CSR::CAUSE; return CSR; }
+{STATUS}                    { yylval.reg_val = REG::STATUS; return CSR; }
+{HANDLER}                   { yylval.reg_val = REG::HANDLER; return CSR; }
+{CAUSE}                     { yylval.reg_val = REG::CAUSE; return CSR; }
 
-{SP}                        { yylval.uint_val = (uint32_t) GPR::SP; return GPR; }
-{PC}                        { yylval.uint_val = (uint32_t) GPR::PC; return GPR; }
+{SP}                        { yylval.reg_val = REG::SP; return GPR; }
+{PC}                        { yylval.reg_val = REG::PC; return GPR; }
 
 %r[0-9]|%r1[0-5]            { yylval.uint_val = (uint32_t) strtol(yytext + 2, NULL, 10); return GPR; }
 0[xX][0-9a-fA-F]+|[0-9]+    { yylval.uint_val = (uint32_t) strtol(yytext, NULL, 0); return LITERAL; }

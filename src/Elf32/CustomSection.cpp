@@ -67,6 +67,12 @@ const std::vector<Elf32_Byte>& CustomSection::get_data() const
     return _section_content;
 }
 
+instruction_format CustomSection::get_instruction(size_t index) const
+{
+    return _section_content[index] | (_section_content[index + 1] << 8) |
+           (_section_content[index + 2] << 16) | (_section_content[index + 3] << 24);
+}
+
 inline size_t CustomSection::get_size() const
 {
     return _section_content.size();
