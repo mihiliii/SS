@@ -18,6 +18,7 @@
     #include <vector>
     #include <cstdint>
     struct Operand;
+    enum struct REG;
 }
 
 // Bison fundamentally works by asking flex to get the next token, which it
@@ -83,42 +84,43 @@
 %%
 
 // This is the actual grammar that bison will parse.
+
 input:
-    line input
+  | line input
 ;
 
 line:
     label instruction EOL
-    label directive EOL
-    instruction EOL
-    directive EOL
-    label EOL
-    EOL
+  | label directive EOL
+  | instruction EOL
+  | directive EOL
+  | label EOL
+  | EOL
 ;
 
 list_symbol_or_literal:
     SYMBOL
     {
-        Operand node{OPERAND_TYPE::SYMBOL, new std::string($1)};
-        $$ = new vector<Operand>;
+        Operand node{Symbol($1)};
+        $$ = new std::vector<Operand>();
         $$->push_back(node);
         free($1);
     }
-    LITERAL
+  | LITERAL
     {
-        Operand node{OPERAND_TYPE::LITERAL, new int($1)};
-        $$ = new vector<Operand>;
+        Operand node{Literal($1)};
+        $$ = new std::vector<Operand>();
         $$->push_back(node);
     }
-    list_symbol_or_literal ',' SYMBOL
+  | list_symbol_or_literal ',' SYMBOL
     {
-        Operand node{OPERAND_TYPE::SYMBOL, new std::string($3)};
+        Operand node{Symbol($3)};
         $$->push_back(node);
         free($3);
     }
-    list_symbol_or_literal ',' LITERAL
+  | list_symbol_or_literal ',' LITERAL
     {
-        Operand node{OPERAND_TYPE::LITERAL, new int($3)};
+        Operand node{Literal($3)};
         $$->push_back(node);
     }
 ;
@@ -126,15 +128,16 @@ list_symbol_or_literal:
 list_symbol:
     SYMBOL
     {
-        Operand node{OPERAND_TYPE::SYMBOL, new std::string($1)};
-        $$ = new vector<Operand>;
+        Operand node{Symbol($1)};
+        $$ = new std::vector<Operand>();
         $$->push_back(node);
         free($1);
     }
-    list_symbol ',' SYMBOL {
-        Operand node{OPERAND_TYPE::SYMBOL, new std::string($3)};
+  | list_symbol ',' SYMBOL
+    {
+        Operand node{Symbol($3)};
         $$->push_back(node);
-        free($1);
+        free($3);
     }
 ;
 
@@ -145,98 +148,85 @@ label:
     }
 ;
 
-// FIX: need to delete all newly allocated memory in the directives
-
 directive:
     SECTION SYMBOL
     {
-        assembler->sectionDirective($2);
+        assembler->section_dir($2);
     }
-    SKIP LITERAL
+  | SKIP LITERAL
     {
-        assembler->skipDirective($2);
+        assembler->skip_dir($2);
     }
-    WORD list_symbol_or_literal
+  | WORD list_symbol_or_literal
     {
-        assembler->wordDirective($2);
-        for (auto it : *$2) {
-            delete it->value;
-        }
+        assembler->word_dir(*$2);
         delete $2;
     }
-    GLOBAL list_symbol
+  | GLOBAL list_symbol
     {
-        assembler->globalDirective($2);
-        for (auto it : *$2) {
-            delete it->value;
-        }
+        assembler->global_dir(*$2);
         delete $2;
     }
-    EXTERN list_symbol
+  | EXTERN list_symbol
     {
-        assembler->externDirective($2);
-        for (auto it : *$2) {
-            delete it.value;
-        }
+        assembler->extern_dir(*$2);
         delete $2;
     }
-    END
+  | END
     {
         YYACCEPT;
     }
 ;
 
-// TODO: remove casts
-
 instruction:
     HALT                                { assembler->halt(); }
-    INT                                 { assembler->interrupt(); }
-    RET                                 { assembler->pop(REG::PC); }
-    IRET                                { assembler->iret(); }
-    CALL LITERAL                        { assembler->call((uint32_t)$2); }
-    CALL SYMBOL                         { assembler->call(std::string($2)); free($2); }
-    JMP LITERAL                         { assembler->jump(MOD::JMP, REG::R0, REG::R0, REG::R0, (uint32_t) $2); }
-    JMP SYMBOL                          { assembler->jump(MOD::JMP, REG::R0, REG::R0, REG::R0, std::string($2)); free($2); }
-    BEQ GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BEQ, REG::R0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    BEQ GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BEQ, REG::R0, (uint8_t) $2, (uint8_t) $4, std::string($6)); free($6); }
-    BNE GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BNE, REG::R0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    BNE GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BNE, REG::R0, (uint8_t) $2, (uint8_t) $4, std::string($6)); free($6); }
-    BGT GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BGT, REG::R0, (uint8_t) $2, (uint8_t) $4, (uint32_t) $6); }
-    BGT GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BGT, REG::R0, (uint8_t) $2, (uint8_t) $4, std::string($6)); free($6);}
-    PUSH GPR                            { assembler->push((uint8_t) $2); }
-    POP GPR                             { assembler->pop((uint8_t) $2); }
-    XCHG GPR ',' GPR                    { assembler->exchange((uint8_t) $2, (uint8_t) $4); }
-    ADD GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::ADD, (uint8_t) $2, (uint8_t) $4); }
-    SUB GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::SUB, (uint8_t) $2, (uint8_t) $4); }
-    MUL GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::MUL, (uint8_t) $2, (uint8_t) $4); }
-    DIV GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::DIV, (uint8_t) $2, (uint8_t) $4); }
-    NOT GPR                             { assembler->arithmetic_logic_shift(OC::LOG, MOD::NOT, (uint8_t) $2, (uint8_t) $2); }
-    AND GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::LOG, MOD::AND, (uint8_t) $2, (uint8_t) $4); }
-    OR GPR ',' GPR                      { assembler->arithmetic_logic_shift(OC::LOG, MOD::OR, (uint8_t) $2, (uint8_t) $4); }
-    XOR GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::LOG, MOD::XOR, (uint8_t) $2, (uint8_t) $4); }
-    SHL GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::SHF, MOD::SHL, (uint8_t) $2, (uint8_t) $4); }
-    SHR GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::SHF, MOD::SHR, (uint8_t) $2, (uint8_t) $4); }
-    LD '$' LITERAL ',' GPR              { assembler->load(ADDR::IMMEDIATE, (REG) $5, REG::R0, (uint32_t) $3); }
-    LD '$' SYMBOL ',' GPR               { assembler->load(ADDR::IMMEDIATE, (REG) $5, REG::R0, std::string($3)); free($3); }
-    LD LITERAL ',' GPR                  { assembler->load(ADDR::MEM_DIR, (REG) $4, REG::R0, (uint32_t) $2); }
-    LD SYMBOL ',' GPR                   { assembler->load(ADDR::MEM_DIR, (REG) $4, REG::R0, std::string($2)); free($2); }
-    LD GPR ',' GPR                      { assembler->load(ADDR::REG_DIR, (REG) $4, (REG) $2, 0); }
-    LD '[' GPR ']' ',' GPR              { assembler->load(ADDR::REG_IND, (REG) $6, (REG) $3, 0); }
-    LD '[' GPR '+' LITERAL ']' ',' GPR  { assembler->load(ADDR::REG_IND_OFF, (REG) $8, (REG) $3, (uint32_t) $5); }
-    ST GPR ',' '$' LITERAL              { assembler->store(ADDR::IMMEDIATE, REG::R0, REG::R0, (REG) $2, (uint32_t) $5); }
-    ST GPR ',' '$' SYMBOL               { assembler->store(ADDR::IMMEDIATE, REG::R0, REG::R0, (REG) $2, std::string($5)); free($5); }
-    ST GPR ',' LITERAL                  { assembler->store(ADDR::MEM_DIR, REG::R0, REG::R0, (REG) $2, (uint32_t) $4); }
-    ST GPR ',' SYMBOL                   { assembler->store(ADDR::MEM_DIR, REG::R0, REG::R0, (REG) $2, std::string($4)); free($4); }
-    ST GPR ',' GPR                      { assembler->store(ADDR::REG_DIR, (REG) $2, (REG) $4, REG::R0, 0); }
-    ST GPR ',' '[' GPR ']'              { assembler->store(ADDR::REG_IND, (REG) $5, REG::R0, (REG) $2, 0); }
-    ST GPR ',' '[' GPR '+' LITERAL ']'  { assembler->store(ADDR::REG_IND_OFF, (REG) $5, REG::R0, (REG) $2, (uint32_t) $7); }
-    CSRRD CSR ',' GPR                   { assembler->csr_read((REG) $2, (REG) $4); }
-    CSRWR GPR ',' CSR                   { assembler->csr_write((REG) $2, (REG) $4); }
+  | INT                                 { assembler->interrupt(); }
+  | RET                                 { assembler->pop(REG::PC); }
+  | IRET                                { assembler->iret(); }
+  | CALL LITERAL                        { assembler->call($2); }
+  | CALL SYMBOL                         { assembler->call($2); free($2); }
+  | JMP LITERAL                         { assembler->jump(MOD::JMP, REG::R0, REG::R0, REG::R0, $2); }
+  | JMP SYMBOL                          { assembler->jump(MOD::JMP, REG::R0, REG::R0, REG::R0, $2); free($2); }
+  | BEQ GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BEQ, REG::R0, $2, $4, $6); }
+  | BEQ GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BEQ, REG::R0, $2, $4, $6); free($6); }
+  | BNE GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BNE, REG::R0, $2, $4, $6); }
+  | BNE GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BNE, REG::R0, $2, $4, $6); free($6); }
+  | BGT GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BGT, REG::R0, $2, $4, $6); }
+  | BGT GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BGT, REG::R0, $2, $4, $6); free($6);}
+  | PUSH GPR                            { assembler->push($2); }
+  | POP GPR                             { assembler->pop($2); }
+  | XCHG GPR ',' GPR                    { assembler->exchange($2, $4); }
+  | ADD GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::AR_ADD, $2, $4); }
+  | SUB GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::AR_SUB, $2, $4); }
+  | MUL GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::AR_MUL, $2, $4); }
+  | DIV GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::AR, MOD::AR_DIV, $2, $4); }
+  | NOT GPR                             { assembler->arithmetic_logic_shift(OC::LOG, MOD::LOG_NOT, $2, $2); }
+  | AND GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::LOG, MOD::LOG_AND, $2, $4); }
+  | OR GPR ',' GPR                      { assembler->arithmetic_logic_shift(OC::LOG, MOD::LOG_OR, $2, $4); }
+  | XOR GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::LOG, MOD::LOG_XOR, $2, $4); }
+  | SHL GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::SHF, MOD::SHF_SHL, $2, $4); }
+  | SHR GPR ',' GPR                     { assembler->arithmetic_logic_shift(OC::SHF, MOD::SHF_SHR, $2, $4); }
+  | LD '$' LITERAL ',' GPR              { assembler->load(IF_ADDR::IMMEDIATE, $5, REG::R0, $3); }
+  | LD '$' SYMBOL ',' GPR               { assembler->load(IF_ADDR::IMMEDIATE, $5, REG::R0, $3); free($3); }
+  | LD LITERAL ',' GPR                  { assembler->load(IF_ADDR::MEM_DIR, $4, REG::R0, $2); }
+  | LD SYMBOL ',' GPR                   { assembler->load(IF_ADDR::MEM_DIR, $4, REG::R0, $2); free($2); }
+  | LD GPR ',' GPR                      { assembler->load(IF_ADDR::REG_DIR, $4, $2, 0); }
+  | LD '[' GPR ']' ',' GPR              { assembler->load(IF_ADDR::REG_IND, $6, $3, 0); }
+  | LD '[' GPR '+' LITERAL ']' ',' GPR  { assembler->load(IF_ADDR::REG_IND_OFF, $8, $3, $5); }
+  | ST GPR ',' '$' LITERAL              { assembler->store(IF_ADDR::IMMEDIATE, REG::R0, REG::R0, $2, $5); }
+  | ST GPR ',' '$' SYMBOL               { assembler->store(IF_ADDR::IMMEDIATE, REG::R0, REG::R0, $2, $5); free($5); }
+  | ST GPR ',' LITERAL                  { assembler->store(IF_ADDR::MEM_DIR, REG::R0, REG::R0, $2, $4); }
+  | ST GPR ',' SYMBOL                   { assembler->store(IF_ADDR::MEM_DIR, REG::R0, REG::R0, $2, $4); free($4); }
+  | ST GPR ',' GPR                      { assembler->store(IF_ADDR::REG_DIR, $2, $4, REG::R0, 0); }
+  | ST GPR ',' '[' GPR ']'              { assembler->store(IF_ADDR::REG_IND, $5, REG::R0, $2, 0); }
+  | ST GPR ',' '[' GPR '+' LITERAL ']'  { assembler->store(IF_ADDR::REG_IND_OFF, $5, REG::R0, $2, $7); }
+  | CSRRD CSR ',' GPR                   { assembler->csr_read($2, $4); }
+  | CSRWR GPR ',' CSR                   { assembler->csr_write($2, $4); }
 ;
 
 %%
 
 void yyerror(const char *s) {
-    cout << std::dec << "Error at line " << line << ": " << s << endl;
+    std::cout << std::dec << "Error at line " << line << ": " << s << std::endl;
     exit(-1);
 }

@@ -10,7 +10,7 @@
 #include "SymbolTable.hpp"
 
 typedef Elf32_Ehdr Elf32Header;
-typedef std::vector<Elf32_Shdr> SectionHeaderTable;
+typedef std::vector<Elf32_Shdr*> SectionHeaderTable;
 typedef std::map<std::string, CustomSection> CustomSectionMap;
 typedef std::map<std::string, RelocationTable> RelocationTableMap;
 
@@ -34,7 +34,7 @@ public:
     CustomSection* new_custom_section(const std::string& name);
 
     CustomSection* new_custom_section(const std::string& name, Elf32_Shdr section_header,
-                                      const std::vector<char>& data);
+                                      const std::vector<Elf32_Byte>& data);
 
     RelocationTable* new_relocation_table(const std::string& name, CustomSection& linked_section);
 

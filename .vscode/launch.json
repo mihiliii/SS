@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/assembler",
-      "args": ["-o", "./tests/testB/test.o", "./tests/testB/test.s"],
+      "args": ["-o", "./tests/math.o", "./tests/math.s"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

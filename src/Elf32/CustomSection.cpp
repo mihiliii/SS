@@ -73,7 +73,7 @@ instruction_format CustomSection::get_instruction(size_t index) const
            (_section_content[index + 2] << 16) | (_section_content[index + 3] << 24);
 }
 
-inline size_t CustomSection::get_size() const
+size_t CustomSection::get_size() const
 {
     return _section_content.size();
 }
@@ -112,7 +112,7 @@ void CustomSection::write(std::ostream& ostream)
 void CustomSection::print(std::ostream& ostream) const
 {
     std::ostream os_hex(ostream.rdbuf());
-    os_hex << "Section content " << this->get_name() << ":";
+    os_hex << std::endl << "Section content " << this->get_name() << ":";
     os_hex << std::hex << std::setfill('0');
     for (size_t cnt = 0; cnt < _section_content.size(); cnt++) {
         if (cnt % 16 == 0) {

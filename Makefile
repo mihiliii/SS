@@ -34,13 +34,13 @@ endif
 
 all: assembler linker emulator
 
-assembler: $(ASSEMBLER_FILES) $(COMMON_FILES) $(C_FILES)
+assembler: $(ASSEMBLER_FILES) $(ELF32_FILES) $(C_FILES)
 	g++ $(CXXFLAGS) -o $(ASSEMBLER_PROGRAM_NAME) $(^) -lfl
 
-linker: $(LINKER_FILES) $(COMMON_FILES)
+linker: $(LINKER_FILES) $(ELF32_FILES)
 	g++ $(CXXFLAGS) -o $(LINKER_PROGRAM_NAME) $(^)
 
-emulator: $(EMULATOR_FILES) $(COMMON_FILES)
+emulator: $(EMULATOR_FILES) $(ELF32_FILES)
 	g++ $(CXXFLAGS) -o $(EMULATOR_PROGRAM_NAME) $(^)
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)

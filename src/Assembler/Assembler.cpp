@@ -6,6 +6,7 @@
 #include "../../inc/Elf32/Elf32File.hpp"
 #include "Assembler/ConstantTable.hpp"
 #include "Assembler/InstructionFormat.hpp"
+#include "Elf32/CustomSection.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -75,7 +76,7 @@ void Assembler::section_dir(const std::string& section_name)
                                              ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
     }
 
-    // TODO: check
+    // TODO: check if its fine
     _constant_table_map.emplace(_current_section, ConstantTable(_elf32_file, *_current_section));
 }
 
@@ -89,11 +90,10 @@ void Assembler::word_dir(const std::vector<Operand>& values)
 {
     for (const Operand& node : values) {
         if (node.type == OPERAND_TYPE::LITERAL) {
-            _current_section->append_data(node.value, sizeof(uint32_t));
+            _current_section->append_data(std::get<Literal>(node.value));
         }
-        // TODO: change to std::string instead of char*
         if (node.type == OPERAND_TYPE::SYMBOL) {
-            const std::string symbol_name = std::string((char*) node.value);
+            const std::string symbol_name = std::get<std::string>(node.value);
             Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol_name);
 
             if (symbol_entry == nullptr) {
@@ -114,7 +114,7 @@ void Assembler::word_dir(const std::vector<Operand>& values)
 void Assembler::global_dir(const std::vector<Operand>& symbols)
 {
     for (const Operand& node : symbols) {
-        const std::string symbol_name = std::string((char*) node.value);
+        const std::string symbol_name = std::get<std::string>(node.value);
         Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol_name);
 
         if (symbol_entry == nullptr) {
@@ -132,7 +132,7 @@ void Assembler::global_dir(const std::vector<Operand>& symbols)
 void Assembler::extern_dir(const std::vector<Operand>& symbols)
 {
     for (const Operand& node : symbols) {
-        const std::string symbol_name = std::string((char*) node.value);
+        const std::string symbol_name = std::get<std::string>(node.value);
         Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol_name);
 
         if (symbol_entry == nullptr) {
@@ -326,6 +326,7 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, uint32_t literal)
             exit(-1);
         }
         instruction = if_create(OC::LD, MOD::LD_GPR_REGIND_DSP, reg_a, reg_b, REG::R0, literal);
+        break;
     }
     default:
         std::cout << "Error at line " << line << ": ";

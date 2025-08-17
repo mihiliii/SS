@@ -17,7 +17,8 @@ StringTable::StringTable(Elf32File& elf32_file)
               }),
       _string_table()
 {
-    _string_table.insert(std::make_pair(0, ""));
+    add_string("\0");
+    // _string_table.insert(std::make_pair(0, ""));
     _header.sh_name = add_string(".strtab");
 }
 

@@ -70,8 +70,8 @@ void Elf32File::write_bin(const std::string& file_name, Elf32_Half file_type)
     _elf32_header.e_shnum = _section_header_table.size();
 
     // Write the section header table:
-    for (const Elf32_Shdr& section_header : _section_header_table) {
-        file.write((const char*) &section_header, sizeof(Elf32_Shdr));
+    for (const Elf32_Shdr* section_header : _section_header_table) {
+        file.write((const char*) section_header, sizeof(Elf32_Shdr));
     }
 
     // Write the ELF header at the beginning of the file:
@@ -117,6 +117,7 @@ void Elf32File::write_hex(const std::string& file_name)
     for (size_t i = 1; i < segments.size(); ++i) {
         if (segments[i].start < segments[i - 1].end) {
             std::cout << "Error: Overlapping sections in Elf32File::writeHex" << std::endl;
+            exit(-1);
         }
     }
 
@@ -168,7 +169,7 @@ void Elf32File::read_elf(const std::string& file_name)
             break;
     }
 
-    // TODO: remove unused header entries 
+    // TODO: remove unused header entries
 
     cout << std::hex;
     cout << "  Entry point address:   0x" << _elf32_header.e_entry  << std::endl
@@ -176,10 +177,10 @@ void Elf32File::read_elf(const std::string& file_name)
          << "  Section header offset: 0x" << _elf32_header.e_shoff  << std::endl;
 
     cout << std::dec;
-    cout << "  Section header entry size: " << _elf32_header.e_shentsize << " (bytes)" << std::endl
-         << "  Number of section headers: " << _elf32_header.e_shnum                   << std::endl
-         << "  Program header entry size: " << _elf32_header.e_phentsize << " (bytes)" << std::endl
-         << "  Number of program headers: " << _elf32_header.e_phnum                   << std::endl
+    cout << "  Section header entry size: " << _elf32_header.e_shentsize << "B" << std::endl
+         << "  Number of section headers: " << _elf32_header.e_shnum            << std::endl
+         << "  Program header entry size: " << _elf32_header.e_phentsize << "B" << std::endl
+         << "  Number of program headers: " << _elf32_header.e_phnum            << std::endl
          << std::endl;
 
     cout << std::left << std::setfill(' ') << "Section Header Table: \n  "
@@ -196,9 +197,9 @@ void Elf32File::read_elf(const std::string& file_name)
          << std::endl;
 
     for (size_t num = 0; num < _section_header_table.size(); num++) {
-        const auto& section = _section_header_table[num];
+        const Elf32_Shdr& section = *_section_header_table[num];
         const std::string& section_name = _string_table.get_string(section.sh_name);
-        cout << std::right << std::setfill(' ') << std::dec 
+        cout << std::right << std::setfill(' ') << std::dec
              << std::setw(5)  << num                  << " "
              << std::left << std::dec << std::setfill(' ')
              << std::setw(24) << section_name         << " "
@@ -219,7 +220,6 @@ void Elf32File::read_elf(const std::string& file_name)
 
     for (auto& iterator : _custom_section_map) {
         CustomSection& section = iterator.second;
-        cout << "Section content " << section.get_name() << ":\n";
         section.print(cout);
     }
     for (auto& iterator : _rela_table_map) {
@@ -229,62 +229,67 @@ void Elf32File::read_elf(const std::string& file_name)
 
     _symbol_table.print(cout);
 
-    const size_t buffer_size = 1024;
-    std::vector<char> buffer(buffer_size);
+    const size_t BUFFER_SIZE = 1024;
+    std::vector<Elf32_Byte> buffer(BUFFER_SIZE);
 
     cout << std::endl << "Content of " << file_name << ":" << std::endl;
+    cout << std::right << std::hex << std::setfill('0');
 
-    // TODO: change how it works
-    size_t i = 0;
-    size_t s = 0;
+    const char MIN_ASCII_CHAR = 32;
+    const char MAX_ASCII_CHAR = 126;
+    const size_t LINE_WIDTH = 16;
+
+    size_t write_count = 0;
+
     while (!input_file.eof()) {
-        input_file.read(buffer.data(), buffer_size);
-        s += input_file.gcount();
-        for (; i < s; i++) {
-            if (i % 16 == 0) {
-                cout << std::right << std::hex << std::setw(8) << std::setfill('0') << i << ": ";
+        input_file.read((char*) buffer.data(), BUFFER_SIZE);
+        size_t read_count = input_file.gcount();
+
+        for (size_t i = 0; i < read_count; i++, write_count++) {
+            if (write_count % LINE_WIDTH == 0) {
+                cout << std::setw(8) << write_count << ": ";
             }
-            else if (i % 8 == 0) {
-                cout << std::dec << " ";
+            else if (write_count % (LINE_WIDTH / 2) == 0) {
+                cout << " ";
             }
 
-            cout << std::hex << std::setw(2) << std::setfill('0') << (uint32_t) buffer[i] << " ";
+            cout << std::setw(2) << (uint32_t) buffer[i] << " ";
 
-            if ((i + 1) % 16 == 0) {
-                cout << std::dec << " |";
-                for (size_t j = i - 15; j < i + 1; j++) {
-                    if (buffer[j] < 32 || buffer[j] > 126) {
+            if ((write_count + 1) % LINE_WIDTH == 0) {
+                cout << " |";
+                for (size_t j = i; j < i + LINE_WIDTH; j++) {
+                    const size_t INDEX = j - (LINE_WIDTH - 1);
+
+                    if (buffer[INDEX] < MIN_ASCII_CHAR || buffer[INDEX] > MAX_ASCII_CHAR) {
                         cout << ".";
                     }
                     else {
-                        cout << buffer[j];
-                    }
-                    if ((j + 1) % 16 == 0) {
-                        cout << std::dec << "|\n";
+                        cout << buffer[INDEX];
                     }
                 }
+                cout << "|\n";
             }
         }
 
-        if (s % 16 != 0) {
-            for (size_t i = 0; i < 16 - s % 16; i++) {
+        if (read_count % LINE_WIDTH != 0) {
+            for (size_t j = 0; j < LINE_WIDTH - (read_count % LINE_WIDTH); j++) {
                 cout << "   ";
-                if ((s + i) % 8 == 0) {
+
+                if ((read_count + j) % (LINE_WIDTH / 2) == 0) {
                     cout << " ";
                 }
             }
-            cout << std::dec << " |";
-            for (size_t i = s - s % 16; i < s; i++) {
-                if (buffer[i] < 32 || buffer[i] > 126) {
+            cout << " |";
+            for (size_t j = read_count - read_count % LINE_WIDTH; j < read_count; j++) {
+
+                if (buffer[j] < MIN_ASCII_CHAR || buffer[j] > MAX_ASCII_CHAR) {
                     cout << ".";
                 }
                 else {
-                    cout << buffer[i];
-                }
-                if (i == s - 1) {
-                    cout << std::dec << "|\n";
+                    cout << buffer[j];
                 }
             }
+            cout << "|\n";
         }
     }
     cout << std::endl;
@@ -323,7 +328,7 @@ void Elf32File::read(const std::string& file_name)
             _symbol_table.set_symbol_table(symbol_table_data);
         }
         else if (section_header.sh_type == SHT_CUSTOM) {
-            std::vector<char> custom_section_data(section_header.sh_size);
+            std::vector<Elf32_Byte> custom_section_data(section_header.sh_size);
             file.seekg(section_header.sh_offset);
             file.read((char*) custom_section_data.data(), section_header.sh_size);
 
@@ -370,7 +375,7 @@ void Elf32File::read(const std::string& file_name)
 
 CustomSection* Elf32File::new_custom_section(const std::string& name)
 {
-    auto pair = _custom_section_map.try_emplace(name, this, name);
+    auto pair = _custom_section_map.try_emplace(name, *this, name);
     const bool& is_emplaced = pair.second;
     CustomSection* new_element = &pair.first->second;
 
@@ -385,9 +390,9 @@ CustomSection* Elf32File::new_custom_section(const std::string& name)
 }
 
 CustomSection* Elf32File::new_custom_section(const std::string& name, Elf32_Shdr section_header,
-                                             const std::vector<char>& _data)
+                                             const std::vector<Elf32_Byte>& data)
 {
-    auto pair = _custom_section_map.try_emplace(name, this, name, section_header, _data);
+    auto pair = _custom_section_map.try_emplace(name, *this, name, section_header, data);
     const bool& is_emplaced = pair.second;
     CustomSection* new_element = &pair.first->second;
 
@@ -404,7 +409,7 @@ CustomSection* Elf32File::new_custom_section(const std::string& name, Elf32_Shdr
 RelocationTable* Elf32File::new_relocation_table(const std::string& name,
                                                  CustomSection& linked_section)
 {
-    auto pair = _rela_table_map.try_emplace(name, this, linked_section);
+    auto pair = _rela_table_map.try_emplace(name, *this, linked_section);
     const bool& is_emplaced = pair.second;
     RelocationTable* new_element = &pair.first->second;
 
@@ -423,7 +428,7 @@ RelocationTable* Elf32File::new_relocation_table(const std::string& name,
                                                  Elf32_Shdr section_header,
                                                  const std::vector<Elf32_Rela>& _data)
 {
-    auto pair = _rela_table_map.try_emplace(name, this, linked_section, section_header, _data);
+    auto pair = _rela_table_map.try_emplace(name, *this, linked_section, section_header, _data);
     const bool& is_emplaced = pair.second;
     RelocationTable* new_element = &pair.first->second;
 

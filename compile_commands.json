@@ -25,10 +25,10 @@
       "-std=c++2a",
       "-o",
       "assembler",
-      "src/Assembler/Directives.cpp"
+      "src/Assembler/ConstantTable.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/src/Assembler/Directives.cpp",
+    "file": "/home/mix/Projects/SS/src/Assembler/ConstantTable.cpp",
     "output": "/home/mix/Projects/SS/assembler"
   },
   {
@@ -57,42 +57,106 @@
       "-std=c++2a",
       "-o",
       "assembler",
-      "src/Assembler/Instructions.cpp"
-    ],
-    "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/src/Assembler/Instructions.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
-  },
-  {
-    "arguments": [
-      "/usr/lib64/ccache/g++",
-      "-c",
-      "-Wall",
-      "-Iinc",
-      "-g",
-      "-std=c++2a",
-      "-o",
-      "assembler",
-      "src/Assembler/LiteralTable.cpp"
-    ],
-    "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/src/Assembler/LiteralTable.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
-  },
-  {
-    "arguments": [
-      "/usr/lib64/ccache/g++",
-      "-c",
-      "-Wall",
-      "-Iinc",
-      "-g",
-      "-std=c++2a",
-      "-o",
-      "assembler",
       "src/Assembler/main.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
     "file": "/home/mix/Projects/SS/src/Assembler/main.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Elf32/CustomSection.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Elf32/CustomSection.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Elf32/Elf32File.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Elf32/Elf32File.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Elf32/RelocationTable.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Elf32/RelocationTable.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Elf32/Section.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Elf32/Section.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Elf32/StringTable.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Elf32/StringTable.cpp",
+    "output": "/home/mix/Projects/SS/assembler"
+  },
+  {
+    "arguments": [
+      "/usr/lib64/ccache/g++",
+      "-c",
+      "-Wall",
+      "-Iinc",
+      "-g",
+      "-std=c++2a",
+      "-o",
+      "assembler",
+      "src/Elf32/SymbolTable.cpp"
+    ],
+    "directory": "/home/mix/Projects/SS",
+    "file": "/home/mix/Projects/SS/src/Elf32/SymbolTable.cpp",
     "output": "/home/mix/Projects/SS/assembler"
   },
   {

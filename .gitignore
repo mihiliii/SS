@@ -4,7 +4,6 @@ assembler
 linker
 emulator
 *.o
-*.s
 *.txt
 *.hex
 *.sh

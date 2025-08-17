@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "../Elf32/Elf32File.hpp"
@@ -9,11 +10,35 @@
 #include "ForwardReferenceTable.hpp"
 #include "InstructionFormat.hpp"
 
+typedef uint32_t Literal;
+typedef std::string Symbol;
+
 enum struct OPERAND_TYPE { LITERAL, SYMBOL };
 
 struct Operand {
     OPERAND_TYPE type;
-    void* value;
+    std::variant<Literal, Symbol> value;
+
+    Operand(Literal literal) : type(OPERAND_TYPE::LITERAL), value(literal) {}
+    Operand(Symbol symbol) : type(OPERAND_TYPE::SYMBOL), value(symbol) {}
+
+    bool is_literal() const
+    {
+        return type == OPERAND_TYPE::LITERAL;
+    }
+    bool is_symbol() const
+    {
+        return type == OPERAND_TYPE::SYMBOL;
+    }
+
+    Literal get_literal() const
+    {
+        return std::get<Literal>(value);
+    }
+    Symbol get_symbol() const
+    {
+        return std::get<Symbol>(value);
+    }
 };
 
 class Assembler {
