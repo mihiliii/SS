@@ -29,7 +29,7 @@ void ForwardReferenceTable::backpatch()
         // Check if symbol is not defined and local since every symbol should be defined at the
         // backpatching phase.
         if (symbol_entry.st_defined == false && ELF32_ST_BIND(symbol_entry.st_info) == STB_LOCAL) {
-            std::cerr << "Symbol " << _elf32_file._string_table.get_string(symbol_entry.st_name)
+            std::cerr << "Symbol " << _elf32_file.string_table.get_string(symbol_entry.st_name)
                       << " is not defined." << std::endl;
             exit(-1);
         }

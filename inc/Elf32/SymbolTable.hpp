@@ -26,8 +26,12 @@ public:
 
     Elf32_Word get_symbol_index(Elf32_Sym& symbol_entry);
 
-    void set_symbol(Elf32_Sym* table_entry, const std::string& symbol_name, Elf32_Byte st_info,
+    const std::deque<Elf32_Sym>& get_symbol_table() const;
+
+    void set_symbol(Elf32_Sym& table_entry, const std::string& symbol_name, Elf32_Byte st_info,
                     Elf32_Half st_shndx, Elf32_Addr st_value, Elf32_Word st_size, bool st_defined);
+
+    void set_symbol(Elf32_Sym& table_entry, const std::string& symbol_name, Elf32_Sym symbol);
 
     void define_symbol(Elf32_Sym& symbol_entry, Elf32_Addr value, Elf32_Half section_index);
 

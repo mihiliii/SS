@@ -4,11 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "../Elf32/Elf32.hpp"
+#include "../Elf32/Elf32File.hpp"
 
-class Elf32File;
-
-struct Place_arg {
+struct PlaceArg {
     std::string section;
     Elf32_Addr address;
 };
@@ -16,14 +14,23 @@ struct Place_arg {
 class Linker {
 public:
 
-    static void addArgument(Place_arg place_arg);
+    void add_argument(PlaceArg place_arg);
 
-    static int startLinking(const std::string& _output_file, std::vector<std::string> _input_files);
+    int start_linker(const std::string& output_file_name, std::vector<std::string> input_files);
 
-    static void map(Elf32File& _in_elf32_file);
+    void map(Elf32File& input_file);
 
 private:
 
-    static Elf32File out_elf32_file;
-    static std::map<std::string, Elf32_Addr> place_arguments;
+    CustomSection& get_section(const std::string& section_name)
+    {
+        auto it = _output_elf32_file.custom_section_map.find(section_name);
+        if (it == _output_elf32_file.custom_section_map.end()) {
+            throw std::runtime_error("Section not found: " + section_name);
+        }
+        return it->second;
+    }
+
+    Elf32File _output_elf32_file;
+    std::map<std::string, Elf32_Addr> _place_addresses;
 };

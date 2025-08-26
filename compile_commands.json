@@ -8,12 +8,12 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
-      "src/Assembler/Assembler.cpp"
+      "linker",
+      "src/Linker/Linker.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/src/Assembler/Assembler.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
+    "file": "/home/mix/Projects/SS/src/Linker/Linker.cpp",
+    "output": "/home/mix/Projects/SS/linker"
   },
   {
     "arguments": [
@@ -24,12 +24,12 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
-      "src/Assembler/ConstantTable.cpp"
+      "linker",
+      "src/Linker/main.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/src/Assembler/ConstantTable.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
+    "file": "/home/mix/Projects/SS/src/Linker/main.cpp",
+    "output": "/home/mix/Projects/SS/linker"
   },
   {
     "arguments": [
@@ -40,44 +40,12 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
-      "src/Assembler/ForwardReferenceTable.cpp"
-    ],
-    "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/src/Assembler/ForwardReferenceTable.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
-  },
-  {
-    "arguments": [
-      "/usr/lib64/ccache/g++",
-      "-c",
-      "-Wall",
-      "-Iinc",
-      "-g",
-      "-std=c++2a",
-      "-o",
-      "assembler",
-      "src/Assembler/main.cpp"
-    ],
-    "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/src/Assembler/main.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
-  },
-  {
-    "arguments": [
-      "/usr/lib64/ccache/g++",
-      "-c",
-      "-Wall",
-      "-Iinc",
-      "-g",
-      "-std=c++2a",
-      "-o",
-      "assembler",
+      "linker",
       "src/Elf32/CustomSection.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
     "file": "/home/mix/Projects/SS/src/Elf32/CustomSection.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
+    "output": "/home/mix/Projects/SS/linker"
   },
   {
     "arguments": [
@@ -88,12 +56,12 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
+      "linker",
       "src/Elf32/Elf32File.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
     "file": "/home/mix/Projects/SS/src/Elf32/Elf32File.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
+    "output": "/home/mix/Projects/SS/linker"
   },
   {
     "arguments": [
@@ -104,12 +72,12 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
+      "linker",
       "src/Elf32/RelocationTable.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
     "file": "/home/mix/Projects/SS/src/Elf32/RelocationTable.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
+    "output": "/home/mix/Projects/SS/linker"
   },
   {
     "arguments": [
@@ -120,12 +88,12 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
+      "linker",
       "src/Elf32/Section.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
     "file": "/home/mix/Projects/SS/src/Elf32/Section.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
+    "output": "/home/mix/Projects/SS/linker"
   },
   {
     "arguments": [
@@ -136,12 +104,12 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
+      "linker",
       "src/Elf32/StringTable.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
     "file": "/home/mix/Projects/SS/src/Elf32/StringTable.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
+    "output": "/home/mix/Projects/SS/linker"
   },
   {
     "arguments": [
@@ -152,43 +120,11 @@
       "-g",
       "-std=c++2a",
       "-o",
-      "assembler",
+      "linker",
       "src/Elf32/SymbolTable.cpp"
     ],
     "directory": "/home/mix/Projects/SS",
     "file": "/home/mix/Projects/SS/src/Elf32/SymbolTable.cpp",
-    "output": "/home/mix/Projects/SS/assembler"
-  },
-  {
-    "arguments": [
-      "/usr/lib64/ccache/g++",
-      "-c",
-      "-Wall",
-      "-Iinc",
-      "-g",
-      "-std=c++2a",
-      "-o",
-      "assembler",
-      "build/bison.tab.c"
-    ],
-    "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/build/bison.tab.c",
-    "output": "/home/mix/Projects/SS/assembler"
-  },
-  {
-    "arguments": [
-      "/usr/lib64/ccache/g++",
-      "-c",
-      "-Wall",
-      "-Iinc",
-      "-g",
-      "-std=c++2a",
-      "-o",
-      "assembler",
-      "build/lex.yy.c"
-    ],
-    "directory": "/home/mix/Projects/SS",
-    "file": "/home/mix/Projects/SS/build/lex.yy.c",
-    "output": "/home/mix/Projects/SS/assembler"
+    "output": "/home/mix/Projects/SS/linker"
   }
 ]

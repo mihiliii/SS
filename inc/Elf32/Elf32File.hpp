@@ -29,7 +29,7 @@ public:
 
     void read_elf(const std::string& file_name);
 
-    void read(const std::string& file);
+    void read(const std::string& file_name);
 
     CustomSection* new_custom_section(const std::string& name);
 
@@ -42,10 +42,10 @@ public:
                                           Elf32_Shdr section_header,
                                           const std::vector<Elf32_Rela>& data);
 
-    Elf32Header _elf32_header;
-    SectionHeaderTable _section_header_table;
-    StringTable _string_table;
-    SymbolTable _symbol_table;
-    CustomSectionMap _custom_section_map;
-    RelocationTableMap _rela_table_map;
+    Elf32Header elf32_header;
+    SectionHeaderTable section_header_table;
+    StringTable string_table;
+    SymbolTable symbol_table;
+    CustomSectionMap custom_section_map;
+    RelocationTableMap rela_table_map;
 };

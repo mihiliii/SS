@@ -32,9 +32,9 @@ public:
 
     void add_entry(const std::vector<Elf32_Rela>& relocation_table);
 
-    std::vector<Elf32_Rela>& relocation_table();
+    std::vector<Elf32_Rela>& get_relocation_table();
 
-    CustomSection& linked_section();
+    CustomSection& get_linked_section();
 
     void write(std::ostream& ostream) override;
 

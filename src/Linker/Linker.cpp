@@ -3,116 +3,140 @@
 #include <iostream>
 #include <queue>
 
-#include "../../inc/Elf32/CustomSection.hpp"
-#include "../../inc/Elf32/Elf32File.hpp"
-#include "../../inc/Elf32/StringTable.hpp"
-#include "../../inc/Elf32/SymbolTable.hpp"
-
-std::map<std::string, Elf32_Addr> Linker::place_arguments;
-Elf32File Linker::out_elf32_file = Elf32File();
-
-void Linker::addArgument(Place_arg place_arg) {
-    place_arguments.insert(
+void Linker::add_argument(PlaceArg place_arg)
+{
+    _place_addresses.insert(
         std::pair<std::string, Elf32_Addr>(place_arg.section, place_arg.address));
 }
 
-int Linker::startLinking(const std::string& _output_file, std::vector<std::string> _input_files) {
-    std::cout << "Linking started" << std::endl;
-
-    Elf32File& out_elf32_file = Linker::out_elf32_file;
+int Linker::start_linker(const std::string& output_file_name, std::vector<std::string> input_files)
+{
 
     // map phase
 
-    for (auto input_file : _input_files) {
+    for (auto input_file : input_files) {
         Elf32File in_elf32_file = Elf32File(input_file);
         map(in_elf32_file);
     }
 
     Elf32_Addr out_current_place_address = 0;
-    for (const auto& place_arguments_iterator : place_arguments) {
-        const std::string& section_name = place_arguments_iterator.first;
-        const Elf32_Addr& place_address = place_arguments_iterator.second;
-        CustomSection& out_section = out_elf32_file.customSectionMap().find(section_name)->second;
+    for (const auto& it : _place_addresses) {
+        const std::string& section_name = it.first;
+        const Elf32_Addr& place_addr = it.second;
 
-        if (place_address == 0) {
-            out_section.header().sh_addr = out_current_place_address;
-            out_current_place_address += out_section.size();
-        } else {
-            out_section.header().sh_addr = place_arguments_iterator.second;
+        auto output_it = _output_elf32_file.custom_section_map.find(section_name);
+        if (output_it == _output_elf32_file.custom_section_map.end()) {
+            std::cerr << "Error: no section named '" << section_name << "' in place arguments."
+                      << std::endl;
+            return -1;
         }
+
+        CustomSection& out_section = output_it->second;
+        Elf32_Shdr header = out_section.get_header();
+
+        if (place_addr == 0) {
+            header.sh_addr = out_current_place_address;
+            out_current_place_address += out_section.get_size();
+        }
+        else {
+            header.sh_addr = place_addr;
+        }
+
+        out_section.set_header(header);
     }
 
     // symbol resolve phase
 
-    for (auto& symbol : out_elf32_file.symbolTable().symbolTable()) {
+    for (Elf32_Sym symbol : _output_elf32_file.symbol_table.get_symbol_table()) {
+
+        // TODO: check if symbol definition check is needed
         if (symbol.st_defined == false) {
             std::cerr << "Error: Undefined symbol: "
-                      << out_elf32_file.stringTable().get(symbol.st_name) << std::endl;
+                      << _output_elf32_file.string_table.get_string(symbol.st_name) << std::endl;
         }
+
         if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
-            const std::string& section_name = out_elf32_file.stringTable().get(symbol.st_name);
-            symbol.st_value =
-                out_elf32_file.customSectionMap().find(section_name)->second.header().sh_addr;
-        } else {
-            const std::string& section_name = out_elf32_file.stringTable().get(
-                out_elf32_file.sectionHeaderTable().at(symbol.st_shndx).sh_name);
-            symbol.st_value +=
-                out_elf32_file.customSectionMap().find(section_name)->second.header().sh_addr;
+            const std::string& section_name =
+                _output_elf32_file.string_table.get_string(symbol.st_name);
+
+            const CustomSection& section =
+                _output_elf32_file.custom_section_map.find(section_name)->second;
+
+            // NOTE: what the fuck is this
+            symbol.st_value = section.get_header().sh_addr;
+        }
+        else {
+            // FIX: add bound checking for symbol.st_shndx
+            Elf32_Shdr* temp = _output_elf32_file.section_header_table.at(symbol.st_shndx);
+
+            const std::string& section_name =
+                _output_elf32_file.string_table.get_string(temp->sh_name);
+            CustomSection& section =
+                _output_elf32_file.custom_section_map.find(section_name)->second;
+
+            symbol.st_value += section.get_header().sh_addr;
         }
     }
 
     // relocation phase
 
-    for (auto& relocation_table_map_iterator : out_elf32_file.relocationTableMap()) {
-        CustomSection& linked_section = *relocation_table_map_iterator.first;
-        RelocationTable& relocation_table = relocation_table_map_iterator.second;
+    for (auto& it : _output_elf32_file.rela_table_map) {
+        RelocationTable& rela_table = it.second;
+        CustomSection& section = rela_table.get_linked_section();
 
-        for (auto& relocation_table_entry : relocation_table.relocationTable()) {
-            uint32_t sym_value = out_elf32_file.symbolTable()
-                                     .get(ELF32_R_SYM(relocation_table_entry.r_info))
-                                     ->st_value;
-            sym_value += relocation_table_entry.r_addend;
-            linked_section.overwrite(&sym_value, sizeof(sym_value),
-                                     relocation_table_entry.r_offset);
+        for (auto& rela_entry : rela_table.get_relocation_table()) {
+            Elf32_Sym* symbol =
+                _output_elf32_file.symbol_table.get_symbol(ELF32_R_SYM(rela_entry.r_info));
+
+            if (symbol == nullptr) {
+                std::cerr << "Error: Could not find symbol in relocation phase" << std::endl;
+                return -1;
+            }
+
+            Elf32_Word value = symbol->st_value + rela_entry.r_addend;
+            section.overwrite_data(&value, sizeof(value), rela_entry.r_offset);
         }
     }
 
-    std::string _object_output_file = _output_file.substr(0, _output_file.find_last_of('.')) + ".o";
+    // NOTE: there should be only one section symbol in symbol table for each section
 
-    out_elf32_file.write(_object_output_file, ELF32FILE_EXEC);
-    Elf32File::readElf(_object_output_file);
+    const std::string object_output_file =
+        output_file_name.substr(0, output_file_name.find_last_of('.')) + ".o";
 
-    out_elf32_file.writeHex(_output_file);
+    _output_elf32_file.write_bin(object_output_file, ET_EXEC);
+    _output_elf32_file.write_hex(output_file_name);
+    _output_elf32_file.read_elf(object_output_file);
 
     return 0;
 }
 
-void Linker::map(Elf32File& in_elf32_file) {
-    // Adds sections to out_elf32_file. If the section does not exist, create a new one and add it
-    // to the output file and add it to place_arguments map so linker can change its address later.
-    // If section exists in out_elf32_file then append content only.
+void Linker::map(Elf32File& input_elf32_file)
+{
+    // Adds sections to out_elf32_file. If the section does not exist, create a new one and add
+    // it to the output file and add it to place_arguments map so linker can change its address
+    // later. If section exists in out_elf32_file then append content only.
 
-    Elf32File& out_elf32_file = Linker::out_elf32_file;
-
+    // NOTE: what the fuck is this
     std::map<std::string, Elf32_Off> section_addend;
 
-    for (auto& in_cs_map_iterator : in_elf32_file.customSectionMap()) {
-        const std::string& in_section_name = in_cs_map_iterator.first;
-        CustomSection& in_section = in_cs_map_iterator.second;
+    for (auto& input_it : input_elf32_file.custom_section_map) {
+        const std::string& section_name = input_it.first;
+        const CustomSection& section = input_it.second;
 
-        auto out_cs_map_iterator = out_elf32_file.customSectionMap().find(in_section_name);
-        if (out_cs_map_iterator == out_elf32_file.customSectionMap().end()) {
-            out_elf32_file.newCustomSection(in_section_name, in_section.header(),
-                                            in_section.content());
+        auto output_it = _output_elf32_file.custom_section_map.find(section_name);
+        if (output_it == _output_elf32_file.custom_section_map.end()) {
+            _output_elf32_file.new_custom_section(section_name, section.get_header(),
+                                                  section.get_data());
 
-            if (place_arguments.find(in_section_name) == place_arguments.end()) {
-                place_arguments.insert(std::pair<std::string, Elf32_Addr>(in_section_name, 0));
+            if (_place_addresses.find(section_name) == _place_addresses.end()) {
+                _place_addresses.emplace(section_name, 0);
             }
-        } else {
-            CustomSection& out_section = out_cs_map_iterator->second;
+        }
+        else {
+            CustomSection& output_section = output_it->second;
+            section_addend.emplace(section_name, output_section.get_size());
 
-            section_addend.emplace(in_section_name, out_section.size());
-            out_section.append((char*) in_section.content().data(), in_section.size());
+            output_section.append_data(section.get_data());
         }
     }
 
@@ -120,18 +144,29 @@ void Linker::map(Elf32File& in_elf32_file) {
 
     std::queue<Elf32_Sym> non_section_symbols;
 
-    for (auto symbol : in_elf32_file.symbolTable().symbolTable()) {
+    for (auto symbol : input_elf32_file.symbol_table.get_symbol_table()) {
         if (ELF32_ST_TYPE(symbol.st_info) == STT_SECTION) {
-            const std::string& section_name = in_elf32_file.stringTable().get(symbol.st_name);
+            const std::string& section_name =
+                input_elf32_file.string_table.get_string(symbol.st_name);
 
-            if (out_elf32_file.symbolTable().get(section_name) != nullptr) {
+            // NOTE: there should be only one section symbol in symbol table for each section
+            if (_output_elf32_file.symbol_table.get_symbol(section_name) != nullptr) {
                 continue;
             }
 
-            symbol.st_shndx = out_elf32_file.customSectionMap().find(section_name)->second.index();
-            out_elf32_file.symbolTable().add(section_name, symbol);
+            auto it = _output_elf32_file.custom_section_map.find(section_name);
+            if (it == _output_elf32_file.custom_section_map.end()) {
+                std::cerr << "Error: Section '" << section_name << "' not found in output file"
+                          << std::endl;
+                exit(-1);
+            }
 
-        } else {
+            CustomSection& section = it->second;
+
+            symbol.st_shndx = section.get_index();
+            _output_elf32_file.symbol_table.add_symbol(section_name, symbol);
+        }
+        else {
             non_section_symbols.push(symbol);
         }
     }
@@ -141,9 +176,11 @@ void Linker::map(Elf32File& in_elf32_file) {
         non_section_symbols.pop();
 
         if (new_symbol.st_shndx != SHN_ABS) {
-            Elf32_Shdr section_header = in_elf32_file.sectionHeaderTable().at(new_symbol.st_shndx);
+            const Elf32_Shdr& section_header =
+                *input_elf32_file.section_header_table.at(new_symbol.st_shndx);
+
             const std::string& section_name =
-                in_elf32_file.stringTable().get(section_header.sh_name);
+                input_elf32_file.string_table.get_string(section_header.sh_name);
 
             auto addend = section_addend.find(section_name);
             if (addend != section_addend.end()) {
@@ -151,42 +188,53 @@ void Linker::map(Elf32File& in_elf32_file) {
             }
 
             new_symbol.st_shndx =
-                out_elf32_file.customSectionMap().find(section_name)->second.index();
+                _output_elf32_file.custom_section_map.find(section_name)->second.get_index();
         }
 
-        const std::string& symbol_name = in_elf32_file.stringTable().get(new_symbol.st_name);
-        Elf32_Sym* old_symbol = out_elf32_file.symbolTable().get(symbol_name);
+        const std::string& symbol_name =
+            input_elf32_file.string_table.get_string(new_symbol.st_name);
+        Elf32_Sym* old_symbol = _output_elf32_file.symbol_table.get_symbol(symbol_name);
 
         if (old_symbol != nullptr) {
             if (old_symbol->st_defined == true && new_symbol.st_defined == true) {
                 std::cerr << "Error: Duplicate symbol definition in Linker::map" << std::endl;
                 return;
-            } else if (old_symbol->st_defined == false && new_symbol.st_defined == true) {
-                out_elf32_file.symbolTable().changeValues(*old_symbol, new_symbol);
+            }
+            else if (old_symbol->st_defined == false && new_symbol.st_defined == true) {
+                _output_elf32_file.symbol_table.set_symbol(*old_symbol, symbol_name, new_symbol);
             }
 
-            // Might need to handle other cases in the future
+            // NOTE: Might need to handle other cases in the future
             continue;
         }
 
-        out_elf32_file.symbolTable().add(symbol_name, new_symbol);
+        _output_elf32_file.symbol_table.add_symbol(symbol_name, new_symbol);
     }
 
     // Map relocation tables.
 
-    for (auto& in_rela_table_iterator : in_elf32_file.relocationTableMap()) {
-        RelocationTable& in_rela_table = in_rela_table_iterator.second;
-        CustomSection& in_section = *in_rela_table_iterator.first;
+    for (auto& it : input_elf32_file.rela_table_map) {
+        RelocationTable& in_rela_table = it.second;
+        const CustomSection& in_section = in_rela_table.get_linked_section();
 
         std::vector<Elf32_Rela> out_rela_table_content;
-        for (Elf32_Rela relocation : in_rela_table.relocationTable()) {
-            Elf32_Sym* sym_entry = in_elf32_file.symbolTable().get(ELF32_R_SYM(relocation.r_info));
-            std::string symbol_name = in_elf32_file.stringTable().get(sym_entry->st_name);
+        for (Elf32_Rela relocation : in_rela_table.get_relocation_table()) {
 
-            relocation.r_info = ELF32_R_INFO(ELF32_R_TYPE(relocation.r_info),
-                                             out_elf32_file.symbolTable().getIndex(symbol_name));
+            Elf32_Sym* sym_entry =
+                input_elf32_file.symbol_table.get_symbol(ELF32_R_SYM(relocation.r_info));
+            if (sym_entry == nullptr) {
+                std::cerr << "Error: Could not find symbol in relocation table in Linker::map"
+                          << std::endl;
+                return;
+            }
 
-            auto addend = section_addend.find(in_section.name());
+            std::string symbol_name = input_elf32_file.string_table.get_string(sym_entry->st_name);
+
+            relocation.r_info =
+                ELF32_R_INFO(ELF32_R_TYPE(relocation.r_info),
+                             _output_elf32_file.symbol_table.get_symbol_index(symbol_name));
+
+            auto addend = section_addend.find(in_section.get_name());
             if (addend != section_addend.end()) {
                 relocation.r_offset += addend->second;
             }
@@ -194,21 +242,25 @@ void Linker::map(Elf32File& in_elf32_file) {
             out_rela_table_content.push_back(relocation);
         }
 
-        auto out_section_iterator = out_elf32_file.customSectionMap().find(in_section.name());
-        if (out_section_iterator == out_elf32_file.customSectionMap().end()) {
-            std::cerr << "Error: Could not find section in out_elf32_file in Linker::map"
-                      << std::endl;
-            return;
-        }
+        // creates new relocation table if not exists, otherwise appends data to existing one
 
-        auto out_rela_table_iterator =
-            out_elf32_file.relocationTableMap().find(&out_section_iterator->second);
-        if (out_rela_table_iterator == out_elf32_file.relocationTableMap().end()) {
-            out_elf32_file.newRelocationTable(&out_section_iterator->second, in_rela_table.header(),
-                                              out_rela_table_content);
-        } else {
-            RelocationTable& out_rela_table = out_rela_table_iterator->second;
-            out_rela_table.add(out_rela_table_content);
+        auto out_rela_table_it = _output_elf32_file.rela_table_map.find(in_rela_table.get_name());
+        if (out_rela_table_it == _output_elf32_file.rela_table_map.end()) {
+            auto out_section_it = _output_elf32_file.custom_section_map.find(in_section.get_name());
+            if (out_section_it == _output_elf32_file.custom_section_map.end()) {
+                std::cerr << "Error: Could not find section for relocation table in Linker::map"
+                          << std::endl;
+                return;
+            }
+            CustomSection& out_section = out_section_it->second;
+
+            _output_elf32_file.new_relocation_table(in_rela_table.get_name(), out_section,
+                                                    in_rela_table.get_header(),
+                                                    out_rela_table_content);
+        }
+        else {
+            RelocationTable& out_rela_table = out_rela_table_it->second;
+            out_rela_table.add_entry(out_rela_table_content);
         }
     }
 }

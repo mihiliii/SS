@@ -33,6 +33,8 @@ public:
 
     void append_data(Elf32_Byte content);
 
+    void append_data(const std::vector<Elf32_Byte>& content);
+
     void overwrite_data(void* content, size_t content_size, Elf32_Off offset);
 
     void replace_data(std::vector<Elf32_Byte> content);

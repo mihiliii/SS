@@ -9,22 +9,22 @@
 #include <string>
 
 Elf32File::Elf32File()
-    : _elf32_header({.e_shoff = sizeof(Elf32_Ehdr), .e_shentsize = sizeof(Elf32_Shdr)}),
-      _section_header_table(),
-      _string_table(*this),
-      _symbol_table(*this),
-      _custom_section_map(),
-      _rela_table_map()
+    : elf32_header({.e_shoff = sizeof(Elf32_Ehdr), .e_shentsize = sizeof(Elf32_Shdr)}),
+      section_header_table(),
+      string_table(*this),
+      symbol_table(*this),
+      custom_section_map(),
+      rela_table_map()
 {
 }
 
 Elf32File::Elf32File(const std::string& file_name)
-    : _elf32_header(),
-      _section_header_table(),
-      _string_table(*this),
-      _symbol_table(*this),
-      _custom_section_map(),
-      _rela_table_map()
+    : elf32_header(),
+      section_header_table(),
+      string_table(*this),
+      symbol_table(*this),
+      custom_section_map(),
+      rela_table_map()
 {
     read(file_name);
 }
@@ -43,40 +43,40 @@ void Elf32File::write_bin(const std::string& file_name, Elf32_Half file_type)
     // TODO: change to Section* map when writing to file
 
     // Write custom sections right after the ELF header:
-    for (auto& iterator : _custom_section_map) {
+    for (auto& iterator : custom_section_map) {
         CustomSection& section = iterator.second;
         section.write(file);
     }
 
     // Write relocation tables right after custom sections:
-    for (auto& iterator : _rela_table_map) {
+    for (auto& iterator : rela_table_map) {
         RelocationTable& rela_table = iterator.second;
         rela_table.write(file);
     }
 
     // TODO: check if stroff is needed
 
-    _elf32_header.e_stroff = file.tellp();
+    elf32_header.e_stroff = file.tellp();
 
     // Write the string table:
-    _string_table.write(file);
+    string_table.write(file);
 
     // Write the symbol table:
-    _symbol_table.write(file);
+    symbol_table.write(file);
 
     // Set section header table offset and number of entries in the ELF header:
-    _elf32_header.e_type = file_type;
-    _elf32_header.e_shoff = file.tellp();
-    _elf32_header.e_shnum = _section_header_table.size();
+    elf32_header.e_type = file_type;
+    elf32_header.e_shoff = file.tellp();
+    elf32_header.e_shnum = section_header_table.size();
 
     // Write the section header table:
-    for (const Elf32_Shdr* section_header : _section_header_table) {
+    for (const Elf32_Shdr* section_header : section_header_table) {
         file.write((const char*) section_header, sizeof(Elf32_Shdr));
     }
 
     // Write the ELF header at the beginning of the file:
     file.seekp(0, std::ios::beg);
-    file.write((const char*) &_elf32_header, sizeof(Elf32_Ehdr));
+    file.write((const char*) &elf32_header, sizeof(Elf32_Ehdr));
 
     file.close();
 }
@@ -104,7 +104,7 @@ void Elf32File::write_hex(const std::string& file_name)
     // 00000000: 00 01 02 03 04 05 06 07
     // 00000008: 08 09 0A 0B 0C 0D 0E 0F
 
-    for (auto& it : _custom_section_map) {
+    for (auto& it : custom_section_map) {
         CustomSection& section = it.second;
         segments.push_back({section.get_header().sh_addr,
                             (Elf32_Addr) (section.get_header().sh_addr + section.get_size()),
@@ -136,6 +136,7 @@ void Elf32File::write_hex(const std::string& file_name)
     file.close();
 }
 
+// FIX: read from input_file or from object when printing read_elf
 void Elf32File::read_elf(const std::string& file_name)
 {
     std::fstream input_file(file_name, std::ios::binary | std::ios::in);
@@ -151,7 +152,7 @@ void Elf32File::read_elf(const std::string& file_name)
     cout << "ReadElf: " << file_name << std::endl << std::endl;
 
     cout << "Elf Header: " << std::endl;
-    switch (_elf32_header.e_type) {
+    switch (elf32_header.e_type) {
         case ET_NONE:
             cout << "  Type: No file type" << std::endl;
             break;
@@ -172,15 +173,15 @@ void Elf32File::read_elf(const std::string& file_name)
     // TODO: remove unused header entries
 
     cout << std::hex;
-    cout << "  Entry point address:   0x" << _elf32_header.e_entry  << std::endl
-         << "  String table offset:   0x" << _elf32_header.e_stroff << std::endl
-         << "  Section header offset: 0x" << _elf32_header.e_shoff  << std::endl;
+    cout << "  Entry point address:   0x" << elf32_header.e_entry  << std::endl
+         << "  String table offset:   0x" << elf32_header.e_stroff << std::endl
+         << "  Section header offset: 0x" << elf32_header.e_shoff  << std::endl;
 
     cout << std::dec;
-    cout << "  Section header entry size: " << _elf32_header.e_shentsize << "B" << std::endl
-         << "  Number of section headers: " << _elf32_header.e_shnum            << std::endl
-         << "  Program header entry size: " << _elf32_header.e_phentsize << "B" << std::endl
-         << "  Number of program headers: " << _elf32_header.e_phnum            << std::endl
+    cout << "  Section header entry size: " << elf32_header.e_shentsize << "B" << std::endl
+         << "  Number of section headers: " << elf32_header.e_shnum            << std::endl
+         << "  Program header entry size: " << elf32_header.e_phentsize << "B" << std::endl
+         << "  Number of program headers: " << elf32_header.e_phnum            << std::endl
          << std::endl;
 
     cout << std::left << std::setfill(' ') << "Section Header Table: \n  "
@@ -196,9 +197,9 @@ void Elf32File::read_elf(const std::string& file_name)
          << std::setw(9)  << "ENTSIZE"
          << std::endl;
 
-    for (size_t num = 0; num < _section_header_table.size(); num++) {
-        const Elf32_Shdr& section = *_section_header_table[num];
-        const std::string& section_name = _string_table.get_string(section.sh_name);
+    for (size_t num = 0; num < section_header_table.size(); num++) {
+        const Elf32_Shdr& section = *section_header_table[num];
+        const std::string& section_name = string_table.get_string(section.sh_name);
         cout << std::right << std::setfill(' ') << std::dec
              << std::setw(5)  << num                  << " "
              << std::left << std::dec << std::setfill(' ')
@@ -207,8 +208,8 @@ void Elf32File::read_elf(const std::string& file_name)
              << std::setw(4)  << section.sh_type      << " "
              << std::setw(8)  << section.sh_addr      << " "
              << std::setw(8)  << section.sh_offset    << " "
-             << std::setw(4)  << section.sh_link      << " "
              << std::setw(8)  << section.sh_size      << " "
+             << std::setw(4)  << section.sh_link      << " "
              << std::setw(4)  << section.sh_info      << " "
              << std::left << std::dec << std::setfill(' ')
              << std::setw(5)  << section.sh_addralign << " "
@@ -218,16 +219,16 @@ void Elf32File::read_elf(const std::string& file_name)
 
     // clang-format on
 
-    for (auto& iterator : _custom_section_map) {
+    for (auto& iterator : custom_section_map) {
         CustomSection& section = iterator.second;
         section.print(cout);
     }
-    for (auto& iterator : _rela_table_map) {
+    for (auto& iterator : rela_table_map) {
         RelocationTable& rela_table = iterator.second;
         rela_table.print(cout);
     }
 
-    _symbol_table.print(cout);
+    symbol_table.print(cout);
 
     const size_t BUFFER_SIZE = 1024;
     std::vector<Elf32_Byte> buffer(BUFFER_SIZE);
@@ -304,11 +305,11 @@ void Elf32File::read(const std::string& file_name)
         return;
     }
 
-    file.read((char*) (&_elf32_header), sizeof(Elf32_Ehdr));
+    file.read((char*) (&elf32_header), sizeof(Elf32_Ehdr));
 
-    for (Elf32_Half sht_entry = 0; sht_entry < _elf32_header.e_shnum; sht_entry++) {
+    for (Elf32_Half sht_entry = 0; sht_entry < elf32_header.e_shnum; sht_entry++) {
         Elf32_Shdr section_header;
-        file.seekg(_elf32_header.e_shoff + sht_entry * sizeof(Elf32_Shdr));
+        file.seekg(elf32_header.e_shoff + sht_entry * sizeof(Elf32_Shdr));
         file.read((char*) (&section_header), sizeof(Elf32_Shdr));
 
         if (section_header.sh_type == SHT_STRTAB) {
@@ -316,23 +317,23 @@ void Elf32File::read(const std::string& file_name)
             file.seekg(section_header.sh_offset);
             file.read((char*) string_table_data.data(), section_header.sh_size);
 
-            _string_table.set_header(section_header);
-            _string_table.set_string_table(string_table_data);
+            string_table.set_header(section_header);
+            string_table.set_string_table(string_table_data);
         }
         else if (section_header.sh_type == SHT_SYMTAB) {
             std::vector<Elf32_Sym> symbol_table_data(section_header.sh_size / sizeof(Elf32_Sym));
             file.seekg(section_header.sh_offset);
             file.read((char*) symbol_table_data.data(), section_header.sh_size);
 
-            _symbol_table.set_header(section_header);
-            _symbol_table.set_symbol_table(symbol_table_data);
+            symbol_table.set_header(section_header);
+            symbol_table.set_symbol_table(symbol_table_data);
         }
         else if (section_header.sh_type == SHT_CUSTOM) {
             std::vector<Elf32_Byte> custom_section_data(section_header.sh_size);
             file.seekg(section_header.sh_offset);
             file.read((char*) custom_section_data.data(), section_header.sh_size);
 
-            file.seekg(_elf32_header.e_stroff + section_header.sh_name);
+            file.seekg(elf32_header.e_stroff + section_header.sh_name);
 
             char ch;
             std::string section_name;
@@ -347,7 +348,7 @@ void Elf32File::read(const std::string& file_name)
             file.seekg(section_header.sh_offset);
             file.read((char*) rela_table_data.data(), section_header.sh_size);
 
-            file.seekg(_elf32_header.e_stroff + section_header.sh_name);
+            file.seekg(elf32_header.e_stroff + section_header.sh_name);
 
             char ch;
             std::string rela_section_name;
@@ -360,7 +361,7 @@ void Elf32File::read(const std::string& file_name)
             std::string custom_section_name =
                 rela_section_name.substr(rela_str_size, rela_section_name.size() - rela_str_size);
 
-            CustomSection& custom_section = _custom_section_map.at(custom_section_name);
+            CustomSection& custom_section = custom_section_map.at(custom_section_name);
             new_relocation_table(rela_section_name, custom_section, section_header,
                                  rela_table_data);
         }
@@ -375,7 +376,7 @@ void Elf32File::read(const std::string& file_name)
 
 CustomSection* Elf32File::new_custom_section(const std::string& name)
 {
-    auto pair = _custom_section_map.try_emplace(name, *this, name);
+    auto pair = custom_section_map.try_emplace(name, *this, name);
     const bool& is_emplaced = pair.second;
     CustomSection* new_element = &pair.first->second;
 
@@ -392,7 +393,7 @@ CustomSection* Elf32File::new_custom_section(const std::string& name)
 CustomSection* Elf32File::new_custom_section(const std::string& name, Elf32_Shdr section_header,
                                              const std::vector<Elf32_Byte>& data)
 {
-    auto pair = _custom_section_map.try_emplace(name, *this, name, section_header, data);
+    auto pair = custom_section_map.try_emplace(name, *this, name, section_header, data);
     const bool& is_emplaced = pair.second;
     CustomSection* new_element = &pair.first->second;
 
@@ -409,7 +410,7 @@ CustomSection* Elf32File::new_custom_section(const std::string& name, Elf32_Shdr
 RelocationTable* Elf32File::new_relocation_table(const std::string& name,
                                                  CustomSection& linked_section)
 {
-    auto pair = _rela_table_map.try_emplace(name, *this, linked_section);
+    auto pair = rela_table_map.try_emplace(name, *this, linked_section);
     const bool& is_emplaced = pair.second;
     RelocationTable* new_element = &pair.first->second;
 
@@ -428,7 +429,7 @@ RelocationTable* Elf32File::new_relocation_table(const std::string& name,
                                                  Elf32_Shdr section_header,
                                                  const std::vector<Elf32_Rela>& _data)
 {
-    auto pair = _rela_table_map.try_emplace(name, *this, linked_section, section_header, _data);
+    auto pair = rela_table_map.try_emplace(name, *this, linked_section, section_header, _data);
     const bool& is_emplaced = pair.second;
     RelocationTable* new_element = &pair.first->second;
 

@@ -12,7 +12,7 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
       _relocation_table()
 {
     const std::string& rela_name = NAME_PREFIX + linked_section.get_name();
-    _header.sh_name = elf32_file._string_table.add_string(rela_name);
+    _header.sh_name = elf32_file.string_table.add_string(rela_name);
     _header.sh_type = SHT_RELA;
     _header.sh_entsize = sizeof(Elf32_Rela);
     _header.sh_info = _linked_section.get_index();
@@ -30,7 +30,7 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
       _relocation_table(relocation_table)
 {
     const std::string& rela_name = NAME_PREFIX + linked_section.get_name();
-    _header.sh_name = elf32_file._string_table.add_string(rela_name);
+    _header.sh_name = elf32_file.string_table.add_string(rela_name);
     linked_section.set_rela_table(this);
 }
 
@@ -53,12 +53,12 @@ void RelocationTable::add_entry(const std::vector<Elf32_Rela>& content)
     _header.sh_size += content.size() * sizeof(Elf32_Rela);
 }
 
-std::vector<Elf32_Rela>& RelocationTable::relocation_table()
+std::vector<Elf32_Rela>& RelocationTable::get_relocation_table()
 {
     return _relocation_table;
 };
 
-CustomSection& RelocationTable::linked_section()
+CustomSection& RelocationTable::get_linked_section()
 {
     return _linked_section;
 };
@@ -92,13 +92,13 @@ void RelocationTable::print(std::ostream& ostream) const
     int i = 0;
     for (Elf32_Rela rela_entry : _relocation_table) {
         Elf32_Half symbol_index = ELF32_R_SYM(rela_entry.r_info);
-        Elf32_Sym* symbol = _elf32_file._symbol_table.get_symbol(symbol_index);
+        Elf32_Sym* symbol = _elf32_file.symbol_table.get_symbol(symbol_index);
 
         if (symbol == nullptr) {
             std::cout << "Error";
         }
 
-        const std::string& symbol_name = _elf32_file._string_table.get_string(symbol->st_name);
+        const std::string& symbol_name = _elf32_file.string_table.get_string(symbol->st_name);
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(rela_entry.r_info)) {

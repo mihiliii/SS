@@ -32,7 +32,7 @@ void ConstantTable::add_symbol_reference(Elf32_Sym& symbol_entry, Elf32_Addr add
         _symbol_value_table[symbol_entry_ptr] =
             std::make_pair(_constant_pool.size() * sizeof(uint32_t), std::list<Elf32_Addr>());
 
-        Elf32_Word symbol_entry_index = _elf32_file._symbol_table.get_symbol_index(symbol_entry);
+        Elf32_Word symbol_entry_index = _elf32_file.symbol_table.get_symbol_index(symbol_entry);
 
         _linked_section.get_rela_table().add_entry(
             _linked_section.get_size() + _constant_pool.size() * sizeof(uint32_t),

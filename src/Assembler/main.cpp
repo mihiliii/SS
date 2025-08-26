@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
         }
     }
 
+    // FIX: delete assembler object
     assembler = new Assembler();
     assembler->start_assembler(input_file_name, output_file_name);
 

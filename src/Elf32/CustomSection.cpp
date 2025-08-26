@@ -13,7 +13,7 @@ CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name)
     _header.sh_type = SHT_CUSTOM;
     _header.sh_entsize = 4;
     _header.sh_addralign = 4;
-    _header.sh_name = _elf32_file._string_table.add_string(name);
+    _header.sh_name = _elf32_file.string_table.add_string(name);
 }
 
 CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name,
@@ -22,7 +22,7 @@ CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name,
       _section_content(data),
       _rela_table(nullptr)
 {
-    _header.sh_name = _elf32_file._string_table.add_string(name);
+    _header.sh_name = _elf32_file.string_table.add_string(name);
 }
 
 void CustomSection::append_data(void* content, size_t content_size)
@@ -46,6 +46,12 @@ void CustomSection::append_data(instruction_format_t instruction)
         _section_content.push_back(byte);
     }
     _header.sh_size += sizeof(instruction);
+}
+
+void CustomSection::append_data(const std::vector<Elf32_Byte>& content)
+{
+    _section_content.insert(_section_content.end(), content.begin(), content.end());
+    _header.sh_size += content.size();
 }
 
 void CustomSection::overwrite_data(void* content, size_t content_size, Elf32_Off offset)

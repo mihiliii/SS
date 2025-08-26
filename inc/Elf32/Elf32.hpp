@@ -71,9 +71,9 @@ struct Elf32_Shdr {
 
 /* Makros used in st_info in Elf32_Sym (Symbol table entry) */
 
-#define ELF32_ST_BIND(i)    ((i) >> 4)                 // Symbol binding
-#define ELF32_ST_TYPE(i)    ((i) & 0xf)                // Symbol type
-#define ELF32_ST_INFO(b, t) (((b) << 4) + ((t) & 0xf)) // Symbol type and binding
+#define ELF32_ST_BIND(i)    ((i) >> 4)                 // Gets symbol binding
+#define ELF32_ST_TYPE(i)    ((i) & 0xf)                // Gets symbol type
+#define ELF32_ST_INFO(b, t) (((b) << 4) + ((t) & 0xf)) // Sets symbol type and binding
 
 /* Symbol table bindings */
 
@@ -102,19 +102,23 @@ struct Elf32_Sym {
     bool st_defined;     // True if the symbol is defined in the ELF file
 };
 
+// ****************************************************************************
+// *                             RELOCATION TABLE                             *
+// ****************************************************************************
+
 /* Makros used in r_info in Elf32_Rela (Relocation table entry) */
 
-#define ELF32_R_INFO(t, s) (((t) << 8) + ((s) & 0xff)) // Symbol table index and relocation type
-#define ELF32_R_TYPE(i)    ((i) >> 8)                  // Relocation type
-#define ELF32_R_SYM(i)     ((i) & 0xff)                // Symbol table index
-#define ELF32_R_TYPE_ABS32 0x0                         // Absolute relocation
+#define ELF32_R_INFO(t, s) (((t) << 16) + ((s) & 0xffff)) // Symbol table index and relocation type
+#define ELF32_R_TYPE(i)    ((i) >> 16)                    // Relocation type
+#define ELF32_R_SYM(i)     ((i) & 0xffff)                 // Symbol table index
+
+#define ELF32_R_TYPE_ABS32 0x0 // Absolute relocation
 
 /* Struct that represents the relocation table entry */
 
 struct Elf32_Rela {
-    Elf32_Addr r_offset; // Offset in the section where the relocation should be applied
-    Elf32_Word r_info; // Symbol table index that is used to determine whose value should be used in
-                       // the relocation
+    Elf32_Addr r_offset;  // Offset in the section where the relocation should be applied
+    Elf32_Word r_info;    // Symbol table index and relocation type
     Elf32_SWord r_addend; // Constant addend used to compute the value to be stored
 };
 

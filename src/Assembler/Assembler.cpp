@@ -64,16 +64,16 @@ int Assembler::start_assembler(const std::string& input_file_name,
 
 void Assembler::section_dir(const std::string& section_name)
 {
-    auto custom_section_it = _elf32_file._custom_section_map.find(section_name);
+    auto custom_section_it = _elf32_file.custom_section_map.find(section_name);
 
-    if (custom_section_it != _elf32_file._custom_section_map.end()) {
+    if (custom_section_it != _elf32_file.custom_section_map.end()) {
         _current_section = &custom_section_it->second;
     }
     else {
         _current_section = _elf32_file.new_custom_section(section_name);
-        _elf32_file._symbol_table.add_symbol(_current_section->get_name(), 0, true,
-                                             _current_section->get_index(),
-                                             ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
+        _elf32_file.symbol_table.add_symbol(_current_section->get_name(), 0, true,
+                                            _current_section->get_index(),
+                                            ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
     }
 
     // TODO: check if its fine
@@ -94,14 +94,14 @@ void Assembler::word_dir(const std::vector<Operand>& values)
         }
         if (node.type == OPERAND_TYPE::SYMBOL) {
             const std::string symbol_name = std::get<std::string>(node.value);
-            Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol_name);
+            Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol_name);
 
             if (symbol_entry == nullptr) {
-                symbol_entry = &_elf32_file._symbol_table.add_symbol(symbol_name, 0, false,
-                                                                     _current_section->get_index());
+                symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol_name, 0, false,
+                                                                    _current_section->get_index());
             }
 
-            Elf32_Word symbol_index = _elf32_file._symbol_table.get_symbol_index(*symbol_entry);
+            Elf32_Word symbol_index = _elf32_file.symbol_table.get_symbol_index(*symbol_entry);
 
             _current_section->get_rela_table().add_entry(
                 _current_section->get_size(), ELF32_R_INFO(ELF32_R_TYPE_ABS32, symbol_index), 0);
@@ -113,17 +113,18 @@ void Assembler::word_dir(const std::vector<Operand>& values)
 
 void Assembler::global_dir(const std::vector<Operand>& symbols)
 {
+    // TODO: check if there is a global symbol that is undefined
     for (const Operand& node : symbols) {
         const std::string symbol_name = std::get<std::string>(node.value);
-        Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol_name);
+        Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol_name);
 
         if (symbol_entry == nullptr) {
-            _elf32_file._symbol_table.add_symbol(symbol_name, 0, false, SHN_ABS,
-                                                 ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
+            _elf32_file.symbol_table.add_symbol(symbol_name, 0, false, SHN_ABS,
+                                                ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
         }
         else {
             Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
-            _elf32_file._symbol_table.get_symbol(symbol_name)->st_info =
+            _elf32_file.symbol_table.get_symbol(symbol_name)->st_info =
                 ELF32_ST_INFO(STB_GLOBAL, type);
         }
     }
@@ -133,15 +134,15 @@ void Assembler::extern_dir(const std::vector<Operand>& symbols)
 {
     for (const Operand& node : symbols) {
         const std::string symbol_name = std::get<std::string>(node.value);
-        Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol_name);
+        Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol_name);
 
         if (symbol_entry == nullptr) {
-            _elf32_file._symbol_table.add_symbol(symbol_name, 0, false, SHN_ABS,
-                                                 ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
+            _elf32_file.symbol_table.add_symbol(symbol_name, 0, false, SHN_ABS,
+                                                ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
         }
         else {
             Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
-            _elf32_file._symbol_table.get_symbol(symbol_name)->st_info =
+            _elf32_file.symbol_table.get_symbol(symbol_name)->st_info =
                 ELF32_ST_INFO(STB_GLOBAL, type);
         }
     }
@@ -149,7 +150,7 @@ void Assembler::extern_dir(const std::vector<Operand>& symbols)
 
 void Assembler::define_label(const std::string& label)
 {
-    Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(label);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(label);
     Elf32_Off location_counter = _current_section->get_size();
 
     if (symbol_entry != nullptr) {
@@ -158,13 +159,13 @@ void Assembler::define_label(const std::string& label)
             exit(-1);
         }
         else {
-            _elf32_file._symbol_table.define_symbol(*symbol_entry, location_counter,
-                                                    _current_section->get_index());
+            _elf32_file.symbol_table.define_symbol(*symbol_entry, location_counter,
+                                                   _current_section->get_index());
         }
     }
     else {
-        _elf32_file._symbol_table.add_symbol(label, location_counter, true,
-                                             _current_section->get_index());
+        _elf32_file.symbol_table.add_symbol(label, location_counter, true,
+                                            _current_section->get_index());
     }
 }
 
@@ -207,11 +208,11 @@ void Assembler::call(uint32_t literal)
 
 void Assembler::call(const std::string& symbol)
 {
-    Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
 
     if (symbol_entry == nullptr) {
         symbol_entry =
-            &_elf32_file._symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
     }
 
     _forward_reference_table.add_reference(*symbol_entry, _current_section->get_size());
@@ -251,11 +252,11 @@ void Assembler::jump(MOD mod, REG reg_a, REG reg_b, REG reg_c, const std::string
         mod = (MOD) ((uint32_t) mod + JMP_IND_MOD);
     }
 
-    Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
 
     if (symbol_entry == nullptr) {
         symbol_entry =
-            &_elf32_file._symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
     }
 
     _forward_reference_table.add_reference(*symbol_entry, _current_section->get_size());
@@ -342,11 +343,11 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, const std::string& symb
 {
     instruction_format instruction;
 
-    Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
 
     if (symbol_entry == nullptr) {
         symbol_entry =
-            &_elf32_file._symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
     }
 
     switch (addr) {
@@ -435,11 +436,11 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, const std::
 {
     instruction_format instruction;
 
-    Elf32_Sym* symbol_entry = _elf32_file._symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
 
     if (symbol_entry == nullptr) {
         symbol_entry =
-            &_elf32_file._symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
     }
 
     switch (addr) {
