@@ -9,16 +9,16 @@ typedef std::vector<char> Memory;
 class Emulator {
 public:
 
-    Emulator(Elf32File& _program);
+    Emulator(Elf32File& program_file);
 
-    void start();
+    void start_emulator();
 
-    void printEndState();
+    void print_end_state();
 
 private:
 
-    Elf32File& program;
+    Elf32File& _program;
 
-    Memory memory;
-    CPU cpu;
+    Memory _memory;
+    CPU _cpu;
 };

@@ -1,51 +1,53 @@
 #pragma once
 
+#include "../Assembler/InstructionFormat.hpp"
+
 #include <cstdint>
 #include <vector>
-
-typedef uint32_t Register;
-typedef uint32_t instruction_t;
-
-#define GPR_PC   GPR[15]
-#define GPR_SP   GPR[14]
-#define GPR_ZERO GPR[0]
-
-#define CSR_STATUS CSR[0]
-#define CSR_HANDLE CSR[1]
-#define CSR_CAUSE  CSR[2]
 
 #define BYTE 8
 #define WORD 32
 
+typedef uint32_t Register;
 typedef std::vector<char> Memory;
 
 class CPU {
 public:
 
-    CPU(Memory& _memory) : memory(_memory) { reset(); }
+    const uint32_t PC_START = 0x40000000;
+    const uint32_t SP_START = 0x00000000;
 
-    Register& getGPR(uint8_t _index) { return GPR[_index]; };
-    Register& getCSR(uint8_t _index) { return CSR[_index]; };
-    Register& getPC() { return GPR_PC; };
-    Register& getSP() { return GPR_SP; };
-    Register& getZERO() { return GPR_ZERO; };
+    Register& PC = _gpr[(int) REG::PC];
+    Register& SP = _gpr[(int) REG::SP];
 
-    instruction_t fetchInstruction();
-    void executeInstruction(instruction_t _instruction);
+    Register& STATUS = _csr[(int) REG::STATUS];
+    Register& CAUSE = _csr[(int) REG::CAUSE];
+    Register& HANDLER = _csr[(int) REG::HANDLER];
 
-    void readMemory(Register& _register, uint32_t _address);
-    void writeMemory(uint32_t _address, Register& _register);
-
-    void printCurrentInstruction(instruction_t _instruction);
+    CPU(Memory& memory);
 
     void reset();
 
     void run();
 
-    bool running;
+    bool _running;
 
-    Register GPR[16];
-    Register CSR[3];
+    Register _gpr[16];
+    Register _csr[3];
 
-    Memory& memory;
+    Memory& _memory;
+
+private:
+
+    instruction_format fetch_instruction();
+
+    void execute_instruction(instruction_format instruction);
+
+    void push(Register reg);
+
+    Register pop();
+
+    Register read_memory(uint32_t address);
+
+    void write_memory(Register& reg, uint32_t address);
 };

@@ -3,34 +3,49 @@
 #include <iomanip>
 #include <stdexcept>
 
-#include "../../inc/Elf32/CustomSection.hpp"
 #include "../../inc/Elf32/Elf32File.hpp"
 
-Emulator::Emulator(Elf32File& _program) : program(_program), memory(0x100000000, 0), cpu(memory) {
-    if (_program.elf32Header().e_type != ET_EXEC) {
+Emulator::Emulator(Elf32File& program) : _program(program), _memory(0x100000000, 0), _cpu(_memory)
+{
+    if (_program.elf32_header.e_type != ET_EXEC) {
         throw std::runtime_error("Error: Invalid ELF file type.");
     }
 
-    // Memory initialization
-    for (auto& section : program.customSectionMap()) {
-        for (size_t i = 0; i < section.second.content().size(); i++) {
-            memory[section.second.header().sh_addr + i] = section.second.content()[i];
+    for (auto& it : program.custom_section_map) {
+        CustomSection& section = it.second;
+        Elf32_Addr addr = section.get_header().sh_addr;
+
+        for (size_t i = 0; i < section.get_size(); i++) {
+            _memory[addr + i] = section.get_data()[i];
         }
     }
 }
 
-void Emulator::start() { cpu.run(); }
+void Emulator::start_emulator()
+{
+    _cpu.run();
+}
 
-void Emulator::printEndState() {
-    std::cout << "-----------------------------------------------------------------" << std::endl;
-    std::cout << "Emulated processor executed halt instruction" << std::endl;
-    for (int column = 0; column < 4; column++) {
-        for (int row = 0; row < 4; row++) {
-            if (column * 4 + row < 10) {
+void Emulator::print_end_state()
+{
+    const int max_row = 4;
+    const int max_column = 4;
+    std::ostream os_reg(std::cout.rdbuf());
+    std::ostream os_value(std::cout.rdbuf());
+
+    os_reg << std::dec << std::setfill(' ');
+    os_value << std::hex << std::setfill('0');
+    std::cout << "-----------------------------------------------------------------\n"
+              << "Emulated processor executed halt instruction\n";
+
+    for (int column = 0; column < max_column; column++) {
+        for (int row = 0; row < max_row; row++) {
+            const int i = column * max_row + row;
+            if (i < 10) {
                 std::cout << " ";
             }
-            std::cout << "r" << std::dec << column * 4 + row << "=0x" << std::setw(8)
-                      << std::setfill('0') << std::hex << cpu.GPR[column * 4 + row] << "   ";
+            os_reg << "r" << column * 4 + row << "=0x";
+            os_value << std::setw(8) << _cpu._gpr[i] << "   ";
         }
         std::cout << std::endl;
     }
