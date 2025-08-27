@@ -41,11 +41,15 @@ void Emulator::print_end_state()
     for (int column = 0; column < max_column; column++) {
         for (int row = 0; row < max_row; row++) {
             const int i = column * max_row + row;
+
             if (i < 10) {
                 std::cout << " ";
             }
+
             os_reg << "r" << column * 4 + row << "=0x";
-            os_value << std::setw(8) << _cpu._gpr[i] << "   ";
+            if (column != max_column - 1) {
+                os_value << std::setw(8) << _cpu._gpr[i] << "   ";
+            }
         }
         std::cout << std::endl;
     }

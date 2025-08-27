@@ -27,8 +27,6 @@ struct Elf32_Ehdr {
     Elf32_Half e_type;      // File type
     Elf32_Addr e_entry;     // Entry point address (virtual address where the program starts)
     Elf32_Off e_shoff;      // Section header table file offset
-    Elf32_Half e_phentsize; // Program header table entry size
-    Elf32_Half e_phnum;     // Program header table entry count
     Elf32_Half e_shentsize; // Section header table entry size
     Elf32_Half e_shnum;     // Section header table entry count
     Elf32_Off e_stroff;     // String table file offset
@@ -44,12 +42,11 @@ struct Elf32_Ehdr {
 
 /* Makros used in sh_type in Elf32_Shdr (Section header table entry) */
 
-#define SHT_NULL     0x0 // Unused section
-#define SHT_SYMTAB   0x1 // Symbol table
-#define SHT_STRTAB   0x2 // Section header string table
-#define SHT_CUSTOM   0x3 // Custom section
-#define SHT_RELA     0x4 // Relocation entries with addends
-#define SHT_PROGBITS 0x5 // Program data
+#define SHT_NULL   0x0 // Unused section
+#define SHT_SYMTAB 0x1 // Symbol table
+#define SHT_STRTAB 0x2 // Section header string table
+#define SHT_CUSTOM 0x3 // Custom section
+#define SHT_RELA   0x4 // Relocation entries with addends
 
 /* Struct that represents the section table entry */
 

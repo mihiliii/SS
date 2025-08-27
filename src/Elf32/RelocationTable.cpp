@@ -1,7 +1,10 @@
 #include "../../inc/Elf32/RelocationTable.hpp"
 
 #include "../../inc/Elf32/Elf32File.hpp"
+#include "Elf32/Elf32.hpp"
 
+#include <algorithm>
+#include <deque>
 #include <iomanip>
 
 const std::string RelocationTable::NAME_PREFIX = std::string(".rela");
@@ -79,7 +82,15 @@ void RelocationTable::write(std::ostream& ostream)
 
 void RelocationTable::print(std::ostream& ostream) const
 {
+    std::deque<Elf32_Sym> symbol_table_data = _elf32_file.symbol_table.get_symbol_table();
+    Elf32_Sym max_symbol =
+        *std::max_element(symbol_table_data.begin(), symbol_table_data.end(),
+                          [](Elf32_Sym a, Elf32_Sym b) { return a.st_value < b.st_value; });
+
+    int num_digits = std::to_string(max_symbol.st_value).length();
+
     std::ostream os_copy(ostream.rdbuf());
+
     os_copy << std::endl << "Relocation table " << this->get_name() << ":" << std::endl;
     os_copy << std::left << std::setfill(' ');
     os_copy << "  ";
@@ -87,15 +98,16 @@ void RelocationTable::print(std::ostream& ostream) const
     os_copy << std::setw(9) << "OFFSET";
     os_copy << std::setw(9) << "TYPE";
     os_copy << std::setw(25) << "SYMBOL";
-    os_copy << std::setw(9) << "ADDEND";
+    os_copy << "ADDEND";
     os_copy << std::endl;
-    int i = 0;
-    for (Elf32_Rela rela_entry : _relocation_table) {
+
+    for (size_t i = 0; i < _relocation_table.size(); i++) {
+        Elf32_Rela rela_entry = _relocation_table[i];
         Elf32_Half symbol_index = ELF32_R_SYM(rela_entry.r_info);
         Elf32_Sym* symbol = _elf32_file.symbol_table.get_symbol(symbol_index);
 
         if (symbol == nullptr) {
-            std::cout << "Error";
+            std::cout << "Error: invalid symbol index in relocation entry." << std::endl;
         }
 
         const std::string& symbol_name = _elf32_file.string_table.get_string(symbol->st_name);
@@ -109,13 +121,14 @@ void RelocationTable::print(std::ostream& ostream) const
             break;
         }
 
-        os_copy << std::right << std::dec << std::setfill(' ') << std::setw(5) << i++ << " ";
+        os_copy << std::right << std::dec << std::setfill(' ') << std::setw(5) << i << " ";
         os_copy << std::hex << std::setfill('0');
         os_copy << std::setw(8) << rela_entry.r_offset << " ";
         os_copy << std::setw(8) << std::setfill(' ') << std::left << relocation_type << " ";
-        os_copy << std::setw(25) << (std::to_string(symbol_index) + " (" + symbol_name + ")");
-        os_copy << std::dec << std::left << std::setfill(' ');
-        os_copy << std::setw(8) << rela_entry.r_addend;
+        os_copy << std::setw(num_digits) << std::to_string(symbol_index);
+        os_copy << std::setw(25 - num_digits) << " (" + symbol_name + ")";
+        os_copy << std::dec << std::right << std::setfill(' ');
+        os_copy << std::setw(6) << rela_entry.r_addend;
         os_copy << std::endl;
     }
 }

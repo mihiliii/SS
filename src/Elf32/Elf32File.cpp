@@ -151,7 +151,7 @@ void Elf32File::read_elf(const std::string& file_name)
 
     cout << "ReadElf: " << file_name << std::endl << std::endl;
 
-    cout << "Elf Header: " << std::endl;
+    cout << "Elf Header:" << std::endl;
     switch (elf32_header.e_type) {
         case ET_NONE:
             cout << "  Type: No file type" << std::endl;
@@ -170,6 +170,7 @@ void Elf32File::read_elf(const std::string& file_name)
             break;
     }
 
+
     // TODO: remove unused header entries
 
     cout << std::hex;
@@ -180,40 +181,60 @@ void Elf32File::read_elf(const std::string& file_name)
     cout << std::dec;
     cout << "  Section header entry size: " << elf32_header.e_shentsize << "B" << std::endl
          << "  Number of section headers: " << elf32_header.e_shnum            << std::endl
-         << "  Program header entry size: " << elf32_header.e_phentsize << "B" << std::endl
-         << "  Number of program headers: " << elf32_header.e_phnum            << std::endl
          << std::endl;
 
-    cout << std::left << std::setfill(' ') << "Section Header Table: \n  "
+    cout << std::left << std::setfill(' ') << "Section Header Table:\n  "
          << std::setw(4)  << "NUM"
          << std::setw(25) << "NAME"
-         << std::setw(5)  << "TYPE"
+         << std::setw(7)  << "TYPE"
          << std::setw(9)  << "ADDRESS"
          << std::setw(9)  << "OFFSET"
          << std::setw(9)  << "SIZE"
          << std::setw(5)  << "LINK"
          << std::setw(5)  << "INFO"
          << std::setw(6)  << "ALIGN"
-         << std::setw(9)  << "ENTSIZE"
+         << std::setw(7)  << "ENTSIZE"
          << std::endl;
 
     for (size_t num = 0; num < section_header_table.size(); num++) {
         const Elf32_Shdr& section = *section_header_table[num];
         const std::string& section_name = string_table.get_string(section.sh_name);
+
+        std::string section_type;
+        switch (section.sh_type) {
+        case SHT_NULL:
+            section_type = "NULL";
+            break;
+        case SHT_SYMTAB:
+            section_type = "SYMTAB";
+            break;
+        case SHT_STRTAB:
+            section_type = "STRTAB";
+            break;
+        case SHT_CUSTOM:
+            section_type = "CUSTOM";
+            break;
+        case SHT_RELA:
+            section_type = "RELA";
+            break;
+        default:
+            break;
+        }
+
         cout << std::right << std::setfill(' ') << std::dec
              << std::setw(5)  << num                  << " "
              << std::left << std::dec << std::setfill(' ')
              << std::setw(24) << section_name         << " "
+             << std::setw(6)  << section_type         << " "
              << std::right << std::hex << std::setfill('0')
-             << std::setw(4)  << section.sh_type      << " "
              << std::setw(8)  << section.sh_addr      << " "
              << std::setw(8)  << section.sh_offset    << " "
              << std::setw(8)  << section.sh_size      << " "
              << std::setw(4)  << section.sh_link      << " "
              << std::setw(4)  << section.sh_info      << " "
-             << std::left << std::dec << std::setfill(' ')
+             << std::dec << std::setfill(' ')
              << std::setw(5)  << section.sh_addralign << " "
-             << std::setw(8)  << section.sh_entsize
+             << std::setw(7)  << section.sh_entsize
              << std::endl;
     }
 

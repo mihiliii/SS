@@ -120,11 +120,13 @@ void CustomSection::print(std::ostream& ostream) const
     std::ostream os_hex(ostream.rdbuf());
     os_hex << std::endl << "Section content " << this->get_name() << ":";
     os_hex << std::hex << std::setfill('0');
+
     for (size_t cnt = 0; cnt < _section_content.size(); cnt++) {
         if (cnt % 16 == 0) {
-            os_hex << std::endl << std::right << std::setw(8) << cnt << ": ";
+            os_hex << "\n" << std::right << std::setw(8) << cnt << ":";
         }
-        os_hex << std::setw(2) << (uint32_t) _section_content[cnt] << " ";
+        os_hex << " " << std::setw(2) << (uint32_t) _section_content[cnt];
     }
+
     os_hex << std::endl;
 }

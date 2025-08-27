@@ -73,7 +73,7 @@ Elf32_Sym* SymbolTable::get_symbol(Elf32_Word entry_index)
     return &_symbol_table.at(entry_index);
 }
 
-const std::deque<Elf32_Sym>& SymbolTable::get_symbol_table() const
+std::deque<Elf32_Sym>& SymbolTable::get_symbol_table()
 {
     return _symbol_table;
 }
