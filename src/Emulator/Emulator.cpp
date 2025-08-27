@@ -28,8 +28,8 @@ void Emulator::start_emulator()
 
 void Emulator::print_end_state()
 {
-    const int max_row = 4;
     const int max_column = 4;
+    const int max_row = 4;
     std::ostream os_reg(std::cout.rdbuf());
     std::ostream os_value(std::cout.rdbuf());
 
@@ -38,17 +38,18 @@ void Emulator::print_end_state()
     std::cout << "-----------------------------------------------------------------\n"
               << "Emulated processor executed halt instruction\n";
 
-    for (int column = 0; column < max_column; column++) {
-        for (int row = 0; row < max_row; row++) {
-            const int i = column * max_row + row;
+    for (int row = 0; row < max_row; row++) {
+        for (int column = 0; column < max_column; column++) {
+            const int i = row * max_column + column;
 
             if (i < 10) {
                 std::cout << " ";
             }
 
-            os_reg << "r" << column * 4 + row << "=0x";
+            os_reg << "r" << row * 4 + column << "=0x";
+            os_value << std::setw(8) << _cpu._gpr[i];
             if (column != max_column - 1) {
-                os_value << std::setw(8) << _cpu._gpr[i] << "   ";
+                os_value << "   ";
             }
         }
         std::cout << std::endl;
