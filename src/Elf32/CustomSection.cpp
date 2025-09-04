@@ -28,7 +28,7 @@ CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name,
 void CustomSection::append_data(void* content, size_t content_size)
 {
     for (size_t i = 0; i < content_size; i++) {
-        _section_content.push_back(((Elf32_Byte*) content + i)[i]);
+        _section_content.push_back(((Elf32_Byte*) content)[i]);
     }
     _header.sh_size += sizeof(Elf32_Byte) * content_size;
 }

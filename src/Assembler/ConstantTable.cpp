@@ -20,8 +20,8 @@ void ConstantTable::add_literal_reference(uint32_t literal, Elf32_Addr address)
         _constant_pool.emplace_back(literal);
     }
 
-    std::list<Elf32_Addr>& section_addresses = _literal_table[literal].second;
-    section_addresses.push_back(address);
+    std::list<Elf32_Addr>& list_reference_address = _literal_table[literal].second;
+    list_reference_address.push_back(address);
 }
 
 void ConstantTable::add_symbol_reference(Elf32_Sym& symbol_entry, Elf32_Addr address)
@@ -40,11 +40,10 @@ void ConstantTable::add_symbol_reference(Elf32_Sym& symbol_entry, Elf32_Addr add
         _constant_pool.emplace_back(0);
     }
 
-    std::list<Elf32_Addr>& section_addresses = _symbol_value_table[symbol_entry_ptr].second;
-    section_addresses.push_back(address);
+    std::list<Elf32_Addr>& list_reference_address = _symbol_value_table[symbol_entry_ptr].second;
+    list_reference_address.push_back(address);
 }
 
-// TODO: remove if not needed
 void ConstantTable::add_literal_pool_to_section()
 {
     _linked_section.append_data(_constant_pool.data(), _constant_pool.size() * sizeof(uint32_t));
@@ -83,7 +82,7 @@ void ConstantTable::resolve_references()
             uint32_t disp = literal_pool_offset + (_linked_section.get_size() - section_addr) - 4;
 
             if (disp > MAX_DISP) {
-                std::cout << "Literal pool overflow" << std::endl;
+                std::cout << "Error: constant pool overflow" << std::endl;
                 exit(-1);
             }
 

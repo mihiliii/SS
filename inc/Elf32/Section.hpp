@@ -17,7 +17,7 @@ public:
 
     Elf32_Shdr get_header() const;
 
-    Elf32_Word get_index() const;
+    Elf32_Word get_header_index() const;
 
     const std::string& get_name() const;
 

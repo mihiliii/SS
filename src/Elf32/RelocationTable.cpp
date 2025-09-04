@@ -18,7 +18,7 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
     _header.sh_name = elf32_file.string_table.add_string(rela_name);
     _header.sh_type = SHT_RELA;
     _header.sh_entsize = sizeof(Elf32_Rela);
-    _header.sh_info = _linked_section.get_index();
+    _header.sh_info = _linked_section.get_header_index();
     _header.sh_link = 0;
     _header.sh_addralign = 4;
     _header.sh_size = 0;
@@ -118,6 +118,7 @@ void RelocationTable::print(std::ostream& ostream) const
             relocation_type = "ABS32";
             break;
         default:
+            relocation_type = "UNKNOWN";
             break;
         }
 

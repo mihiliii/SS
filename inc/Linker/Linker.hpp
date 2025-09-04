@@ -24,13 +24,13 @@ private:
 
     CustomSection& get_section(const std::string& section_name)
     {
-        auto it = _output_elf32_file.custom_section_map.find(section_name);
-        if (it == _output_elf32_file.custom_section_map.end()) {
+        auto it = _output_file.custom_section_map.find(section_name);
+        if (it == _output_file.custom_section_map.end()) {
             throw std::runtime_error("Section not found: " + section_name);
         }
         return it->second;
     }
 
-    Elf32File _output_elf32_file;
+    Elf32File _output_file;
     std::map<std::string, Elf32_Addr> _place_addresses;
 };

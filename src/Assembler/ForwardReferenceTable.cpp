@@ -42,11 +42,9 @@ void ForwardReferenceTable::backpatch()
 
 void ForwardReferenceTable::resolve_symbol(Elf32_Sym& symbol_entry, SymbolReference& reference)
 {
-    CustomSection* section = reference.section;
-
-    instruction_format instruction = section->get_data()[reference.address];
-    OC oc = if_get_oc(instruction);
+    instruction_format instruction = reference.section->get_data()[reference.address];
     uint32_t offset = symbol_entry.st_value - reference.address - sizeof(instruction);
+    OC oc = if_get_oc(instruction);
 
     // For branch instructions jump location can be changed to label directly depending if that
     // label definition is in the same section as the branch instruction. Other instructions have
@@ -74,12 +72,16 @@ void ForwardReferenceTable::resolve_symbol(Elf32_Sym& symbol_entry, SymbolRefere
                 break;
             }
         }
-        instruction = if_create(oc, mod, REG::PC, if_get_reg_b(instruction),
-                                if_get_reg_c(instruction), offset);
-        section->overwrite_data(&instruction, sizeof(instruction), reference.address);
+
+        const REG& reg_b = if_get_reg_b(instruction);
+        const REG& reg_c = if_get_reg_c(instruction);
+
+        instruction = if_create(oc, mod, REG::PC, reg_b, reg_c, offset);
+
+        reference.section->overwrite_data(&instruction, sizeof(instruction), reference.address);
     }
     else {
-        _assembler._constant_table_map.at(section).add_symbol_reference(symbol_entry,
-                                                                        reference.address);
+        ConstantTable& constant_table = _assembler._constant_table_map.at(reference.section);
+        constant_table.add_symbol_reference(symbol_entry, reference.address);
     }
 }

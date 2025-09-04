@@ -12,6 +12,8 @@ int main(int argc, char* argv[])
 
     Elf32File elf32_file = Elf32File(argv[1]);
 
+    elf32_file.read_elf(argv[1]);
+
     emulator = new Emulator(elf32_file);
     emulator->start_emulator();
 

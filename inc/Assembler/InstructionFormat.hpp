@@ -2,9 +2,9 @@
 
 #include "../Elf32/Elf32.hpp"
 #include <cstdint>
+#include <sys/types.h>
 
-constexpr uint32_t SP_INC = 4;
-constexpr uint32_t SP_DEC = -4;
+constexpr int SP_INC = 4;
 constexpr uint32_t MAX_DISP = 0xFFF;
 
 typedef Elf32_Word instruction_format;
@@ -62,40 +62,40 @@ enum struct OC {
 };
 
 enum struct MOD {
-    HALT = 0x00,              // stops execution
-    INT = 0x10,               // push status; push pc; cause<=4; status<=status&~(0x1); pc<=handle;
-    CALL = 0x20,              // push pc; pc<=gpr[A]+gpr[B]+D;
-    CALL_IND = 0x21,          // push pc; pc<=mem32[gpr[A]+gpr[B]+D];
-    JMP = 0x30,               // pc<=gpr[A]+D;
-    BEQ = 0x31,               // if (gpr[B] == gpr[C]) pc<=gpr[A]+D;
-    BNE = 0x32,               // if (gpr[B] != gpr[C]) pc<=gpr[A]+D;
-    BGT = 0x33,               // if (gpr[B] > gpr[C]) pc<=gpr[A]+D;
-    JMP_IND = 0x38,           // pc<=mem32[gpr[A]+D];
-    BEQ_IND = 0x39,           // if (gpr[B] == gpr[C]) pc<=mem32[gpr[A]+D];
-    BNE_IND = 0x3A,           // if (gpr[B] != gpr[C]) pc<=mem32[gpr[A]+D];
-    BGT_IND = 0x3B,           // if (gpr[B] > gpr[C]) pc<=mem32[gpr[A]+D];
-    XCHG = 0x40,              // temp<=gpr[B]; gpr[B]<=gpr[C]; gpr[C]<=temp;
-    AR_ADD = 0x50,            // gpr[A]<=gpr[B] + gpr[C];
-    AR_SUB = 0x51,            // gpr[A]<=gpr[B] - gpr[C];
-    AR_MUL = 0x52,            // gpr[A]<=gpr[B] * gpr[C];
-    AR_DIV = 0x53,            // gpr[A]<=gpr[B] / gpr[C];
-    LOG_NOT = 0x60,           // gpr[A]<=~gpr[B];
-    LOG_AND = 0x61,           // gpr[A]<=gpr[B] & gpr[C];
-    LOG_OR = 0x62,            // gpr[A]<=gpr[B] | gpr[C];
-    LOG_XOR = 0x63,           // gpr[A]<=gpr[B] ^ gpr[C];
-    SHF_SHL = 0x70,           // gpr[A]<=gpr[B] << gpr[C];
-    SHF_SHR = 0x71,           // gpr[A]<=gpr[B] >> gpr[C];
-    ST_REGIND = 0x80,         // mem32[gpr[A]+gpr[B]+D]<=gpr[C];
-    ST_INC_REGIND = 0x81,     // gpr[A]<=gpr[A]+D; mem32[gpr[A]]<=gpr[C];
-    ST_MEMIND_REGIND = 0x82,  // mem32[mem32[gpr[A]+gpr[B]+D]]<=gpr[C];
-    LD_GPR_CSR = 0x90,        // gpr[A]<=csr[B];
-    LD_GPR_GPR_DSP = 0x91,    // gpr[A]<=gpr[B]+D;
-    LD_GPR_REGIND_DSP = 0x92, // gpr[A]<=mem32[gpr[B]+gpr[C]+D];
-    LD_GPR_REGIND_INC = 0x93, // gpr[A]<=mem32[gpr[B]+gpr[C]+D]; gpr[B]<=gpr[B]+D;
-    LD_CSR_GPR = 0x94,        // csr[A]<=gpr[B];
-    LD_CSR_OR = 0x95,         // csr[A]<=csr[B]|D;
-    LD_CSR_REGIND_DSP = 0x96, // csr[A]<=mem32[gpr[B]+gpr[C]+D];
-    LD_CSR_REGIND_INC = 0x97  // csr[A]<=mem32[gpr[B]]; gpr[B]<=gpr[B]+D;
+    HALT = 0x0,              // stops execution
+    INT = 0x0,               // push status; push pc; cause<=4; status<=status&~(0x1); pc<=handle;
+    CALL = 0x0,              // push pc; pc<=gpr[A]+gpr[B]+D;
+    CALL_IND = 0x1,          // push pc; pc<=mem32[gpr[A]+gpr[B]+D];
+    JMP = 0x0,               // pc<=gpr[A]+D;
+    BEQ = 0x1,               // if (gpr[B] == gpr[C]) pc<=gpr[A]+D;
+    BNE = 0x2,               // if (gpr[B] != gpr[C]) pc<=gpr[A]+D;
+    BGT = 0x3,               // if (gpr[B] > gpr[C]) pc<=gpr[A]+D;
+    JMP_IND = 0x8,           // pc<=mem32[gpr[A]+D];
+    BEQ_IND = 0x9,           // if (gpr[B] == gpr[C]) pc<=mem32[gpr[A]+D];
+    BNE_IND = 0xA,           // if (gpr[B] != gpr[C]) pc<=mem32[gpr[A]+D];
+    BGT_IND = 0xB,           // if (gpr[B] > gpr[C]) pc<=mem32[gpr[A]+D];
+    XCHG = 0x0,              // temp<=gpr[B]; gpr[B]<=gpr[C]; gpr[C]<=temp;
+    AR_ADD = 0x0,            // gpr[A]<=gpr[B] + gpr[C];
+    AR_SUB = 0x1,            // gpr[A]<=gpr[B] - gpr[C];
+    AR_MUL = 0x2,            // gpr[A]<=gpr[B] * gpr[C];
+    AR_DIV = 0x3,            // gpr[A]<=gpr[B] / gpr[C];
+    LOG_NOT = 0x0,           // gpr[A]<=~gpr[B];
+    LOG_AND = 0x1,           // gpr[A]<=gpr[B] & gpr[C];
+    LOG_OR = 0x2,            // gpr[A]<=gpr[B] | gpr[C];
+    LOG_XOR = 0x3,           // gpr[A]<=gpr[B] ^ gpr[C];
+    SHF_SHL = 0x0,           // gpr[A]<=gpr[B] << gpr[C];
+    SHF_SHR = 0x1,           // gpr[A]<=gpr[B] >> gpr[C];
+    ST_REGIND = 0x0,         // mem32[gpr[A]+gpr[B]+D]<=gpr[C];
+    ST_INC_REGIND = 0x1,     // gpr[A]<=gpr[A]+D; mem32[gpr[A]]<=gpr[C];
+    ST_MEMIND_REGIND = 0x2,  // mem32[mem32[gpr[A]+gpr[B]+D]]<=gpr[C];
+    LD_GPR_CSR = 0x0,        // gpr[A]<=csr[B];
+    LD_GPR_GPR_DSP = 0x1,    // gpr[A]<=gpr[B]+D;
+    LD_GPR_REGIND_DSP = 0x2, // gpr[A]<=mem32[gpr[B]+gpr[C]+D];
+    LD_GPR_REGIND_INC = 0x3, // gpr[A]<=mem32[gpr[B]+gpr[C]+D]; gpr[B]<=gpr[B]+D;
+    LD_CSR_GPR = 0x4,        // csr[A]<=gpr[B];
+    LD_CSR_OR = 0x5,         // csr[A]<=csr[B]|D;
+    LD_CSR_REGIND_DSP = 0x6, // csr[A]<=mem32[gpr[B]+gpr[C]+D];
+    LD_CSR_REGIND_INC = 0x7  // csr[A]<=mem32[gpr[B]]; gpr[B]<=gpr[B]+D;
 };
 
 enum struct IF_ADDR {
@@ -166,12 +166,12 @@ inline void if_set_reg_c(instruction_format& instruction, REG reg_c)
     instruction = (instruction & ~IF_MASK_REG_C) | ((instruction_format) reg_c << IF_SHIFT_REG_C);
 }
 
-inline Elf32_Half if_get_disp(instruction_format instruction)
+inline uint32_t if_get_disp(instruction_format instruction)
 {
-    return (Elf32_Half) instruction & IF_MASK_DISP;
+    return (uint32_t) instruction & IF_MASK_DISP;
 }
 
-inline void if_set_disp(instruction_format& instruction, Elf32_Half disp)
+inline void if_set_disp(instruction_format& instruction, uint32_t disp)
 {
     instruction = (instruction & ~IF_MASK_DISP) | ((instruction_format) disp & IF_MASK_DISP);
 }

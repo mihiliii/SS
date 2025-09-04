@@ -7,6 +7,7 @@
 #include "Assembler/ConstantTable.hpp"
 #include "Assembler/InstructionFormat.hpp"
 #include "Elf32/CustomSection.hpp"
+#include "Elf32/Elf32.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -64,20 +65,20 @@ int Assembler::start_assembler(const std::string& input_file_name,
 
 void Assembler::section_dir(const std::string& section_name)
 {
-    auto custom_section_it = _elf32_file.custom_section_map.find(section_name);
+    auto it = _elf32_file.custom_section_map.find(section_name);
 
-    if (custom_section_it != _elf32_file.custom_section_map.end()) {
-        _current_section = &custom_section_it->second;
+    if (it != _elf32_file.custom_section_map.end()) {
+        CustomSection* section = &it->second;
+        _current_section = section;
     }
     else {
         _current_section = _elf32_file.new_custom_section(section_name);
         _elf32_file.symbol_table.add_symbol(_current_section->get_name(), 0, true,
-                                            _current_section->get_index(),
+                                            _current_section->get_header_index(),
                                             ELF32_ST_INFO(STB_LOCAL, STT_SECTION));
+        _constant_table_map.try_emplace(_current_section,
+                                        ConstantTable(_elf32_file, *_current_section));
     }
-
-    // TODO: check if its fine
-    _constant_table_map.emplace(_current_section, ConstantTable(_elf32_file, *_current_section));
 }
 
 void Assembler::skip_dir(int bytes_to_skip)
@@ -89,16 +90,18 @@ void Assembler::skip_dir(int bytes_to_skip)
 void Assembler::word_dir(const std::vector<Operand>& values)
 {
     for (const Operand& node : values) {
+
         if (node.type == OPERAND_TYPE::LITERAL) {
             _current_section->append_data(std::get<Literal>(node.value));
         }
-        if (node.type == OPERAND_TYPE::SYMBOL) {
+
+        else if (node.type == OPERAND_TYPE::SYMBOL) {
             const std::string symbol_name = std::get<std::string>(node.value);
             Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol_name);
 
             if (symbol_entry == nullptr) {
-                symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol_name, 0, false,
-                                                                    _current_section->get_index());
+                symbol_entry = &_elf32_file.symbol_table.add_symbol(
+                    symbol_name, 0, false, _current_section->get_header_index());
             }
 
             Elf32_Word symbol_index = _elf32_file.symbol_table.get_symbol_index(*symbol_entry);
@@ -123,9 +126,9 @@ void Assembler::global_dir(const std::vector<Operand>& symbols)
                                                 ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
         }
         else {
-            Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
-            _elf32_file.symbol_table.get_symbol(symbol_name)->st_info =
-                ELF32_ST_INFO(STB_GLOBAL, type);
+            Elf32_Sym* symbol = _elf32_file.symbol_table.get_symbol(symbol_name);
+
+            symbol->st_info = ELF32_ST_INFO(STB_GLOBAL, ELF32_ST_TYPE(symbol_entry->st_info));
         }
     }
 }
@@ -141,9 +144,9 @@ void Assembler::extern_dir(const std::vector<Operand>& symbols)
                                                 ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
         }
         else {
-            Elf32_Half type = ELF32_ST_TYPE(symbol_entry->st_info);
-            _elf32_file.symbol_table.get_symbol(symbol_name)->st_info =
-                ELF32_ST_INFO(STB_GLOBAL, type);
+            Elf32_Sym* symbol = _elf32_file.symbol_table.get_symbol(symbol_name);
+
+            symbol->st_info = ELF32_ST_INFO(STB_GLOBAL, ELF32_ST_TYPE(symbol_entry->st_info));
         }
     }
 }
@@ -155,17 +158,17 @@ void Assembler::define_label(const std::string& label)
 
     if (symbol_entry != nullptr) {
         if (symbol_entry->st_defined == true) {
-            std::cout << "Symbol " << label << " already defined!" << std::endl;
+            std::cerr << "Symbol " << label << " already defined!" << std::endl;
             exit(-1);
         }
         else {
             _elf32_file.symbol_table.define_symbol(*symbol_entry, location_counter,
-                                                   _current_section->get_index());
+                                                   _current_section->get_header_index());
         }
     }
     else {
         _elf32_file.symbol_table.add_symbol(label, location_counter, true,
-                                            _current_section->get_index());
+                                            _current_section->get_header_index());
     }
 }
 
@@ -181,7 +184,6 @@ void Assembler::interrupt()
 
 void Assembler::iret()
 {
-    // TODO: check if order of instructions is correct
     _current_section->append_data(
         if_create(OC::LD, MOD::LD_CSR_REGIND_INC, REG::STATUS, REG::SP, REG::R0, SP_INC));
 
@@ -193,12 +195,12 @@ void Assembler::call(uint32_t literal)
 {
     instruction_format instruction;
 
-    if (literal < MAX_DISP) {
+    if (literal <= MAX_DISP) {
         instruction = if_create(OC::CALL, MOD::CALL, REG::R0, REG::R0, REG::R0, literal);
     }
     else {
-        _constant_table_map.at(_current_section)
-            .add_literal_reference(literal, _current_section->get_size());
+        ConstantTable& constant_table = _constant_table_map.at(_current_section);
+        constant_table.add_literal_reference(literal, _current_section->get_size());
 
         instruction = if_create(OC::CALL, MOD::CALL_IND, REG::PC, REG::R0, REG::R0, 0);
     }
@@ -211,52 +213,64 @@ void Assembler::call(const std::string& symbol)
     Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
 
     if (symbol_entry == nullptr) {
-        symbol_entry =
-            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+        symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,
+                                                            _current_section->get_header_index());
     }
 
     _forward_reference_table.add_reference(*symbol_entry, _current_section->get_size());
     _current_section->append_data(if_create(OC::CALL, MOD::CALL_IND, REG::PC, REG::R0, REG::R0, 0));
 }
 
-void Assembler::arithmetic_logic_shift(OC oc, MOD mod, REG src, REG dest)
+void Assembler::arithmetic(MOD mod, REG src, REG dest)
 {
-    _current_section->append_data(if_create(oc, mod, dest, dest, src, 0));
+    _current_section->append_data(if_create(OC::AR, mod, dest, dest, src, 0));
+}
+
+void Assembler::logic(MOD mod, REG src, REG dest)
+{
+    _current_section->append_data(if_create(OC::LOG, mod, dest, dest, src, 0));
+}
+
+void Assembler::shift(MOD mod, REG src, REG dest)
+{
+    _current_section->append_data(if_create(OC::SHF, mod, dest, dest, src, 0));
 }
 
 void Assembler::jump(MOD mod, REG reg_a, REG reg_b, REG reg_c, uint32_t literal)
 {
     instruction_format instruction;
-    const uint32_t JMP_IND_MOD = 0x8;
+    const uint32_t JMP_IND_MOD_BIT = 0x8;
 
     if (literal > MAX_DISP) {
-        if ((uint8_t) mod < JMP_IND_MOD) {
-            mod = (MOD) ((uint8_t) mod + JMP_IND_MOD);
-        }
-        _constant_table_map.at(_current_section)
-            .add_literal_reference(literal, _current_section->get_size());
-        literal = 0;
-    }
 
-    instruction = if_create(OC::JMP, mod, REG::R0, reg_b, reg_c, literal);
+        if ((uint8_t) mod < JMP_IND_MOD_BIT) {
+            mod = (MOD) ((uint8_t) mod + JMP_IND_MOD_BIT);
+        }
+
+        ConstantTable& constant_table = _constant_table_map.at(_current_section);
+        constant_table.add_literal_reference(literal, _current_section->get_size());
+
+        instruction = if_create(OC::JMP, mod, REG::R0, reg_b, reg_c, 0);
+    }
+    else {
+        instruction = if_create(OC::JMP, mod, REG::R0, reg_b, reg_c, literal);
+    }
 
     _current_section->append_data(instruction);
 }
 
 void Assembler::jump(MOD mod, REG reg_a, REG reg_b, REG reg_c, const std::string& symbol)
 {
-    const uint32_t JMP_IND_MOD = 0x8;
+    const uint32_t JMP_IND_MOD_BIT = 0x8;
 
-    // TODO: check if needed
-    if ((uint8_t) mod < JMP_IND_MOD) {
-        mod = (MOD) ((uint32_t) mod + JMP_IND_MOD);
+    if ((uint8_t) mod < JMP_IND_MOD_BIT) {
+        mod = (MOD) ((uint32_t) mod + JMP_IND_MOD_BIT);
     }
 
     Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
-
     if (symbol_entry == nullptr) {
-        symbol_entry =
-            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+        symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,
+                                                            _current_section->get_header_index());
     }
 
     _forward_reference_table.add_reference(*symbol_entry, _current_section->get_size());
@@ -268,13 +282,13 @@ void Assembler::jump(MOD mod, REG reg_a, REG reg_b, REG reg_c, const std::string
 void Assembler::push(REG reg)
 {
     _current_section->append_data(
-        if_create(OC::ST, MOD::ST_INC_REGIND, REG::SP, REG::R0, reg, SP_DEC));
+        if_create(OC::ST, MOD::ST_INC_REGIND, REG::SP, REG::R0, reg, -SP_INC));
 }
 
 void Assembler::pop(REG reg)
 {
     _current_section->append_data(
-        if_create(OC::LD, MOD::LD_CSR_REGIND_INC, reg, REG::SP, REG::R0, SP_INC));
+        if_create(OC::LD, MOD::LD_GPR_REGIND_INC, reg, REG::SP, REG::R0, SP_INC));
 }
 
 void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, uint32_t literal)
@@ -283,28 +297,27 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, uint32_t literal)
 
     switch (addr) {
     case IF_ADDR::IMMEDIATE: {
-        if (literal < MAX_DISP) {
+        if (literal <= MAX_DISP) {
             instruction = if_create(OC::LD, MOD::LD_GPR_GPR_DSP, reg_a, REG::R0, REG::R0, literal);
         }
         else {
-            _constant_table_map.at(_current_section)
-                .add_literal_reference(literal, _current_section->get_size());
+            ConstantTable& constant_table = _constant_table_map.at(_current_section);
+            constant_table.add_literal_reference(literal, _current_section->get_size());
 
             instruction = if_create(OC::LD, MOD::LD_GPR_REGIND_DSP, reg_a, REG::PC, REG::R0, 0);
         }
         break;
     }
     case IF_ADDR::MEM_DIR: {
-        if (literal < MAX_DISP) {
+        if (literal <= MAX_DISP) {
             instruction =
                 if_create(OC::LD, MOD::LD_GPR_REGIND_DSP, reg_a, REG::R0, REG::R0, literal);
         }
         else {
-            _constant_table_map.at(_current_section)
-                .add_literal_reference(literal, _current_section->get_size());
+            ConstantTable& constant_table = _constant_table_map.at(_current_section);
+            constant_table.add_literal_reference(literal, _current_section->get_size());
 
             instruction = if_create(OC::LD, MOD::LD_GPR_REGIND_DSP, reg_a, REG::PC, REG::R0, 0);
-
             _current_section->append_data(instruction);
 
             instruction = if_create(OC::LD, MOD::LD_GPR_REGIND_DSP, reg_a, reg_a, REG::R0, 0);
@@ -346,8 +359,8 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, const std::string& symb
     Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
 
     if (symbol_entry == nullptr) {
-        symbol_entry =
-            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+        symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,
+                                                            _current_section->get_header_index());
     }
 
     switch (addr) {
@@ -377,8 +390,7 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, const std::string& symb
 
 void Assembler::csr_read(REG csr, REG gpr)
 {
-    // TODO: check if MOD is correct
-    _current_section->append_data(if_create(OC::LD, MOD::LD_CSR_GPR, gpr, csr, REG::R0, 0));
+    _current_section->append_data(if_create(OC::LD, MOD::LD_GPR_CSR, gpr, csr, REG::R0, 0));
 }
 
 void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, uint32_t literal)
@@ -394,12 +406,12 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, uint32_t li
         break;
     }
     case IF_ADDR::MEM_DIR: {
-        if (literal < MAX_DISP) {
+        if (literal <= MAX_DISP) {
             instruction = if_create(OC::ST, MOD::ST_REGIND, REG::R0, REG::R0, reg_c, literal);
         }
         else {
-            _constant_table_map.at(_current_section)
-                .add_literal_reference(literal, _current_section->get_size());
+            ConstantTable& constant_table = _constant_table_map.at(_current_section);
+            constant_table.add_literal_reference(literal, _current_section->get_size());
 
             instruction = if_create(OC::ST, MOD::ST_MEMIND_REGIND, REG::PC, REG::R0, reg_c, 0);
         }
@@ -439,8 +451,8 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, const std::
     Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
 
     if (symbol_entry == nullptr) {
-        symbol_entry =
-            &_elf32_file.symbol_table.add_symbol(symbol, 0, false, _current_section->get_index());
+        symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,
+                                                            _current_section->get_header_index());
     }
 
     switch (addr) {

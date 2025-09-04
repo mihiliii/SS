@@ -78,6 +78,12 @@ public:
 
     void arithmetic_logic_shift(OC oc, MOD mod, REG src, REG dest);
 
+    void arithmetic(MOD mod, REG src, REG dest);
+
+    void logic(MOD mod, REG src, REG dest);
+
+    void shift(MOD mod, REG src, REG dest);
+
     void push(REG reg);
 
     void pop(REG reg);

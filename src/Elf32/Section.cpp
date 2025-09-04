@@ -23,7 +23,7 @@ Elf32_Shdr Section::get_header() const
     return *_elf32_file.section_header_table[_header_index];
 }
 
-Elf32_Word Section::get_index() const
+Elf32_Word Section::get_header_index() const
 {
     return _header_index;
 }
