@@ -62,6 +62,13 @@ void CustomSection::overwrite_data(void* content, size_t content_size, Elf32_Off
     }
 }
 
+void CustomSection::overwrite_data(std::vector<Elf32_Byte> content, Elf32_Off offset)
+{
+    for (size_t i = 0; i < content.size(); i++) {
+        _section_content[offset + i] = content[i];
+    }
+}
+
 void CustomSection::replace_data(std::vector<Elf32_Byte> content)
 {
     _section_content = content;

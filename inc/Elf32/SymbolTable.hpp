@@ -18,9 +18,13 @@ public:
     Elf32_Sym& add_symbol(const std::string& name, Elf32_Addr value, bool defined,
                           Elf32_Half section_index, unsigned char info = 0);
 
-    Elf32_Sym* get_symbol(const std::string& name);
+    Elf32_Sym* find_symbol(const std::string& name);
 
-    Elf32_Sym* get_symbol(Elf32_Word entry_index);
+    Elf32_Sym* find_symbol(Elf32_Word entry_index);
+
+    Elf32_Sym& get_symbol(const std::string& name);
+
+    Elf32_Sym& get_symbol(Elf32_Word entry_index);
 
     Elf32_Word get_symbol_index(const std::string& name);
 

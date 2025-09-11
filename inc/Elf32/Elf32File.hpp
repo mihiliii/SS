@@ -15,13 +15,10 @@ typedef std::map<std::string, CustomSection> CustomSectionMap;
 typedef std::map<std::string, RelocationTable> RelocationTableMap;
 
 struct Elf32File {
-public:
 
     Elf32File();
 
     Elf32File(const std::string& file);
-
-    ~Elf32File() = default;
 
     void write_bin(const std::string& file_name, Elf32_Half type);
 

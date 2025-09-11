@@ -11,6 +11,14 @@ public:
 
     static const std::string NAME_PREFIX;
 
+    static std::string get_rela_name(const std::string& custom_section_name);
+
+    static std::string get_rela_name(CustomSection& linked_section);
+
+    static std::string get_custom_section_name(const std::string& relocation_name);
+
+    static std::string get_custom_section_name(RelocationTable& relocation_table);
+
     RelocationTable(Elf32File& elf32_file, CustomSection& linked_section);
 
     RelocationTable(Elf32File& elf32_file, CustomSection& linked_section, Elf32_Shdr section_header,

@@ -9,6 +9,31 @@
 
 const std::string RelocationTable::NAME_PREFIX = std::string(".rela");
 
+std::string RelocationTable::get_rela_name(const std::string& custom_section_name)
+{
+    return NAME_PREFIX + custom_section_name;
+}
+
+std::string RelocationTable::get_rela_name(CustomSection& linked_section)
+{
+    return NAME_PREFIX + linked_section.get_name();
+}
+
+std::string RelocationTable::get_custom_section_name(const std::string& relocation_name)
+{
+    size_t prefix_pos = relocation_name.find(NAME_PREFIX);
+    if (prefix_pos == std::string::npos) {
+        throw std::runtime_error("Error: Invalid relocation section name: " + relocation_name);
+    }
+
+    return relocation_name.substr(prefix_pos);
+}
+
+std::string RelocationTable::get_custom_section_name(RelocationTable& relocation_table)
+{
+    return get_custom_section_name(relocation_table.get_name());
+}
+
 RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_section)
     : Section(elf32_file),
       _linked_section(linked_section),
@@ -104,7 +129,7 @@ void RelocationTable::print(std::ostream& ostream) const
     for (size_t i = 0; i < _relocation_table.size(); i++) {
         Elf32_Rela rela_entry = _relocation_table[i];
         Elf32_Half symbol_index = ELF32_R_SYM(rela_entry.r_info);
-        Elf32_Sym* symbol = _elf32_file.symbol_table.get_symbol(symbol_index);
+        Elf32_Sym* symbol = _elf32_file.symbol_table.find_symbol(symbol_index);
 
         if (symbol == nullptr) {
             std::cout << "Error: invalid symbol index in relocation entry." << std::endl;

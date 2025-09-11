@@ -97,7 +97,7 @@ void Assembler::word_dir(const std::vector<Operand>& values)
 
         else if (node.type == OPERAND_TYPE::SYMBOL) {
             const std::string symbol_name = std::get<std::string>(node.value);
-            Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol_name);
+            Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol_name);
 
             if (symbol_entry == nullptr) {
                 symbol_entry = &_elf32_file.symbol_table.add_symbol(
@@ -119,16 +119,14 @@ void Assembler::global_dir(const std::vector<Operand>& symbols)
     // TODO: check if there is a global symbol that is undefined
     for (const Operand& node : symbols) {
         const std::string symbol_name = std::get<std::string>(node.value);
-        Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol_name);
+        Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol_name);
 
         if (symbol_entry == nullptr) {
             _elf32_file.symbol_table.add_symbol(symbol_name, 0, false, SHN_ABS,
                                                 ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
         }
         else {
-            Elf32_Sym* symbol = _elf32_file.symbol_table.get_symbol(symbol_name);
-
-            symbol->st_info = ELF32_ST_INFO(STB_GLOBAL, ELF32_ST_TYPE(symbol_entry->st_info));
+            symbol_entry->st_info = ELF32_ST_INFO(STB_GLOBAL, ELF32_ST_TYPE(symbol_entry->st_info));
         }
     }
 }
@@ -137,24 +135,22 @@ void Assembler::extern_dir(const std::vector<Operand>& symbols)
 {
     for (const Operand& node : symbols) {
         const std::string symbol_name = std::get<std::string>(node.value);
-        Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol_name);
+        Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol_name);
 
         if (symbol_entry == nullptr) {
             _elf32_file.symbol_table.add_symbol(symbol_name, 0, false, SHN_ABS,
                                                 ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE));
         }
         else {
-            Elf32_Sym* symbol = _elf32_file.symbol_table.get_symbol(symbol_name);
-
-            symbol->st_info = ELF32_ST_INFO(STB_GLOBAL, ELF32_ST_TYPE(symbol_entry->st_info));
+            symbol_entry->st_info = ELF32_ST_INFO(STB_GLOBAL, ELF32_ST_TYPE(symbol_entry->st_info));
         }
     }
 }
 
 void Assembler::define_label(const std::string& label)
 {
-    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(label);
     Elf32_Off location_counter = _current_section->get_size();
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(label);
 
     if (symbol_entry != nullptr) {
         if (symbol_entry->st_defined == true) {
@@ -210,7 +206,7 @@ void Assembler::call(uint32_t literal)
 
 void Assembler::call(const std::string& symbol)
 {
-    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol);
 
     if (symbol_entry == nullptr) {
         symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,
@@ -267,7 +263,7 @@ void Assembler::jump(MOD mod, REG reg_a, REG reg_b, REG reg_c, const std::string
         mod = (MOD) ((uint32_t) mod + JMP_IND_MOD_BIT);
     }
 
-    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol);
     if (symbol_entry == nullptr) {
         symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,
                                                             _current_section->get_header_index());
@@ -356,7 +352,7 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, const std::string& symb
 {
     instruction_format instruction;
 
-    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol);
 
     if (symbol_entry == nullptr) {
         symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,
@@ -448,7 +444,7 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, const std::
 {
     instruction_format instruction;
 
-    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.get_symbol(symbol);
+    Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol);
 
     if (symbol_entry == nullptr) {
         symbol_entry = &_elf32_file.symbol_table.add_symbol(symbol, 0, false,

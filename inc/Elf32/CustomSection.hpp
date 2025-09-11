@@ -37,6 +37,8 @@ public:
 
     void overwrite_data(void* content, size_t content_size, Elf32_Off offset);
 
+    void overwrite_data(std::vector<Elf32_Byte> content, Elf32_Off offset);
+
     void replace_data(std::vector<Elf32_Byte> content);
 
     const std::vector<Elf32_Byte>& get_data() const;

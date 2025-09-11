@@ -231,6 +231,6 @@ instruction:
 %%
 
 void yyerror(const char *s) {
-    std::cout << std::dec << "Error at line " << line << ": " << s << std::endl;
+    std::cerr << "Error at line " << line << ": " << s << std::endl;
     exit(-1);
 }

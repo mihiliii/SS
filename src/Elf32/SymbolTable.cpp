@@ -58,7 +58,7 @@ Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Addr value, bo
     return _symbol_table.back();
 }
 
-Elf32_Sym* SymbolTable::get_symbol(const std::string& name)
+Elf32_Sym* SymbolTable::find_symbol(const std::string& name)
 {
     for (auto& symbol : _symbol_table) {
         if (_elf32_file.string_table.get_string(symbol.st_name) == name) {
@@ -68,9 +68,27 @@ Elf32_Sym* SymbolTable::get_symbol(const std::string& name)
     return nullptr;
 }
 
-Elf32_Sym* SymbolTable::get_symbol(Elf32_Word entry_index)
+Elf32_Sym* SymbolTable::find_symbol(Elf32_Word entry_index)
 {
     return &_symbol_table.at(entry_index);
+}
+
+Elf32_Sym& SymbolTable::get_symbol(const std::string& name)
+{
+    Elf32_Sym* symbol = find_symbol(name);
+    if (symbol == nullptr) {
+        throw std::runtime_error("Error: Symbol not found: " + name);
+    }
+    return *symbol;
+}
+
+Elf32_Sym& SymbolTable::get_symbol(Elf32_Word entry_index)
+{
+    if (entry_index >= _symbol_table.size()) {
+        throw std::runtime_error("Error: Symbol index out of range: " +
+                                 std::to_string(entry_index));
+    }
+    return _symbol_table.at(entry_index);
 }
 
 std::deque<Elf32_Sym>& SymbolTable::get_symbol_table()
