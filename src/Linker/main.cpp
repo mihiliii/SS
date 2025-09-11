@@ -1,13 +1,11 @@
 #include <getopt.h>
 
 #include "../../inc/Linker/Linker.hpp"
+#include "Elf32/Elf32.hpp"
 
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <vector>
-
-Linker* linker = nullptr;
 
 int main(int argc, char* argv[])
 {
@@ -28,7 +26,7 @@ int main(int argc, char* argv[])
     bool is_hex = false;
     const char* output_file_name;
 
-    linker = new Linker();
+    std::map<std::string, Elf32_Addr> place_addresses;
 
     while ((opt_val = getopt_long_only(argc, argv, "o:", long_options, &option_index)) != -1) {
         enum OPT_TYPE { LONG = 0, SHORT = 'o' };
@@ -54,19 +52,18 @@ int main(int argc, char* argv[])
                 }
                 else {
                     const std::string argument = optarg;
-                    size_t delimiter_loc = argument.find('@');
+                    size_t delimiter_pos = argument.find('@');
 
-                    if (delimiter_loc == std::string::npos) {
+                    if (delimiter_pos == std::string::npos) {
                         std::cerr << "Error: incorrect --place argument usage.\n"
                                   << "Correct usage: --place=<section>@<address>" << std::endl;
                         return -1;
                     }
 
-                    const std::string section_name = argument.substr(0, delimiter_loc);
-                    const std::string address = argument.substr(delimiter_loc + 1);
+                    const std::string section_name = argument.substr(0, delimiter_pos);
+                    Elf32_Addr address = std::stoi(argument.substr(delimiter_pos + 1));
 
-                    linker->add_argument(
-                        {section_name, (Elf32_Addr) std::stoul(address, nullptr, 0)});
+                    place_addresses.emplace(section_name, address);
                 }
                 break;
             case HEX:
@@ -99,14 +96,16 @@ int main(int argc, char* argv[])
         std::cerr << "Error: -o argument not provided." << std::endl;
     }
     else {
-        std::vector<std::string> input_file_names;
+        std::list<Elf32File> input_files;
         for (int i = optind; i < argc; i++) {
-            input_file_names.push_back(argv[i]);
+            input_files.emplace_back(Elf32File(argv[i]));
         }
-        linker->start_linker(output_file_name, input_file_names);
-    }
 
-    // FIX: delete linker object
+        Linker linker = Linker(input_files, place_addresses);
+        linker.start_linker(output_file_name);
+
+        return 0;
+    }
 
     return -1;
 }

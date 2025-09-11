@@ -1,36 +1,32 @@
 #pragma once
 
+#include <list>
 #include <map>
 #include <string>
-#include <vector>
 
 #include "../Elf32/Elf32File.hpp"
-
-struct PlaceArg {
-    std::string section;
-    Elf32_Addr address;
-};
 
 class Linker {
 public:
 
-    void add_argument(PlaceArg place_arg);
+    Linker(const std::list<Elf32File>& input_files,
+           std::map<std::string, Elf32_Addr> place_addresses);
 
-    int start_linker(const std::string& output_file_name, std::vector<std::string> input_files);
-
-    void map(Elf32File& input_file);
+    int start_linker(const std::string& output_file_name);
 
 private:
 
-    CustomSection& get_section(const std::string& section_name)
-    {
-        auto it = _output_file.custom_section_map.find(section_name);
-        if (it == _output_file.custom_section_map.end()) {
-            throw std::runtime_error("Section not found: " + section_name);
-        }
-        return it->second;
-    }
+    void map_custom_sections();
+
+    void map_symbols();
+
+    void map_symbol_table(Elf32File& input_file, std::list<Elf32_Sym*>& duplicate_symbols);
+
+    void map_relocations();
+
+    void map_relocation_table(Elf32File& input_file);
 
     Elf32File _output_file;
+    std::list<Elf32File> _input_files;
     std::map<std::string, Elf32_Addr> _place_addresses;
 };
