@@ -5,8 +5,7 @@
 
 #include <iostream>
 
-Linker::Linker(const std::list<Elf32File>& input_files,
-               std::map<std::string, Elf32_Addr> place_addresses)
+Linker::Linker(std::list<Elf32File>& input_files, std::map<std::string, Elf32_Addr> place_addresses)
     : _output_file(Elf32File()),
       _input_files(input_files),
       _place_addresses(place_addresses)

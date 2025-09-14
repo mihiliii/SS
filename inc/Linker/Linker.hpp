@@ -9,8 +9,7 @@
 class Linker {
 public:
 
-    Linker(const std::list<Elf32File>& input_files,
-           std::map<std::string, Elf32_Addr> place_addresses);
+    Linker(std::list<Elf32File>& input_files, std::map<std::string, Elf32_Addr> place_addresses);
 
     int start_linker(const std::string& output_file_name);
 
@@ -27,6 +26,6 @@ private:
     void map_relocation_table(Elf32File& input_file);
 
     Elf32File _output_file;
-    std::list<Elf32File> _input_files;
+    std::list<Elf32File>& _input_files;
     std::map<std::string, Elf32_Addr> _place_addresses;
 };

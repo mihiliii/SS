@@ -26,11 +26,11 @@ public:
 
     RelocationTable(const RelocationTable&) = delete;
 
-    RelocationTable(RelocationTable&&) = delete;
+    RelocationTable(RelocationTable&&);
 
     RelocationTable& operator=(const RelocationTable&) = delete;
 
-    RelocationTable& operator=(RelocationTable&&) = delete;
+    RelocationTable& operator=(RelocationTable&&);
 
     ~RelocationTable() = default;
 
@@ -50,6 +50,6 @@ public:
 
 private:
 
-    CustomSection& _linked_section;
+    CustomSection* _linked_section;
     std::vector<Elf32_Rela> _relocation_table;
 };

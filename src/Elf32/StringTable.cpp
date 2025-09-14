@@ -3,18 +3,7 @@
 #include "../../inc/Elf32/Elf32File.hpp"
 
 StringTable::StringTable(Elf32File& elf32_file)
-    : Section(elf32_file,
-              {
-                  .sh_name = 0,
-                  .sh_type = SHT_STRTAB,
-                  .sh_addr = 0,
-                  .sh_offset = 0,
-                  .sh_size = 0,
-                  .sh_link = 0,
-                  .sh_info = 0,
-                  .sh_addralign = 1,
-                  .sh_entsize = 1,
-              }),
+    : Section(elf32_file, {.sh_type = SHT_STRTAB, .sh_addralign = 1, .sh_entsize = 1}),
       _string_table()
 {
     add_string("\0");

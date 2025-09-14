@@ -9,29 +9,19 @@
 
 SymbolTable::SymbolTable(Elf32File& elf32_file)
     : Section(elf32_file,
-              {
-                  .sh_name = 0,
-                  .sh_type = SHT_SYMTAB,
-                  .sh_addr = 0,
-                  .sh_offset = 0,
-                  .sh_size = 0,
-                  .sh_link = 0,
-                  .sh_info = 0,
-                  .sh_addralign = 4,
-                  .sh_entsize = sizeof(Elf32_Sym),
-              }),
+              {.sh_type = SHT_SYMTAB, .sh_addralign = 4, .sh_entsize = sizeof(Elf32_Sym)}),
       _symbol_table()
 {
-    _header.sh_name = _elf32_file.string_table.add_string(".symtab");
+    _header.sh_name = _elf32_file->string_table.add_string(".symtab");
 }
 
 Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Sym symbol_entry)
 {
-    if (_elf32_file.string_table.get_offset(name) == 0) {
-        symbol_entry.st_name = _elf32_file.string_table.add_string(name);
+    if (_elf32_file->string_table.get_offset(name) == 0) {
+        symbol_entry.st_name = _elf32_file->string_table.add_string(name);
     }
     else {
-        symbol_entry.st_name = _elf32_file.string_table.get_offset(name);
+        symbol_entry.st_name = _elf32_file->string_table.get_offset(name);
     }
 
     _header.sh_size += sizeof(Elf32_Sym);
@@ -41,9 +31,9 @@ Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Sym symbol_ent
 Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Addr value, bool defined,
                                    Elf32_Half section_index, unsigned char info)
 {
-    Elf32_Off name_offset = _elf32_file.string_table.get_offset(name);
+    Elf32_Off name_offset = _elf32_file->string_table.get_offset(name);
     if (name_offset == 0) {
-        name_offset = _elf32_file.string_table.add_string(name);
+        name_offset = _elf32_file->string_table.add_string(name);
     }
 
     Elf32_Sym symbol_entry = Elf32_Sym({.st_name = name_offset,
@@ -61,7 +51,7 @@ Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Addr value, bo
 Elf32_Sym* SymbolTable::find_symbol(const std::string& name)
 {
     for (auto& symbol : _symbol_table) {
-        if (_elf32_file.string_table.get_string(symbol.st_name) == name) {
+        if (_elf32_file->string_table.get_string(symbol.st_name) == name) {
             return &symbol;
         }
     }
@@ -100,9 +90,9 @@ void SymbolTable::set_symbol(Elf32_Sym& table_entry, const std::string& symbol_n
                              Elf32_Byte st_info, Elf32_Half st_shndx, Elf32_Addr st_value,
                              Elf32_Word st_size, bool st_defined)
 {
-    table_entry.st_name = _elf32_file.string_table.get_offset(symbol_name);
+    table_entry.st_name = _elf32_file->string_table.get_offset(symbol_name);
     if (table_entry.st_name == 0) {
-        table_entry.st_name = _elf32_file.string_table.add_string(symbol_name);
+        table_entry.st_name = _elf32_file->string_table.add_string(symbol_name);
     }
 
     table_entry = {table_entry.st_name, st_info, st_shndx, st_value, st_size, st_defined};
@@ -113,9 +103,9 @@ void SymbolTable::set_symbol(Elf32_Sym& table_entry, const std::string& symbol_n
 {
     table_entry = symbol;
 
-    table_entry.st_name = _elf32_file.string_table.get_offset(symbol_name);
+    table_entry.st_name = _elf32_file->string_table.get_offset(symbol_name);
     if (table_entry.st_name == 0) {
-        table_entry.st_name = _elf32_file.string_table.add_string(symbol_name);
+        table_entry.st_name = _elf32_file->string_table.add_string(symbol_name);
     }
 }
 
@@ -159,7 +149,7 @@ void SymbolTable::sort()
 Elf32_Word SymbolTable::get_symbol_index(const std::string& name)
 {
     for (size_t i = 0; i < _symbol_table.size(); i++) {
-        if (_elf32_file.string_table.get_string(_symbol_table[i].st_name) == name) {
+        if (_elf32_file->string_table.get_string(_symbol_table[i].st_name) == name) {
             return i;
         }
     }
@@ -169,7 +159,7 @@ Elf32_Word SymbolTable::get_symbol_index(const std::string& name)
 
 Elf32_Word SymbolTable::get_symbol_index(Elf32_Sym& symbol_entry)
 {
-    return get_symbol_index(_elf32_file.string_table.get_string(symbol_entry.st_name));
+    return get_symbol_index(_elf32_file->string_table.get_string(symbol_entry.st_name));
 }
 
 void SymbolTable::define_symbol(Elf32_Sym& symbol_entry, Elf32_Addr value, Elf32_Half section_index)
@@ -251,7 +241,7 @@ void SymbolTable::print(std::ostream& ostream) const
         os_copy << std::right << std::setfill(' ') << std::dec;
         os_copy << std::setw(3) << i << " ";
         os_copy << std::left;
-        os_copy << std::setw(24) << _elf32_file.string_table.get_string(symbol_entry.st_name)
+        os_copy << std::setw(24) << _elf32_file->string_table.get_string(symbol_entry.st_name)
                 << " ";
         os_copy << std::right << std::setfill('0') << std::hex;
         os_copy << std::setw(8) << symbol_entry.st_value << " ";

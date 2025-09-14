@@ -19,11 +19,11 @@ public:
 
     CustomSection(const CustomSection&) = delete;
 
-    CustomSection(CustomSection&&) = delete;
+    CustomSection(CustomSection&&);
 
     CustomSection& operator=(const CustomSection&) = delete;
 
-    CustomSection& operator=(CustomSection&&) = delete;
+    CustomSection& operator=(CustomSection&&);
 
     ~CustomSection() = default;
 

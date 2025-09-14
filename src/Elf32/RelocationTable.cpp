@@ -36,14 +36,14 @@ std::string RelocationTable::get_custom_section_name(RelocationTable& relocation
 
 RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_section)
     : Section(elf32_file),
-      _linked_section(linked_section),
+      _linked_section(&linked_section),
       _relocation_table()
 {
     const std::string& rela_name = NAME_PREFIX + linked_section.get_name();
     _header.sh_name = elf32_file.string_table.add_string(rela_name);
     _header.sh_type = SHT_RELA;
     _header.sh_entsize = sizeof(Elf32_Rela);
-    _header.sh_info = _linked_section.get_header_index();
+    _header.sh_info = _linked_section->get_header_index();
     _header.sh_link = 0;
     _header.sh_addralign = 4;
     _header.sh_size = 0;
@@ -54,12 +54,32 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
                                  Elf32_Shdr section_header,
                                  const std::vector<Elf32_Rela>& relocation_table)
     : Section(elf32_file, section_header),
-      _linked_section(linked_section),
+      _linked_section(&linked_section),
       _relocation_table(relocation_table)
 {
     const std::string& rela_name = NAME_PREFIX + linked_section.get_name();
     _header.sh_name = elf32_file.string_table.add_string(rela_name);
     linked_section.set_rela_table(this);
+}
+
+RelocationTable::RelocationTable(RelocationTable&& other)
+    : Section(std::move(other)),
+      _linked_section(other._linked_section),
+      _relocation_table(std::move(other._relocation_table))
+{
+    other._linked_section = nullptr;
+}
+
+RelocationTable& RelocationTable::operator=(RelocationTable&& other)
+{
+    if (this != &other) {
+        Section::operator=(std::move(other));
+        _linked_section = other._linked_section;
+        _relocation_table = std::move(other._relocation_table);
+
+        other._linked_section = nullptr;
+    }
+    return *this;
 }
 
 void RelocationTable::add_entry(Elf32_Rela rela_entry)
@@ -88,7 +108,7 @@ std::vector<Elf32_Rela>& RelocationTable::get_relocation_table()
 
 CustomSection& RelocationTable::get_linked_section()
 {
-    return _linked_section;
+    return *_linked_section;
 };
 
 void RelocationTable::write(std::ostream& ostream)
@@ -107,7 +127,7 @@ void RelocationTable::write(std::ostream& ostream)
 
 void RelocationTable::print(std::ostream& ostream) const
 {
-    std::deque<Elf32_Sym> symbol_table_data = _elf32_file.symbol_table.get_symbol_table();
+    std::deque<Elf32_Sym> symbol_table_data = _elf32_file->symbol_table.get_symbol_table();
     Elf32_Sym max_symbol =
         *std::max_element(symbol_table_data.begin(), symbol_table_data.end(),
                           [](Elf32_Sym a, Elf32_Sym b) { return a.st_value < b.st_value; });
@@ -129,13 +149,13 @@ void RelocationTable::print(std::ostream& ostream) const
     for (size_t i = 0; i < _relocation_table.size(); i++) {
         Elf32_Rela rela_entry = _relocation_table[i];
         Elf32_Half symbol_index = ELF32_R_SYM(rela_entry.r_info);
-        Elf32_Sym* symbol = _elf32_file.symbol_table.find_symbol(symbol_index);
+        Elf32_Sym* symbol = _elf32_file->symbol_table.find_symbol(symbol_index);
 
         if (symbol == nullptr) {
             std::cout << "Error: invalid symbol index in relocation entry." << std::endl;
         }
 
-        const std::string& symbol_name = _elf32_file.string_table.get_string(symbol->st_name);
+        const std::string& symbol_name = _elf32_file->string_table.get_string(symbol->st_name);
         std::string relocation_type;
 
         switch (ELF32_R_TYPE(rela_entry.r_info)) {

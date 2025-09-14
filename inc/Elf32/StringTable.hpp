@@ -12,11 +12,11 @@ public:
 
     StringTable(const StringTable&) = delete;
 
-    StringTable(StringTable&&) = delete;
+    StringTable(StringTable&&) = default;
 
     StringTable& operator=(const StringTable&) = delete;
 
-    StringTable& operator=(StringTable&&) = delete;
+    StringTable& operator=(StringTable&&) = default;
 
     ~StringTable() = default;
 

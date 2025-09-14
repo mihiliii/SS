@@ -11,6 +11,14 @@ public:
 
     SymbolTable(Elf32File& elf32_file);
 
+    SymbolTable(const SymbolTable&) = delete;
+
+    SymbolTable(SymbolTable&&) = default;
+
+    SymbolTable& operator=(const SymbolTable&) = delete;
+
+    SymbolTable& operator=(SymbolTable&&) = default;
+
     ~SymbolTable() = default;
 
     Elf32_Sym& add_symbol(const std::string& name, Elf32_Sym symbol_entry);

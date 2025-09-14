@@ -13,7 +13,7 @@ CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name)
     _header.sh_type = SHT_CUSTOM;
     _header.sh_entsize = 4;
     _header.sh_addralign = 4;
-    _header.sh_name = _elf32_file.string_table.add_string(name);
+    _header.sh_name = _elf32_file->string_table.add_string(name);
 }
 
 CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name,
@@ -22,7 +22,26 @@ CustomSection::CustomSection(Elf32File& elf32_file, const std::string& name,
       _section_content(data),
       _rela_table(nullptr)
 {
-    _header.sh_name = _elf32_file.string_table.add_string(name);
+    _header.sh_name = _elf32_file->string_table.add_string(name);
+}
+
+CustomSection::CustomSection(CustomSection&& other)
+    : Section(std::move(other)),
+      _section_content(std::move(other._section_content)),
+      _rela_table(other._rela_table)
+{
+    other._rela_table = nullptr;
+}
+
+CustomSection& CustomSection::operator=(CustomSection&& other)
+{
+    if (this != &other) {
+        Section::operator=(std::move(other));
+        _section_content = std::move(other._section_content);
+        _rela_table = other._rela_table;
+        other._rela_table = nullptr;
+    }
+    return *this;
 }
 
 void CustomSection::append_data(void* content, size_t content_size)
@@ -95,7 +114,7 @@ RelocationTable& CustomSection::get_rela_table()
 {
     if (_rela_table == nullptr) {
         const std::string rela_name = RelocationTable::NAME_PREFIX + get_name();
-        _rela_table = _elf32_file.new_relocation_table(rela_name, *this);
+        _rela_table = _elf32_file->new_relocation_table(rela_name, *this);
     }
     return *_rela_table;
 }

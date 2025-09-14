@@ -31,13 +31,13 @@ protected:
 
     Section(const Section&) = delete;
 
-    Section(Section&&) = delete;
+    Section(Section&&);
 
     Section& operator=(const Section&) = delete;
 
-    Section& operator=(Section&&) = delete;
+    Section& operator=(Section&&);
 
-    Elf32File& _elf32_file;
+    Elf32File* _elf32_file;
     Elf32_Shdr _header;
     Elf32_Word _header_index;
 };
