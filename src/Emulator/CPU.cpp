@@ -1,5 +1,6 @@
-#include "../../inc/Emulator/CPU.hpp"
+#include "Emulator/CPU.hpp"
 #include "Assembler/InstructionFormat.hpp"
+#include "Emulator/Emulator.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -32,153 +33,6 @@ instruction_format CPU::fetch_instruction()
     return instruction;
 }
 
-void print_function(OC oc, MOD mod, REG regA, REG regB, REG regC, uint32_t disp)
-{
-    switch (oc) {
-    case OC::HALT:
-        std::cout << "HALT" << std::endl;
-        break;
-    case OC::INT:
-        std::cout << "INT" << std::endl;
-        break;
-    case OC::CALL:
-        if (mod == MOD::CALL) {
-            std::cout << "CALL " << (int) regA << ", " << (int) regB << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::CALL_IND) {
-            std::cout << "CALL_IND " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        break;
-    case OC::JMP:
-        if (mod == MOD::JMP) {
-            std::cout << "JMP " << (int) regA << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::BEQ) {
-            std::cout << "BEQ " << (int) regA << ", " << (int) regB << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::BNE) {
-            std::cout << "BNE " << (int) regA << ", " << (int) regB << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::BGT) {
-            std::cout << "BGT " << (int) regA << ", " << (int) regB << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::JMP_IND) {
-            std::cout << "JMP_IND " << (int) regA << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::BEQ_IND) {
-            std::cout << "BEQ_IND " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        else if (mod == MOD::BNE_IND) {
-            std::cout << "BNE_IND " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        else if (mod == MOD::BGT_IND) {
-            std::cout << "BGT_IND " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        break;
-    case OC::XCHG:
-        std::cout << "XCHG " << (int) regA << ", " << (int) regB << std::endl;
-        break;
-    case OC::AR:
-        if (mod == MOD::AR_ADD) {
-            std::cout << "ADD " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        else if (mod == MOD::AR_SUB) {
-            std::cout << "SUB " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        else if (mod == MOD::AR_MUL) {
-            std::cout << "MUL " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        else if (mod == MOD::AR_DIV) {
-            std::cout << "DIV " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        break;
-    case OC::LOG:
-        if (mod == MOD::LOG_NOT) {
-            std::cout << "NOT " << (int) regA << ", " << (int) regB << std::endl;
-        }
-        else if (mod == MOD::LOG_AND) {
-            std::cout << "AND " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        else if (mod == MOD::LOG_OR) {
-            std::cout << "OR " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        else if (mod == MOD::LOG_XOR) {
-            std::cout << "XOR " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        break;
-    case OC::SHF:
-        if (mod == MOD::SHF_SHL) {
-            std::cout << "SHL " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        else if (mod == MOD::SHF_SHR) {
-            std::cout << "SHR " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << std::endl;
-        }
-        break;
-    case OC::LD:
-        if (mod == MOD::LD_GPR_CSR) {
-            std::cout << "LD_GPR_CSR " << (int) regA << ", " << (int) regB << std::endl;
-        }
-        else if (mod == MOD::LD_GPR_GPR_DSP) {
-            std::cout << "LD_GPR_GPR_DSP " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        else if (mod == MOD::LD_GPR_REGIND_DSP) {
-            std::cout << "LD_GPR_REGIND_DSP " << (int) regA << ", " << (int) regB << ", "
-                      << (int) regC << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::LD_GPR_REGIND_INC) {
-            std::cout << "LD_GPR_REGIND_INC " << (int) regA << ", " << (int) regB << ", "
-                      << (int) regC << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::LD_CSR_GPR) {
-            std::cout << "LD_CSR_GPR " << (int) regA << ", " << (int) regB << std::endl;
-        }
-        else if (mod == MOD::LD_CSR_OR) {
-            std::cout << "LD_CSR_OR " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        else if (mod == MOD::LD_CSR_REGIND_DSP) {
-            std::cout << "LD_CSR_REGIND_DSP " << (int) regA << ", " << (int) regB << ", "
-                      << (int) regC << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::LD_CSR_REGIND_INC) {
-            std::cout << "LD_CSR_REGIND_INC " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        break;
-    case OC::ST:
-        if (mod == MOD::ST_REGIND) {
-            std::cout << "ST_REGIND " << (int) regA << ", " << (int) regB << ", " << (int) regC
-                      << ", " << disp << std::endl;
-        }
-        else if (mod == MOD::ST_INC_REGIND) {
-            std::cout << "ST_INC_REGIND " << (int) regA << ", " << (int) regB << ", " << disp
-                      << std::endl;
-        }
-        else if (mod == MOD::ST_MEMIND_REGIND) {
-            std::cout << "ST_MEMIND_REGIND " << (int) regA << ", " << (int) regB << ", "
-                      << (int) regC << ", " << disp << std::endl;
-        }
-        break;
-    default:
-        std::cout << "Invalid instruction." << std::endl;
-        break;
-    }
-}
-
 void CPU::execute_instruction(instruction_format instruction)
 {
     OC oc = if_get_oc(instruction);
@@ -186,15 +40,12 @@ void CPU::execute_instruction(instruction_format instruction)
     REG regA = if_get_reg_a(instruction);
     REG regB = if_get_reg_b(instruction);
     REG regC = if_get_reg_c(instruction);
-    uint32_t disp = if_get_disp(instruction);
+    int disp = if_get_disp(instruction);
 
     Register& reg_a = _gpr[(int) regA];
     Register& reg_b = _gpr[(int) regB];
     Register& reg_c = _gpr[(int) regC];
 
-    print_function(oc, mod, regA, regB, regC, disp);
-
-    // TODO: check if needed
     if (disp & 0x800) {
         disp |= 0xFFFFF000;
     }
@@ -299,8 +150,7 @@ void CPU::execute_instruction(instruction_format instruction)
             reg_a = read_memory(reg_b + reg_c + disp);
         }
         else if (mod == MOD::LD_GPR_REGIND_INC) {
-            // NOTE: CHECK READ_MEMORY FUNCTION
-            reg_a = read_memory(reg_b + reg_c + disp);
+            reg_a = read_memory(reg_b);
             reg_b = reg_b + disp;
         }
         else if (mod == MOD::LD_CSR_GPR) {

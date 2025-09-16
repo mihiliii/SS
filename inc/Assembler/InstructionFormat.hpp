@@ -91,7 +91,7 @@ enum struct MOD {
     LD_GPR_CSR = 0x0,        // gpr[A]<=csr[B];
     LD_GPR_GPR_DSP = 0x1,    // gpr[A]<=gpr[B]+D;
     LD_GPR_REGIND_DSP = 0x2, // gpr[A]<=mem32[gpr[B]+gpr[C]+D];
-    LD_GPR_REGIND_INC = 0x3, // gpr[A]<=mem32[gpr[B]+gpr[C]+D]; gpr[B]<=gpr[B]+D;
+    LD_GPR_REGIND_INC = 0x3, // gpr[A]<=mem32[gpr[B]]; gpr[B]<=gpr[B]+D;
     LD_CSR_GPR = 0x4,        // csr[A]<=gpr[B];
     LD_CSR_OR = 0x5,         // csr[A]<=csr[B]|D;
     LD_CSR_REGIND_DSP = 0x6, // csr[A]<=mem32[gpr[B]+gpr[C]+D];

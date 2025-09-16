@@ -180,10 +180,10 @@ void Assembler::interrupt()
 void Assembler::iret()
 {
     _current_section->append_data(
-        if_create(OC::LD, MOD::LD_CSR_REGIND_INC, REG::STATUS, REG::SP, REG::R0, SP_INC));
+        if_create(OC::LD, MOD::LD_CSR_REGIND_DSP, REG::STATUS, REG::SP, REG::R0, SP_INC));
 
     _current_section->append_data(
-        if_create(OC::LD, MOD::LD_GPR_REGIND_INC, REG::PC, REG::SP, REG::R0, SP_INC));
+        if_create(OC::LD, MOD::LD_GPR_REGIND_INC, REG::PC, REG::SP, REG::R0, 2 * SP_INC));
 }
 
 void Assembler::call(uint32_t literal)

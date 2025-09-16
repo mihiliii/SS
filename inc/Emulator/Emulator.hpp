@@ -1,10 +1,15 @@
 #pragma once
 
-#include "../Elf32/Elf32File.hpp"
 #include "CPU.hpp"
+#include "Elf32/Elf32File.hpp"
 #include <vector>
 
 typedef std::vector<char> Memory;
+
+std::string gpr_to_s(REG reg);
+std::string csr_to_s(REG reg);
+
+void print_function(OC oc, MOD mod, REG regA, REG regB, REG regC, int disp);
 
 class Emulator {
 public:
