@@ -3,6 +3,7 @@ build/
 assembler
 linker
 emulator
+readelf32
 *.o
 *.txt
 *.hex

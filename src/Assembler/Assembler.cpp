@@ -58,7 +58,6 @@ int Assembler::start_assembler(const std::string& input_file_name,
 
     // Write the ELF file:
     _elf32_file.write_bin(output_file_name, ET_REL);
-    _elf32_file.read_elf(output_file_name);
 
     return 0;
 }

@@ -2,6 +2,7 @@ BUILD_DIR = build
 ASSEMBLER_PROGRAM_NAME = assembler
 LINKER_PROGRAM_NAME = linker
 EMULATOR_PROGRAM_NAME = emulator
+READELF32_PROGRAM_NAME = readelf32
 
 DEBUG_MODE = 0
 
@@ -24,6 +25,9 @@ $(wildcard src/Emulator/*.cpp) \
 ELF32_FILES =\
 $(wildcard src/Elf32/*.cpp) \
 
+READELF32_FILES =\
+$(wildcard src/ReadElf32/*.cpp) \
+
 CXXFLAGS = -Wall -Iinc -g -std=c++2a
 FLEXFLAGS =
 BISONFLAGS = -d
@@ -32,7 +36,7 @@ ifeq ($(DEBUG_MODE), 1)
 	FLEXFLAGS += -d
 endif
 
-all: assembler linker emulator
+all: assembler linker emulator readelf32
 
 assembler: $(ASSEMBLER_FILES) $(ELF32_FILES) $(C_FILES)
 	g++ $(CXXFLAGS) -o $(ASSEMBLER_PROGRAM_NAME) $(^) -lfl
@@ -42,6 +46,9 @@ linker: $(LINKER_FILES) $(ELF32_FILES)
 
 emulator: $(EMULATOR_FILES) $(ELF32_FILES)
 	g++ $(CXXFLAGS) -o $(EMULATOR_PROGRAM_NAME) $(^)
+
+readelf32: $(READELF32_FILES) $(ELF32_FILES)
+	g++ $(CXXFLAGS) -o $(READELF32_PROGRAM_NAME) $(^)
 
 $(BUILD_DIR)/bison.tab.c: $(BISON_FILE) Makefile | $(BUILD_DIR)
 	bison $(BISONFLAGS) -o $(@) $(<)
@@ -53,7 +60,7 @@ $(BUILD_DIR):
 	mkdir $(@)
 
 clean:
-	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME) $(EMULATOR_PROGRAM_NAME)
+	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME) $(EMULATOR_PROGRAM_NAME) $(READELF32_PROGRAM_NAME)
 
 clean_assembler:
 	rm -rf $(ASSEMBLER_PROGRAM_NAME)
