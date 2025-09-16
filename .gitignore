@@ -7,4 +7,4 @@ readelf32
 *.o
 *.txt
 *.hex
-*.sh
+tests/start.sh

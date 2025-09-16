@@ -4,7 +4,7 @@ LINKER_PROGRAM_NAME = linker
 EMULATOR_PROGRAM_NAME = emulator
 READELF32_PROGRAM_NAME = readelf32
 
-DEBUG_MODE = 0
+FLEX_DEBUG_MODE = 0
 
 BISON_FILE = misc/bison.y
 FLEX_FILE = misc/flex.l
@@ -32,7 +32,7 @@ CXXFLAGS = -Wall -Iinc -g -std=c++2a
 FLEXFLAGS =
 BISONFLAGS = -d
 
-ifeq ($(DEBUG_MODE), 1)
+ifeq ($(FLEX_DEBUG_MODE), 1)
 	FLEXFLAGS += -d
 endif
 
@@ -59,8 +59,10 @@ $(BUILD_DIR)/lex.yy.c: $(FLEX_FILE) Makefile | $(BUILD_DIR)
 $(BUILD_DIR):
 	mkdir $(@)
 
-clean:
-	rm -rf $(BUILD_DIR) $(ASSEMBLER_PROGRAM_NAME) $(LINKER_PROGRAM_NAME) $(EMULATOR_PROGRAM_NAME) $(READELF32_PROGRAM_NAME)
+clean: clean_assembler clean_linker clean_emulator clean_readelf32
+	rm -rf $(BUILD_DIR)
+	find . -type f -name "*.o" -delete
+	find . -type f -name "*.hex" -delete
 
 clean_assembler:
 	rm -rf $(ASSEMBLER_PROGRAM_NAME)
@@ -71,6 +73,5 @@ clean_linker:
 clean_emulator:
 	rm -rf $(EMULATOR_PROGRAM_NAME)
 
-clean_all: clean
-	find . -type f -name "*.o" -delete
-	find . -type f -name "*.hex" -delete
+clean_readelf32:
+	rm -rf $(READELF32_PROGRAM_NAME)
