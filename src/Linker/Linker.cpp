@@ -2,10 +2,11 @@
 #include "../../inc/Elf32/CustomSection.hpp"
 #include "../../inc/Elf32/Elf32File.hpp"
 #include "../../inc/Elf32/StringTable.hpp"
+#include "Elf32/Elf32.hpp"
 
 #include <iostream>
 
-Linker::Linker(std::list<Elf32File>& input_files, std::map<std::string, Elf32_Addr> place_addresses)
+Linker::Linker(std::list<Elf32File*> input_files, std::map<std::string, Elf32_Addr> place_addresses)
     : _output_file(Elf32File()),
       _input_files(input_files),
       _place_addresses(place_addresses)
@@ -20,36 +21,40 @@ int Linker::start_linker(const std::string& output_file_name)
 
     _output_file.write_bin(output_file_name.substr(0, output_file_name.rfind('.')) + ".o", ET_EXEC);
     _output_file.write_hex(output_file_name);
-    _output_file.read_elf(output_file_name.substr(0, output_file_name.rfind('.')) + ".o");
 
     return 0;
 }
 
 void Linker::map_symbol_table(Elf32File& input_file, std::list<Elf32_Sym*>& duplicate_symbols)
 {
-    for (auto in_symbol : input_file.symbol_table.get_symbol_table()) {
+    for (Elf32_Sym in_symbol : input_file.symbol_table.get_symbol_table()) {
 
         const std::string& symbol_name = input_file.string_table.get_string(in_symbol.st_name);
         Elf32_Sym* out_symbol = _output_file.symbol_table.find_symbol(symbol_name);
 
         if (in_symbol.st_shndx != SHN_ABS) {
-            Elf32_Shdr& section_header = *input_file.section_header_table.at(in_symbol.st_shndx);
-            const std::string& section_name =
-                input_file.string_table.get_string(section_header.sh_name);
+            Elf32_Shdr& sh = *input_file.section_header_table.at(in_symbol.st_shndx);
+            const std::string& section_name = input_file.string_table.get_string(sh.sh_name);
 
             const CustomSection& section = _output_file.custom_section_map.at(section_name);
 
             in_symbol.st_shndx = section.get_header_index();
-            in_symbol.st_value += section.get_header().sh_addr;
+
+            if (ELF32_ST_TYPE(in_symbol.st_info) == STT_SECTION) {
+                in_symbol.st_value = section.get_header().sh_addr;
+            }
+            else {
+                in_symbol.st_value += section.get_header().sh_addr;
+            }
         }
 
         if (out_symbol == nullptr) {
             _output_file.symbol_table.add_symbol(symbol_name, in_symbol);
-
             continue;
         }
 
-        if (out_symbol->st_defined == true && in_symbol.st_defined == true) {
+        if (out_symbol->st_defined == true && in_symbol.st_defined == true &&
+            ELF32_ST_TYPE(in_symbol.st_info) != STT_SECTION) {
             duplicate_symbols.push_back(out_symbol);
         }
         else if (out_symbol->st_defined == false && in_symbol.st_defined == true) {
@@ -64,7 +69,7 @@ void Linker::map_symbols()
     std::list<Elf32_Sym*> undefined_symbols;
 
     for (auto& input_file : _input_files) {
-        map_symbol_table(input_file, duplicate_symbols);
+        map_symbol_table(*input_file, duplicate_symbols);
     }
 
     for (auto& symbol : _output_file.symbol_table.get_symbol_table()) {
@@ -91,7 +96,6 @@ void Linker::map_symbols()
 void Linker::map_relocation_table(Elf32File& input_file)
 {
     for (auto& [rela_name, in_rela_table] : input_file.rela_table_map) {
-
         std::string section_name = in_rela_table.get_linked_section().get_name();
         CustomSection& out_section = _output_file.custom_section_map.at(section_name);
         std::vector<Elf32_Rela> out_rela_table_data;
@@ -104,7 +108,11 @@ void Linker::map_relocation_table(Elf32File& input_file)
             Elf32_Word out_symbol_index = _output_file.symbol_table.get_symbol_index(symbol_name);
 
             rela_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(rela_entry.r_info), out_symbol_index);
-            rela_entry.r_offset += out_section.get_header().sh_addr;
+
+            // rela_entry.r_offset += out_section.get_header().sh_addr;
+            if (_rela_offsets.find({&input_file, &out_section}) != _rela_offsets.end()) {
+                rela_entry.r_offset += _rela_offsets.at({&input_file, &out_section});
+            }
 
             out_rela_table_data.push_back(rela_entry);
         }
@@ -112,7 +120,11 @@ void Linker::map_relocation_table(Elf32File& input_file)
         // creates new relocation table if not exists, otherwise appends data to existing one
         auto it = _output_file.rela_table_map.find(rela_name);
         if (it == _output_file.rela_table_map.end()) {
-            _output_file.new_relocation_table(rela_name, out_section, in_rela_table.get_header(),
+            Elf32_Shdr rela_header = in_rela_table.get_header();
+            rela_header.sh_link = ELF32_ST_INFO(ELF32_ST_TYPE(rela_header.sh_link),
+                                                ELF32_ST_BIND(out_section.get_header_index()));
+
+            _output_file.new_relocation_table(rela_name, out_section, rela_header,
                                               out_rela_table_data);
         }
         else {
@@ -125,7 +137,7 @@ void Linker::map_relocation_table(Elf32File& input_file)
 void Linker::map_relocations()
 {
     for (auto& input_file : _input_files) {
-        map_relocation_table(input_file);
+        map_relocation_table(*input_file);
     }
 
     for (auto& [rela_name, rela_table] : _output_file.rela_table_map) {
@@ -146,7 +158,7 @@ void Linker::map_custom_sections()
     // it to the output file and add it to place_arguments map so linker can change its address
     // later. If section exists in out_elf32_file then append content only.
     for (const auto& input_file : _input_files) {
-        for (const auto& [section_name, section] : input_file.custom_section_map) {
+        for (const auto& [section_name, section] : input_file->custom_section_map) {
 
             auto it = _output_file.custom_section_map.find(section_name);
             if (it == _output_file.custom_section_map.end()) {
@@ -159,6 +171,9 @@ void Linker::map_custom_sections()
             }
             else {
                 CustomSection& output_section = it->second;
+
+                _rela_offsets.emplace(std::make_pair(input_file, &output_section),
+                                      output_section.get_size());
 
                 output_section.append_data(section.get_data());
             }

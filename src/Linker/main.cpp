@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
                     }
 
                     const std::string section_name = argument.substr(0, delimiter_pos);
-                    Elf32_Addr address = std::stoi(argument.substr(delimiter_pos + 1));
+                    Elf32_Addr address = std::stoul(argument.substr(delimiter_pos + 1), nullptr, 0);
 
                     place_addresses.emplace(section_name, address);
                 }
@@ -96,13 +96,17 @@ int main(int argc, char* argv[])
         std::cerr << "Error: -o argument not provided." << std::endl;
     }
     else {
-        std::list<Elf32File> input_files;
+        std::list<Elf32File*> input_files;
         for (int i = optind; i < argc; i++) {
-            input_files.emplace_back(Elf32File(argv[i]));
+            input_files.emplace_back(new Elf32File(argv[i]));
         }
 
         Linker linker = Linker(input_files, place_addresses);
         linker.start_linker(output_file_name);
+
+        for (auto& file : input_files) {
+            delete file;
+        }
 
         return 0;
     }
