@@ -51,7 +51,7 @@ public:
 
     bool has_rela_table();
 
-    void set_rela_table(RelocationTable* relocation_table);
+    void set_rela_table(RelocationTable& relocation_table);
 
     void write(std::ostream& ostream) override;
 

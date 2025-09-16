@@ -9,6 +9,8 @@ struct Elf32File;
 class Section {
 public:
 
+    friend struct Elf32File;
+
     virtual ~Section() = 0;
 
     virtual void write(std::ostream& ostream) = 0;

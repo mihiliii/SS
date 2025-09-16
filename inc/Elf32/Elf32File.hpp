@@ -16,25 +16,27 @@ typedef std::map<std::string, RelocationTable> RelocationTableMap;
 
 struct Elf32File {
 
+    static const char magic_number[EI_NIDENT];
+
     Elf32File();
 
     Elf32File(const std::string& file);
 
     Elf32File(const Elf32File&) = delete;
 
-    Elf32File(Elf32File&&) = default;
+    Elf32File(Elf32File&&);
 
     Elf32File& operator=(const Elf32File&) = delete;
 
-    Elf32File& operator=(Elf32File&&) = default;
+    Elf32File& operator=(Elf32File&&);
 
     void write_bin(const std::string& file_name, Elf32_Half type);
 
     void write_hex(const std::string& file_name);
 
-    void read_elf(const std::string& file_name);
-
     void read(const std::string& file_name);
+
+    void read_elf();
 
     CustomSection* new_custom_section(const std::string& name);
 

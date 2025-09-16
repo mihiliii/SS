@@ -124,9 +124,9 @@ bool CustomSection::has_rela_table()
     return _rela_table != nullptr;
 }
 
-void CustomSection::set_rela_table(RelocationTable* relocation_table)
+void CustomSection::set_rela_table(RelocationTable& relocation_table)
 {
-    _rela_table = relocation_table;
+    _rela_table = &relocation_table;
 }
 
 void CustomSection::write(std::ostream& ostream)

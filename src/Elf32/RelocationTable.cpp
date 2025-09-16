@@ -26,7 +26,7 @@ std::string RelocationTable::get_custom_section_name(const std::string& relocati
         throw std::runtime_error("Error: Invalid relocation section name: " + relocation_name);
     }
 
-    return relocation_name.substr(prefix_pos);
+    return relocation_name.substr(prefix_pos + NAME_PREFIX.length());
 }
 
 std::string RelocationTable::get_custom_section_name(RelocationTable& relocation_table)
@@ -47,7 +47,7 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
     _header.sh_link = 0;
     _header.sh_addralign = 4;
     _header.sh_size = 0;
-    linked_section.set_rela_table(this);
+    linked_section.set_rela_table(*this);
 }
 
 RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_section,
@@ -59,7 +59,7 @@ RelocationTable::RelocationTable(Elf32File& elf32_file, CustomSection& linked_se
 {
     const std::string& rela_name = NAME_PREFIX + linked_section.get_name();
     _header.sh_name = elf32_file.string_table.add_string(rela_name);
-    linked_section.set_rela_table(this);
+    linked_section.set_rela_table(*this);
 }
 
 RelocationTable::RelocationTable(RelocationTable&& other)

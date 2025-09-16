@@ -14,22 +14,28 @@ typedef int8_t Elf32_SByte;
 // *                                ELF HEADER                                *
 // ****************************************************************************
 
+#define EI_NIDENT 4
+
+#define EI_MAG0 'E'  // File identification
+#define EI_MAG1 'L'  // File identification
+#define EI_MAG2 'F'  // File identification
+#define EI_MAG3 '\0' // File identification
+
 /* Makros used e_type in Elf32_Ehdr (ELF header) */
 
 #define ET_NONE 0 // No file type
 #define ET_REL  1 // Relocatable file
 #define ET_EXEC 2 // Executable file
-#define ET_DYN  3 // Shared object file
 
 /* Struct that represents the ELF header */
 
 struct Elf32_Ehdr {
-    Elf32_Half e_type;      // File type
-    Elf32_Addr e_entry;     // Entry point address (virtual address where the program starts)
-    Elf32_Off e_shoff;      // Section header table file offset
-    Elf32_Half e_shentsize; // Section header table entry size
-    Elf32_Half e_shnum;     // Section header table entry count
-    Elf32_Off e_stroff;     // String table file offset
+    unsigned char e_ident[EI_NIDENT]; // Identifier
+    Elf32_Half e_type;                // File type
+    Elf32_Off e_shoff;                // Section header table file offset
+    Elf32_Half e_shentsize;           // Section header table entry size
+    Elf32_Half e_shnum;               // Section header table entry count
+    Elf32_Off e_stroff;               // String table file offset
 };
 
 // ****************************************************************************
