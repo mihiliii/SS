@@ -4,7 +4,6 @@
 #include "Elf32/Elf32.hpp"
 
 #include <algorithm>
-#include <deque>
 #include <iomanip>
 
 const std::string RelocationTable::NAME_PREFIX = std::string(".rela");
@@ -127,12 +126,12 @@ void RelocationTable::write(std::ostream& ostream)
 
 void RelocationTable::print(std::ostream& ostream) const
 {
-    std::deque<Elf32_Sym> symbol_table_data = _elf32_file->symbol_table.get_symbol_table();
-    Elf32_Sym max_symbol =
-        *std::max_element(symbol_table_data.begin(), symbol_table_data.end(),
-                          [](Elf32_Sym a, Elf32_Sym b) { return a.st_value < b.st_value; });
 
-    int num_digits = std::to_string(max_symbol.st_value).length();
+    const Elf32_Rela max_element = *std::max_element(
+        _relocation_table.begin(), _relocation_table.end(),
+        [](Elf32_Rela a, Elf32_Rela b) { return ELF32_R_SYM(a.r_info) < ELF32_R_SYM(b.r_info); });
+
+    int num_digits = std::to_string(ELF32_R_SYM(max_element.r_info)).length();
 
     std::ostream os_copy(ostream.rdbuf());
 
