@@ -4,6 +4,7 @@
 #include "../../inc/Elf32/StringTable.hpp"
 #include "Elf32/Elf32.hpp"
 
+#include <algorithm>
 #include <iostream>
 
 Linker::Linker(std::list<Elf32File*> input_files, std::map<std::string, Elf32_Addr> place_addresses)
@@ -36,7 +37,7 @@ void Linker::map_symbol_table(Elf32File& input_file, std::list<Elf32_Sym*>& dupl
             Elf32_Shdr& sh = *input_file.section_header_table.at(in_symbol.st_shndx);
             const std::string& section_name = input_file.string_table.get_string(sh.sh_name);
 
-            const CustomSection& section = _output_file.custom_section_map.at(section_name);
+            CustomSection& section = _output_file.custom_section_map.at(section_name);
 
             in_symbol.st_shndx = section.get_header_index();
 
@@ -44,6 +45,10 @@ void Linker::map_symbol_table(Elf32File& input_file, std::list<Elf32_Sym*>& dupl
                 in_symbol.st_value = section.get_header().sh_addr;
             }
             else {
+                auto it_offset = _data_section_offsets.find({&input_file, &section});
+                if (it_offset != _data_section_offsets.end()) {
+                    in_symbol.st_value += it_offset->second;
+                }
                 in_symbol.st_value += section.get_header().sh_addr;
             }
         }
@@ -91,6 +96,19 @@ void Linker::map_symbols()
     if (duplicate_symbols.size() > 0 || undefined_symbols.size() > 0) {
         exit(-1);
     }
+
+    // sort symbol table by section type and then by st_shndx and then by value
+
+    auto& sym_tab = _output_file.symbol_table.get_symbol_table();
+    std::stable_sort(sym_tab.begin(), sym_tab.end(), [](const Elf32_Sym& a, const Elf32_Sym& b) {
+        if (ELF32_ST_TYPE(a.st_info) != ELF32_ST_TYPE(b.st_info)) {
+            return ELF32_ST_TYPE(a.st_info) > ELF32_ST_TYPE(b.st_info);
+        }
+        if (a.st_shndx != b.st_shndx) {
+            return a.st_shndx < b.st_shndx;
+        }
+        return a.st_value < b.st_value;
+    });
 }
 
 void Linker::map_relocation_table(Elf32File& input_file)
@@ -110,8 +128,9 @@ void Linker::map_relocation_table(Elf32File& input_file)
             rela_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(rela_entry.r_info), out_symbol_index);
 
             // rela_entry.r_offset += out_section.get_header().sh_addr;
-            if (_rela_offsets.find({&input_file, &out_section}) != _rela_offsets.end()) {
-                rela_entry.r_offset += _rela_offsets.at({&input_file, &out_section});
+            auto it_offset = _data_section_offsets.find({&input_file, &out_section});
+            if (it_offset != _data_section_offsets.end()) {
+                rela_entry.r_offset += it_offset->second;
             }
 
             out_rela_table_data.push_back(rela_entry);
@@ -172,8 +191,8 @@ void Linker::map_custom_sections()
             else {
                 CustomSection& output_section = it->second;
 
-                _rela_offsets.emplace(std::make_pair(input_file, &output_section),
-                                      output_section.get_size());
+                _data_section_offsets.emplace(std::make_pair(input_file, &output_section),
+                                              output_section.get_size());
 
                 output_section.append_data(section.get_data());
             }

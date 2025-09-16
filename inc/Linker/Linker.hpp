@@ -28,5 +28,5 @@ private:
     Elf32File _output_file;
     std::list<Elf32File*> _input_files;
     std::map<std::string, Elf32_Addr> _place_addresses;
-    std::map<std::pair<Elf32File*, CustomSection*>, Elf32_Off> _rela_offsets;
+    std::map<std::pair<Elf32File*, CustomSection*>, Elf32_Off> _data_section_offsets;
 };
