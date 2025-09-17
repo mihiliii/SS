@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../Elf32/Elf32File.hpp"
+#include "Elf32/Elf32File.hpp"
+
 #include <list>
 #include <unordered_map>
 

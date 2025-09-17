@@ -1,4 +1,5 @@
-#include "../../inc/Assembler/Assembler.hpp"
+#include "Assembler/Assembler.hpp"
+
 #include <getopt.h>
 #include <iostream>
 
@@ -8,19 +9,19 @@ extern FILE* yyin;
 
 extern uint32_t line;
 
-inline int bad_argument_usage_error(const std::string& program_name)
-{
-    std::cerr << "Error, incorrect argument usage in " << program_name << ".\n"
-              << "Correct usage: " << program_name << " -o <output_file> <input_file>" << std::endl;
-    return -1;
-}
-
 Assembler* assembler = nullptr;
+
+inline void bad_argument_usage(const std::string& program_name)
+{
+    std::cerr << "Assembler Error: incorrect argument usage.\n"
+              << "Correct usage: " << program_name << " -o <output_file> <input_file>" << std::endl;
+}
 
 int main(int argc, char* argv[])
 {
     if (argc != 4) {
-        bad_argument_usage_error(argv[0]);
+        bad_argument_usage(argv[0]);
+        return -1;
     }
 
     std::string input_file_name;
@@ -31,20 +32,31 @@ int main(int argc, char* argv[])
         switch (opt_val) {
         case 'o':
             if (optarg == nullptr || optind != argc - 1) {
-                bad_argument_usage_error(argv[0]);
+                bad_argument_usage(argv[0]);
+                return -1;
             }
             output_file_name = optarg;
             input_file_name = argv[optind];
             break;
         default:
-            bad_argument_usage_error(argv[0]);
+            bad_argument_usage(argv[0]);
+            return -1;
             break;
         }
     }
 
-    // FIX: delete assembler object
-    assembler = new Assembler();
-    assembler->start_assembler(input_file_name, output_file_name);
+    try {
+        assembler = new Assembler();
+        assembler->start_assembler(input_file_name, output_file_name);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Assembler error: " << e.what() << std::endl;
+        delete assembler;
+
+        return -1;
+    }
+
+    delete assembler;
 
     return 0;
 }

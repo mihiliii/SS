@@ -1,9 +1,9 @@
-#include "../../inc/Emulator/Emulator.hpp"
+#include "Emulator/Emulator.hpp"
 
 #include <iomanip>
 #include <stdexcept>
 
-#include "../../inc/Elf32/Elf32File.hpp"
+#include "Elf32/Elf32File.hpp"
 
 Emulator::Emulator(Elf32File& program) : _program(program), _memory(0x100000000, 0), _cpu(_memory)
 {

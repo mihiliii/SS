@@ -1,13 +1,4 @@
-#include "../../inc/Assembler/Assembler.hpp"
-
-#include <cstdint>
-#include <iostream>
-
-#include "../../inc/Elf32/Elf32File.hpp"
-#include "Assembler/ConstantTable.hpp"
-#include "Assembler/InstructionFormat.hpp"
-#include "Elf32/CustomSection.hpp"
-#include "Elf32/Elf32.hpp"
+#include "Assembler/Assembler.hpp"
 
 // Include the Flex and Bison headers to use their functions:
 extern int yylex();
@@ -24,16 +15,15 @@ Assembler::Assembler()
 {
 }
 
-int Assembler::start_assembler(const std::string& input_file_name,
-                               const std::string& output_file_name)
+void Assembler::start_assembler(const std::string& input_file_name,
+                                const std::string& output_file_name)
 {
     // Open a file handle to a particular file:
     FILE* f_input = fopen(input_file_name.c_str(), "r");
 
     // Make sure it is valid:
     if (!f_input) {
-        std::cerr << "Error: can't open file " << input_file_name << std::endl;
-        return -1;
+        throw std::runtime_error("could not open input file " + input_file_name);
     }
 
     // Set Flex to read from it instead of defaulting to STDIN:
@@ -41,8 +31,7 @@ int Assembler::start_assembler(const std::string& input_file_name,
 
     // Parse through the input, if there is an error, yyparse will return a non-zero value:
     if (yyparse()) {
-        std::cerr << "Error: parsing failed." << std::endl;
-        return -1;
+        throw std::runtime_error("parsing failed");
     }
 
     // Close the file handle:
@@ -58,14 +47,11 @@ int Assembler::start_assembler(const std::string& input_file_name,
 
     // Write the ELF file:
     _elf32_file.write_bin(output_file_name, ET_REL);
-
-    return 0;
 }
 
 void Assembler::section_dir(const std::string& section_name)
 {
     auto it = _elf32_file.custom_section_map.find(section_name);
-
     if (it != _elf32_file.custom_section_map.end()) {
         CustomSection* section = &it->second;
         _current_section = section;
@@ -115,7 +101,6 @@ void Assembler::word_dir(const std::vector<Operand>& values)
 
 void Assembler::global_dir(const std::vector<Operand>& symbols)
 {
-    // TODO: check if there is a global symbol that is undefined
     for (const Operand& node : symbols) {
         const std::string symbol_name = std::get<std::string>(node.value);
         Elf32_Sym* symbol_entry = _elf32_file.symbol_table.find_symbol(symbol_name);
@@ -153,8 +138,8 @@ void Assembler::define_label(const std::string& label)
 
     if (symbol_entry != nullptr) {
         if (symbol_entry->st_defined == true) {
-            std::cerr << "Symbol " << label << " already defined!" << std::endl;
-            exit(-1);
+            throw std::runtime_error("Symbol " + label + " already defined at line " +
+                                     std::to_string(line));
         }
         else {
             _elf32_file.symbol_table.define_symbol(*symbol_entry, location_counter,
@@ -329,18 +314,15 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, uint32_t literal)
     }
     case IF_ADDR::REG_IND_OFF: {
         if (literal > MAX_DISP) {
-            // TODO: change std::cout to exception
-            std::cout << std::dec << "Error at line " << line << ": ";
-            std::cout << "offset is too large" << std::endl;
-            exit(-1);
+            throw std::runtime_error("offset is too large in load instruction at line " +
+                                     std::to_string(line));
         }
         instruction = if_create(OC::LD, MOD::LD_GPR_REGIND_DSP, reg_a, reg_b, REG::R0, literal);
         break;
     }
     default:
-        std::cout << "Error at line " << line << ": ";
-        std::cout << "unknown addressing mode in load instruction" << std::endl;
-        exit(-1);
+        throw std::runtime_error("unknown addressing mode in load instruction at line " +
+                                 std::to_string(line));
         break;
     }
 
@@ -374,9 +356,8 @@ void Assembler::load(IF_ADDR addr, REG reg_a, REG reg_b, const std::string& symb
         break;
     }
     default:
-        std::cout << "Error at line " << line << ": ";
-        std::cout << "unknown addressing mode in load instruction" << std::endl;
-        exit(-1);
+        throw std::runtime_error("unknown addressing mode in load instruction at line " +
+                                 std::to_string(line));
         break;
     }
 
@@ -394,10 +375,8 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, uint32_t li
 
     switch (addr) {
     case IF_ADDR::IMMEDIATE: {
-        // TODO: change std::cout to exception
-        std::cout << "Error at line " << line << ": ";
-        std::cout << "immediate addressing usage in store instruction" << std::endl;
-        exit(-1);
+        throw std::runtime_error("immediate addressing usage in store instruction at line " +
+                                 std::to_string(line));
         break;
     }
     case IF_ADDR::MEM_DIR: {
@@ -422,17 +401,15 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, uint32_t li
     }
     case IF_ADDR::REG_IND_OFF: {
         if (literal > MAX_DISP) {
-            std::cout << std::dec << "Error at line " << line << ": ";
-            std::cout << "offset is too large" << std::endl;
-            exit(-1);
+            throw std::runtime_error("offset is too large in store instruction at line " +
+                                     std::to_string(line));
         }
         instruction = if_create(OC::ST, MOD::ST_REGIND, reg_a, REG::R0, reg_c, literal);
         break;
     }
     default:
-        std::cout << "Error at line " << line << ": ";
-        std::cout << "unknown addressing mode in store instruction" << std::endl;
-        exit(-1);
+        throw std::runtime_error("unknown addressing mode in store instruction at line " +
+                                 std::to_string(line));
         break;
     }
 
@@ -452,9 +429,8 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, const std::
 
     switch (addr) {
     case IF_ADDR::IMMEDIATE: {
-        std::cout << std::dec << "Error at line " << line << ": ";
-        std::cout << "immediate addressing usage in store instruction" << std::endl;
-        exit(-1);
+        throw std::runtime_error("immediate addressing usage in store instruction at line " +
+                                 std::to_string(line));
         break;
     }
     case IF_ADDR::MEM_DIR: {
@@ -463,9 +439,8 @@ void Assembler::store(IF_ADDR addr, REG reg_a, REG reg_b, REG reg_c, const std::
         break;
     }
     default:
-        std::cout << "Error at line " << line << ": ";
-        std::cout << "unknown addressing mode in store instruction" << std::endl;
-        exit(-1);
+        throw std::runtime_error("unknown addressing mode in store instruction at line " +
+                                 std::to_string(line));
         break;
     }
 

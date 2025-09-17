@@ -2,9 +2,7 @@
 #include "Assembler/InstructionFormat.hpp"
 #include "Emulator/Emulator.hpp"
 
-#include <cstdint>
 #include <cstring>
-#include <iostream>
 
 void CPU::push(Register reg)
 {
@@ -182,7 +180,7 @@ void CPU::execute_instruction(instruction_format instruction)
         }
         break;
     default:
-        std::cout << "Invalid instruction." << std::endl;
+        throw std::runtime_error("Unknown instruction encountered.");
         _running = false;
         break;
     }

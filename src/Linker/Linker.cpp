@@ -1,8 +1,6 @@
-#include "../../inc/Linker/Linker.hpp"
-#include "../../inc/Elf32/CustomSection.hpp"
-#include "../../inc/Elf32/Elf32File.hpp"
-#include "../../inc/Elf32/StringTable.hpp"
-#include "Elf32/Elf32.hpp"
+#include "Linker/Linker.hpp"
+
+#include "Elf32/Elf32File.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -84,17 +82,17 @@ void Linker::map_symbols()
     }
 
     for (auto& symbol : duplicate_symbols) {
-        std::cout << "Error: Duplicate symbol definition: "
+        std::cout << "Linker Error: Duplicate symbol definition: "
                   << _output_file.string_table.get_string(symbol->st_name) << std::endl;
     }
 
     for (auto& symbol : undefined_symbols) {
-        std::cout << "Error: Undefined symbol: "
+        std::cout << "Linker Error: Undefined symbol: "
                   << _output_file.string_table.get_string(symbol->st_name) << std::endl;
     }
 
     if (duplicate_symbols.size() > 0 || undefined_symbols.size() > 0) {
-        exit(-1);
+        throw std::runtime_error("Linker Error: Cannot continue linking due to errors.");
     }
 
     // sort symbol table by section type and then by st_shndx and then by value
@@ -122,12 +120,10 @@ void Linker::map_relocation_table(Elf32File& input_file)
 
             Elf32_Sym sym_entry =
                 input_file.symbol_table.get_symbol(ELF32_R_SYM(rela_entry.r_info));
-            const std::string& symbol_name = input_file.string_table.get_string(sym_entry.st_name);
-            Elf32_Word out_symbol_index = _output_file.symbol_table.get_symbol_index(symbol_name);
+            Elf32_Word out_symbol_index = _output_file.symbol_table.get_symbol_index(sym_entry);
 
             rela_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(rela_entry.r_info), out_symbol_index);
 
-            // rela_entry.r_offset += out_section.get_header().sh_addr;
             auto it_offset = _data_section_offsets.find({&input_file, &out_section});
             if (it_offset != _data_section_offsets.end()) {
                 rela_entry.r_offset += it_offset->second;

@@ -1,6 +1,6 @@
-#include "../../inc/Elf32/CustomSection.hpp"
+#include "Elf32/CustomSection.hpp"
 
-#include "../../inc/Elf32/Elf32File.hpp"
+#include "Elf32/Elf32File.hpp"
 
 #include <cstdint>
 #include <iomanip>

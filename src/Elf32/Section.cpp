@@ -1,6 +1,6 @@
-#include "../../inc/Elf32/Section.hpp"
+#include "Elf32/Section.hpp"
 
-#include "../../inc/Elf32/Elf32File.hpp"
+#include "Elf32/Elf32File.hpp"
 
 Section::Section(Elf32File& elf32_file)
     : _elf32_file(&elf32_file),

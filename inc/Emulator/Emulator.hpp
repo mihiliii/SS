@@ -1,7 +1,9 @@
 #pragma once
 
 #include "CPU.hpp"
+
 #include "Elf32/Elf32File.hpp"
+
 #include <vector>
 
 typedef std::vector<char> Memory;

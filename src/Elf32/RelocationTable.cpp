@@ -1,7 +1,6 @@
-#include "../../inc/Elf32/RelocationTable.hpp"
+#include "Elf32/RelocationTable.hpp"
 
-#include "../../inc/Elf32/Elf32File.hpp"
-#include "Elf32/Elf32.hpp"
+#include "Elf32/Elf32File.hpp"
 
 #include <algorithm>
 #include <iomanip>
@@ -151,7 +150,7 @@ void RelocationTable::print(std::ostream& ostream) const
         Elf32_Sym* symbol = _elf32_file->symbol_table.find_symbol(symbol_index);
 
         if (symbol == nullptr) {
-            std::cout << "Error: invalid symbol index in relocation entry." << std::endl;
+            throw std::runtime_error("CRITICAL: invalid symbol index in relocation entry.");
         }
 
         const std::string& symbol_name = _elf32_file->string_table.get_string(symbol->st_name);

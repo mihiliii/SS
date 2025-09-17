@@ -1,9 +1,9 @@
 #pragma once
 
+#include "Section.hpp"
+
 #include <map>
 #include <vector>
-
-#include "Section.hpp"
 
 class StringTable : public Section {
 public:

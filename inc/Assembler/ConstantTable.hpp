@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Elf32/Elf32File.hpp"
+
 #include <cstdint>
 #include <list>
 #include <unordered_map>
 #include <vector>
-
-#include "../Elf32/Elf32File.hpp"
 
 typedef std::unordered_map<uint32_t, std::pair<Elf32_Off, std::list<Elf32_Addr>>> LiteralTable;
 typedef std::unordered_map<Elf32_Sym*, std::pair<Elf32_Off, std::list<Elf32_Addr>>>

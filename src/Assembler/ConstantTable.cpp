@@ -1,8 +1,10 @@
-#include "../../inc/Assembler/ConstantTable.hpp"
-#include "../../inc/Assembler/InstructionFormat.hpp"
+#include "Assembler/ConstantTable.hpp"
 
-#include "../../inc/Elf32/Elf32File.hpp"
+#include "Assembler/InstructionFormat.hpp"
+
 #include "Elf32/Elf32.hpp"
+#include "Elf32/Elf32File.hpp"
+
 #include <cstdint>
 
 ConstantTable::ConstantTable(Elf32File& elf32_file, CustomSection& linked_section)
@@ -72,9 +74,8 @@ void ConstantTable::resolve_references()
 
         for (const Elf32_Off& section_addr : list) {
             if (section_addr + 4 > _linked_section.get_size()) {
-                std::cerr << "Error: section address out of bounds in resolveReferences"
-                          << std::endl;
-                exit(-1);
+                throw std::runtime_error(
+                    "CRITICAL: resolve_references: section address out of bounds");
             }
 
             instruction_format content = _linked_section.get_instruction(section_addr);
@@ -82,8 +83,7 @@ void ConstantTable::resolve_references()
             uint32_t disp = literal_pool_offset + (_linked_section.get_size() - section_addr) - 4;
 
             if (disp > MAX_DISP) {
-                std::cout << "Error: constant pool overflow" << std::endl;
-                exit(-1);
+                throw std::runtime_error("literal pool overflow");
             }
 
             content = (content & ~IF_MASK_DISP) | (disp & IF_MASK_DISP);
@@ -97,9 +97,8 @@ void ConstantTable::resolve_references()
 
         for (const Elf32_Off& section_addr : list) {
             if (section_addr + 4 > _linked_section.get_size()) {
-                std::cerr << "Error: section address out of bounds in resolveReferences"
-                          << std::endl;
-                exit(-1);
+                throw std::runtime_error(
+                    "CRITICAL: resolve_references: section address out of bounds");
             }
 
             instruction_format content = _linked_section.get_instruction(section_addr);
@@ -107,8 +106,7 @@ void ConstantTable::resolve_references()
             uint32_t disp = symbol_pool_offset + (_linked_section.get_size() - section_addr) - 4;
 
             if (disp > MAX_DISP) {
-                std::cout << "Literal pool overflow" << std::endl;
-                exit(-1);
+                throw std::runtime_error("literal pool overflow");
             }
 
             content = (content & ~IF_MASK_DISP) | (disp & IF_MASK_DISP);

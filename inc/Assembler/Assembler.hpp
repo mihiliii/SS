@@ -1,14 +1,15 @@
 #pragma once
 
+#include "Elf32/Elf32File.hpp"
+
+#include "ConstantTable.hpp"
+#include "ForwardReferenceTable.hpp"
+#include "InstructionFormat.hpp"
+
 #include <map>
 #include <string>
 #include <variant>
 #include <vector>
-
-#include "../Elf32/Elf32File.hpp"
-#include "ConstantTable.hpp"
-#include "ForwardReferenceTable.hpp"
-#include "InstructionFormat.hpp"
 
 typedef uint32_t Literal;
 typedef std::string Symbol;
@@ -46,7 +47,7 @@ public:
 
     Assembler();
 
-    int start_assembler(const std::string& input_file_name, const std::string& output_file_name);
+    void start_assembler(const std::string& input_file_name, const std::string& output_file_name);
 
     void section_dir(const std::string& section_name);
 

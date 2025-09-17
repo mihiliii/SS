@@ -1,6 +1,6 @@
-#include "../../inc/Assembler/ForwardReferenceTable.hpp"
-#include "../../inc/Assembler/Assembler.hpp"
-#include "../../inc/Assembler/InstructionFormat.hpp"
+#include "Assembler/ForwardReferenceTable.hpp"
+
+#include "Assembler/Assembler.hpp"
 
 ForwardReferenceTable::ForwardReferenceTable(Assembler& assembler)
     : _assembler(assembler),
@@ -29,9 +29,8 @@ void ForwardReferenceTable::backpatch()
         // Check if symbol is not defined and local since every symbol should be defined at the
         // backpatching phase.
         if (symbol_entry.st_defined == false && ELF32_ST_BIND(symbol_entry.st_info) == STB_LOCAL) {
-            std::cerr << "Symbol " << _elf32_file.string_table.get_string(symbol_entry.st_name)
-                      << " is not defined." << std::endl;
-            exit(-1);
+            const std::string& sym_name = _elf32_file.string_table.get_string(symbol_entry.st_name);
+            throw std::runtime_error("Symbol " + sym_name + " not defined.");
         }
 
         for (SymbolReference reference : entry.second) {
@@ -67,8 +66,8 @@ void ForwardReferenceTable::resolve_symbol(Elf32_Sym& symbol_entry, SymbolRefere
                 mod = MOD::BGT;
                 break;
             default:
-                std::cerr << "Error: something is not right.";
-                exit(-1);
+                throw std::runtime_error(
+                    "CRITICAL: resolve_symbol: unknown jump mod in backpatching");
                 break;
             }
         }

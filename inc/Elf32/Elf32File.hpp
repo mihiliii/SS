@@ -1,13 +1,13 @@
 #pragma once
 
-#include <map>
-#include <vector>
-
 #include "CustomSection.hpp"
 #include "Elf32.hpp"
 #include "RelocationTable.hpp"
 #include "StringTable.hpp"
 #include "SymbolTable.hpp"
+
+#include <map>
+#include <vector>
 
 typedef Elf32_Ehdr Elf32Header;
 typedef std::vector<Elf32_Shdr*> SectionHeaderTable;
@@ -16,7 +16,7 @@ typedef std::map<std::string, RelocationTable> RelocationTableMap;
 
 struct Elf32File {
 
-    static const char magic_number[EI_NIDENT];
+    static const unsigned char magic_number[EI_NIDENT];
 
     Elf32File();
 
@@ -24,11 +24,11 @@ struct Elf32File {
 
     Elf32File(const Elf32File&) = delete;
 
-    Elf32File(Elf32File&&);
+    Elf32File(Elf32File&&) = delete;
 
     Elf32File& operator=(const Elf32File&) = delete;
 
-    Elf32File& operator=(Elf32File&&);
+    Elf32File& operator=(Elf32File&&) = delete;
 
     void write_bin(const std::string& file_name, Elf32_Half type);
 

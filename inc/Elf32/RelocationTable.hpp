@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
-
 #include "Section.hpp"
+
+#include <vector>
 
 class CustomSection;
 

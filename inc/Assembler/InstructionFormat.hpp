@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../Elf32/Elf32.hpp"
+#include "Elf32/Elf32.hpp"
+
 #include <cstdint>
 #include <sys/types.h>
 

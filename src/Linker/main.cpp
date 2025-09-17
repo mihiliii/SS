@@ -1,16 +1,22 @@
 #include <getopt.h>
 
-#include "../../inc/Linker/Linker.hpp"
-#include "Elf32/Elf32.hpp"
+#include "Linker/Linker.hpp"
 
 #include <cstring>
 #include <iostream>
 #include <string>
 
+inline void bad_argument_usage(const std::string& program_name)
+{
+    std::cerr << "Linker Error: incorrect argument usage.\n"
+              << "Correct usage: " << program_name
+              << " -o <output_file> --place=<section>@<address> -hex <input_files...>" << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        std::cerr << "Error: no arguments provided." << std::endl;
+        bad_argument_usage(argv[0]);
         return -1;
     }
 
@@ -35,8 +41,7 @@ int main(int argc, char* argv[])
         switch (opt_val) {
         case OPT_TYPE::SHORT:
             if (optarg == nullptr) {
-                std::cerr << "Error: incorrect -o argument usage, output file name is missing.\n"
-                          << "Correct usage: -o <output_file>" << std::endl;
+                bad_argument_usage(argv[0]);
                 return -1;
             }
 
@@ -46,8 +51,7 @@ int main(int argc, char* argv[])
             switch (option_index) {
             case PLACE:
                 if (optarg == nullptr) {
-                    std::cerr << "Error: incorrect --place argument usage.\n"
-                              << "Correct usage: --place=<section>@<address>" << std::endl;
+                    bad_argument_usage(argv[0]);
                     return -1;
                 }
                 else {
@@ -55,8 +59,7 @@ int main(int argc, char* argv[])
                     size_t delimiter_pos = argument.find('@');
 
                     if (delimiter_pos == std::string::npos) {
-                        std::cerr << "Error: incorrect --place argument usage.\n"
-                                  << "Correct usage: --place=<section>@<address>" << std::endl;
+                        bad_argument_usage(argv[0]);
                         return -1;
                     }
 
@@ -95,21 +98,29 @@ int main(int argc, char* argv[])
     else if (output_file_name == nullptr) {
         std::cerr << "Error: -o argument not provided." << std::endl;
     }
-    else {
-        std::list<Elf32File*> input_files;
-        for (int i = optind; i < argc; i++) {
-            input_files.emplace_back(new Elf32File(argv[i]));
-        }
 
+    std::list<Elf32File*> input_files;
+    for (int i = optind; i < argc; i++) {
+        input_files.emplace_back(new Elf32File(argv[i]));
+    }
+
+    try {
         Linker linker = Linker(input_files, place_addresses);
         linker.start_linker(output_file_name);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Linker error: " << e.what() << std::endl;
 
         for (auto& file : input_files) {
             delete file;
         }
 
-        return 0;
+        return -1;
     }
 
-    return -1;
+    for (auto& file : input_files) {
+        delete file;
+    }
+
+    return 0;
 }

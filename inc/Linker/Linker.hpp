@@ -1,10 +1,10 @@
 #pragma once
 
+#include "Elf32/Elf32File.hpp"
+
 #include <list>
 #include <map>
 #include <string>
-
-#include "../Elf32/Elf32File.hpp"
 
 class Linker {
 public:

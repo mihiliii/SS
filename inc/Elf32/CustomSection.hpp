@@ -1,10 +1,11 @@
 #pragma once
 
+#include "Assembler/InstructionFormat.hpp"
+
+#include "Section.hpp"
+
 #include <string>
 #include <vector>
-
-#include "../Assembler/InstructionFormat.hpp"
-#include "Section.hpp"
 
 class RelocationTable;
 typedef uint32_t instruction_format_t;

@@ -1,6 +1,6 @@
-#include "../../inc/Elf32/StringTable.hpp"
+#include "Elf32/StringTable.hpp"
 
-#include "../../inc/Elf32/Elf32File.hpp"
+#include "Elf32/Elf32File.hpp"
 
 StringTable::StringTable(Elf32File& elf32_file)
     : Section(elf32_file, {.sh_type = SHT_STRTAB, .sh_addralign = 1, .sh_entsize = 1}),

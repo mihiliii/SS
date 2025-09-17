@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Assembler/InstructionFormat.hpp"
+#include "Assembler/InstructionFormat.hpp"
 
 #include <cstdint>
 #include <vector>

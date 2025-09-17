@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-
 #include "Elf32.hpp"
+
+#include <string>
 
 struct Elf32File;
 

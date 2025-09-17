@@ -1,11 +1,10 @@
-#include "../../inc/Elf32/SymbolTable.hpp"
+#include "Elf32/SymbolTable.hpp"
+
+#include "Elf32/Elf32.hpp"
+#include "Elf32/Elf32File.hpp"
 
 #include <algorithm>
-#include <cstddef>
 #include <iomanip>
-
-#include "../../inc/Elf32/Elf32File.hpp"
-#include "../../inc/Elf32/StringTable.hpp"
 
 SymbolTable::SymbolTable(Elf32File& elf32_file)
     : Section(elf32_file,
@@ -40,7 +39,6 @@ Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Addr value, bo
                                         .st_info = info,
                                         .st_shndx = section_index,
                                         .st_value = value,
-                                        .st_size = 0,
                                         .st_defined = defined});
 
     _header.sh_size += sizeof(Elf32_Sym);
@@ -50,7 +48,7 @@ Elf32_Sym& SymbolTable::add_symbol(const std::string& name, Elf32_Addr value, bo
 
 Elf32_Sym* SymbolTable::find_symbol(const std::string& name)
 {
-    for (auto& symbol : _symbol_table) {
+    for (Elf32_Sym& symbol : _symbol_table) {
         if (_elf32_file->string_table.get_string(symbol.st_name) == name) {
             return &symbol;
         }
@@ -88,14 +86,14 @@ std::deque<Elf32_Sym>& SymbolTable::get_symbol_table()
 
 void SymbolTable::set_symbol(Elf32_Sym& table_entry, const std::string& symbol_name,
                              Elf32_Byte st_info, Elf32_Half st_shndx, Elf32_Addr st_value,
-                             Elf32_Word st_size, bool st_defined)
+                             bool st_defined)
 {
     table_entry.st_name = _elf32_file->string_table.get_offset(symbol_name);
     if (table_entry.st_name == 0) {
         table_entry.st_name = _elf32_file->string_table.add_string(symbol_name);
     }
 
-    table_entry = {table_entry.st_name, st_info, st_shndx, st_value, st_size, st_defined};
+    table_entry = {table_entry.st_name, st_info, st_shndx, st_value, st_defined};
 }
 
 void SymbolTable::set_symbol(Elf32_Sym& table_entry, const std::string& symbol_name,
@@ -153,7 +151,6 @@ Elf32_Word SymbolTable::get_symbol_index(const std::string& name)
             return i;
         }
     }
-    // NOTE: function should return 0 if index 0 is empty symbol, else return -1
     return -1;
 }
 
@@ -191,7 +188,6 @@ void SymbolTable::print(std::ostream& ostream) const
     os_copy << std::setw(4) << "NUM";
     os_copy << std::setw(25) << "NAME";
     os_copy << std::setw(9) << "VALUE";
-    os_copy << std::setw(9) << "SIZE";
     os_copy << std::setw(9) << "TYPE";
     os_copy << std::setw(6) << "BIND";
     os_copy << std::setw(8) << "SHINDEX";
@@ -245,7 +241,6 @@ void SymbolTable::print(std::ostream& ostream) const
                 << " ";
         os_copy << std::right << std::setfill('0') << std::hex;
         os_copy << std::setw(8) << symbol_entry.st_value << " ";
-        os_copy << std::setw(8) << symbol_entry.st_size << " ";
         os_copy << std::setfill(' ') << std::dec << std::left;
         os_copy << std::setw(8) << type << " ";
         os_copy << std::setw(5) << bind << " ";

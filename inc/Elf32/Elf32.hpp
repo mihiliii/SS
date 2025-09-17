@@ -101,7 +101,6 @@ struct Elf32_Sym {
     Elf32_Byte st_info;  // Type attributes
     Elf32_Half st_shndx; // Section index which the symbol is defined
     Elf32_Addr st_value; // Symbol value
-    Elf32_Word st_size;  // Size of the symbol
     bool st_defined;     // True if the symbol is defined in the ELF file
 };
 

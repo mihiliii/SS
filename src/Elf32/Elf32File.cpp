@@ -1,15 +1,11 @@
-#include "../../inc/Elf32/Elf32File.hpp"
+#include "Elf32/Elf32File.hpp"
 
-#include "Elf32/CustomSection.hpp"
-#include "Elf32/Elf32.hpp"
-#include "Elf32/RelocationTable.hpp"
-#include "Elf32/StringTable.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <string>
 
-const char Elf32File::magic_number[EI_NIDENT] = {EI_MAG0, EI_MAG1, EI_MAG2, EI_MAG3};
+const unsigned char Elf32File::magic_number[EI_NIDENT] = {EI_MAG0, EI_MAG1, EI_MAG2, EI_MAG3};
 
 Elf32File::Elf32File()
     : elf32_header({
@@ -36,36 +32,12 @@ Elf32File::Elf32File(const std::string& file_name)
     read(file_name);
 }
 
-Elf32File::Elf32File(Elf32File&& other)
-    : elf32_header(other.elf32_header),
-      section_header_table(other.section_header_table),
-      string_table(std::move(other.string_table)),
-      symbol_table(std::move(other.symbol_table)),
-      custom_section_map(std::move(other.custom_section_map)),
-      rela_table_map(std::move(other.rela_table_map))
-{
-}
-
-Elf32File& Elf32File::operator=(Elf32File&& other)
-{
-    if (this != &other) {
-        elf32_header = other.elf32_header;
-        section_header_table = other.section_header_table;
-        string_table = std::move(other.string_table);
-        symbol_table = std::move(other.symbol_table);
-        custom_section_map = std::move(other.custom_section_map);
-        rela_table_map = std::move(other.rela_table_map);
-    }
-    return *this;
-}
-
 void Elf32File::write_bin(const std::string& file_name, Elf32_Half file_type)
 {
     std::ofstream file;
     file.open(file_name, std::ios::out | std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file in Elf32File::write " << file_name << std::endl;
-        return;
+        throw std::runtime_error("Elf32File: Could not open file " + file_name);
     }
 
     file.seekp(sizeof(Elf32_Ehdr), std::ios::beg);
@@ -111,9 +83,7 @@ void Elf32File::write_hex(const std::string& file_name)
     file.open(file_name, std::ios::out);
 
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file in Elf32File::writeToFile" << file_name
-                  << std::endl;
-        return;
+        throw std::runtime_error("Elf32File: Could not open file " + file_name);
     }
 
     struct Segment {
@@ -140,8 +110,7 @@ void Elf32File::write_hex(const std::string& file_name)
 
     for (size_t i = 1; i < segments.size(); ++i) {
         if (segments[i].start < segments[i - 1].end) {
-            std::cout << "Error: Overlapping sections in Elf32File::writeHex" << std::endl;
-            exit(-1);
+            throw std::runtime_error("Elf32File: Overlapping virtual section addresses.");
         }
     }
 
@@ -164,8 +133,7 @@ void Elf32File::read_elf()
 {
     for (int i = 0; i < EI_NIDENT; i++) {
         if (elf32_header.e_ident[i] != magic_number[i]) {
-            std::cerr << "Error: Not a valid ELF32 file." << std::endl;
-            return;
+            throw std::runtime_error("Elf32File: Not a valid ELF32 file.");
         }
     }
 
@@ -275,11 +243,16 @@ void Elf32File::read(const std::string& file_name)
 {
     std::fstream file(file_name, std::ios::in | std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file in Elf32File::read: " << file_name << std::endl;
-        return;
+        throw std::runtime_error("Elf32File: Could not open file " + file_name);
     }
 
     file.read((char*) (&elf32_header), sizeof(Elf32_Ehdr));
+
+    for (int i = 0; i < EI_NIDENT; i++) {
+        if (elf32_header.e_ident[i] != magic_number[i]) {
+            throw std::runtime_error("Elf32File: Not a valid ELF32 file.");
+        }
+    }
 
     for (Elf32_Half sht_entry = 0; sht_entry < elf32_header.e_shnum; sht_entry++) {
         Elf32_Shdr section_header;
@@ -336,8 +309,8 @@ void Elf32File::read(const std::string& file_name)
             new_relocation_table(rela_name, custom_section, section_header, rela_table_data);
         }
         else {
-            std::cout << "Error: Unknown section type in Elf32File::read: "
-                      << section_header.sh_type << std::endl;
+            throw std::runtime_error(
+                "Elf32File: unknown section type while reading from Elf32File.");
         }
     }
 
@@ -351,13 +324,9 @@ CustomSection* Elf32File::new_custom_section(const std::string& name)
     CustomSection* new_element = &pair.first->second;
 
     if (!is_emplaced) {
-        std::cerr << "Error: Could not create custom section in Elf32File::newCustomSection"
-                  << std::endl;
-        return nullptr;
+        throw std::runtime_error("CRITICAL: new_custom_section: could not create new section.");
     }
-    else {
-        return new_element;
-    }
+    return new_element;
 }
 
 CustomSection* Elf32File::new_custom_section(const std::string& name, Elf32_Shdr section_header,
@@ -368,13 +337,9 @@ CustomSection* Elf32File::new_custom_section(const std::string& name, Elf32_Shdr
     CustomSection* new_element = &pair.first->second;
 
     if (!is_emplaced) {
-        std::cerr << "Error: Could not create custom section in Elf32File::newCustomSection"
-                  << std::endl;
-        return nullptr;
+        throw std::runtime_error("CRITICAL: new_custom_section: could not create new section.");
     }
-    else {
-        return new_element;
-    }
+    return new_element;
 }
 
 RelocationTable* Elf32File::new_relocation_table(const std::string& name,
@@ -385,13 +350,10 @@ RelocationTable* Elf32File::new_relocation_table(const std::string& name,
     RelocationTable* new_element = &pair.first->second;
 
     if (!is_emplaced) {
-        std::cerr << "Error: Could not create relocation table in Elf32File::newRelocationTable"
-                  << std::endl;
-        return nullptr;
+        throw std::runtime_error(
+            "CRITICAL: new_relocation_table: could not create new relocation table.");
     }
-    else {
-        return new_element;
-    }
+    return new_element;
 }
 
 RelocationTable* Elf32File::new_relocation_table(const std::string& name,
@@ -404,11 +366,8 @@ RelocationTable* Elf32File::new_relocation_table(const std::string& name,
     RelocationTable* new_element = &pair.first->second;
 
     if (!is_emplaced) {
-        std::cerr << "Error: Could not create relocation table in Elf32File::newRelocationTable"
-                  << std::endl;
-        return nullptr;
+        throw std::runtime_error(
+            "CRITICAL: new_relocation_table: could not create new relocation table.");
     }
-    else {
-        return new_element;
-    }
+    return new_element;
 }

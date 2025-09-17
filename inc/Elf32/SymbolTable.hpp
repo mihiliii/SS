@@ -1,10 +1,10 @@
 #pragma once
 
+#include "Section.hpp"
+
 #include <deque>
 #include <iostream>
 #include <vector>
-
-#include "Section.hpp"
 
 class SymbolTable : public Section {
 public:
@@ -41,7 +41,7 @@ public:
     std::deque<Elf32_Sym>& get_symbol_table();
 
     void set_symbol(Elf32_Sym& table_entry, const std::string& symbol_name, Elf32_Byte st_info,
-                    Elf32_Half st_shndx, Elf32_Addr st_value, Elf32_Word st_size, bool st_defined);
+                    Elf32_Half st_shndx, Elf32_Addr st_value, bool st_defined);
 
     void set_symbol(Elf32_Sym& table_entry, const std::string& symbol_name, Elf32_Sym symbol);
 
