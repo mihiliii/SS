@@ -20,9 +20,6 @@
     #include "../inc/Assembler/InstructionFormat.hpp"
 
     struct Operand;
-
-    using enum REG;
-    using enum IF_ADDR;
 }
 
 // Bison fundamentally works by asking flex to get the next token, which it
@@ -185,18 +182,18 @@ directive:
 instruction:
     HALT                                { assembler->halt(); }
   | INT                                 { assembler->interrupt(); }
-  | RET                                 { assembler->pop(PC); }
+  | RET                                 { assembler->pop(REG::PC); }
   | IRET                                { assembler->iret(); }
   | CALL LITERAL                        { assembler->call($2); }
   | CALL SYMBOL                         { assembler->call($2); free($2); }
-  | JMP LITERAL                         { assembler->jump(MOD::JMP, R0, R0, R0, $2); }
-  | JMP SYMBOL                          { assembler->jump(MOD::JMP, R0, R0, R0, $2); free($2); }
-  | BEQ GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BEQ, R0, $2, $4, $6); }
-  | BEQ GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BEQ, R0, $2, $4, $6); free($6); }
-  | BNE GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BNE, R0, $2, $4, $6); }
-  | BNE GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BNE, R0, $2, $4, $6); free($6); }
-  | BGT GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BGT, R0, $2, $4, $6); }
-  | BGT GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BGT, R0, $2, $4, $6); free($6);}
+  | JMP LITERAL                         { assembler->jump(MOD::JMP, REG::R0, REG::R0, REG::R0, $2); }
+  | JMP SYMBOL                          { assembler->jump(MOD::JMP, REG::R0, REG::R0, REG::R0, $2); free($2); }
+  | BEQ GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BEQ, REG::R0, $2, $4, $6); }
+  | BEQ GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BEQ, REG::R0, $2, $4, $6); free($6); }
+  | BNE GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BNE, REG::R0, $2, $4, $6); }
+  | BNE GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BNE, REG::R0, $2, $4, $6); free($6); }
+  | BGT GPR ',' GPR ',' LITERAL         { assembler->jump(MOD::BGT, REG::R0, $2, $4, $6); }
+  | BGT GPR ',' GPR ',' SYMBOL          { assembler->jump(MOD::BGT, REG::R0, $2, $4, $6); free($6);}
   | PUSH GPR                            { assembler->push($2); }
   | POP GPR                             { assembler->pop($2); }
   | XCHG GPR ',' GPR                    { assembler->exchange($2, $4); }
@@ -210,20 +207,20 @@ instruction:
   | XOR GPR ',' GPR                     { assembler->logic(MOD::LOG_XOR, $2, $4); }
   | SHL GPR ',' GPR                     { assembler->shift(MOD::SHF_SHL, $2, $4); }
   | SHR GPR ',' GPR                     { assembler->shift(MOD::SHF_SHR, $2, $4); }
-  | LD '$' LITERAL ',' GPR              { assembler->load(IMMEDIATE, $5, R0, $3); }
-  | LD '$' SYMBOL ',' GPR               { assembler->load(IMMEDIATE, $5, R0, $3); free($3); }
-  | LD LITERAL ',' GPR                  { assembler->load(MEM_DIR, $4, R0, $2); }
-  | LD SYMBOL ',' GPR                   { assembler->load(MEM_DIR, $4, R0, $2); free($2); }
-  | LD GPR ',' GPR                      { assembler->load(REG_DIR, $4, $2, 0); }
-  | LD '[' GPR ']' ',' GPR              { assembler->load(REG_IND, $6, $3, 0); }
-  | LD '[' GPR '+' LITERAL ']' ',' GPR  { assembler->load(REG_IND_OFF, $8, $3, $5); }
-  | ST GPR ',' '$' LITERAL              { assembler->store(IMMEDIATE, R0, R0, $2, $5); }
-  | ST GPR ',' '$' SYMBOL               { assembler->store(IMMEDIATE, R0, R0, $2, $5); free($5); }
-  | ST GPR ',' LITERAL                  { assembler->store(MEM_DIR, R0, R0, $2, $4); }
-  | ST GPR ',' SYMBOL                   { assembler->store(MEM_DIR, R0, R0, $2, $4); free($4); }
-  | ST GPR ',' GPR                      { assembler->store(REG_DIR, $2, $4, R0, 0); }
-  | ST GPR ',' '[' GPR ']'              { assembler->store(REG_IND, $5, R0, $2, 0); }
-  | ST GPR ',' '[' GPR '+' LITERAL ']'  { assembler->store(REG_IND_OFF, $5, R0, $2, $7); }
+  | LD '$' LITERAL ',' GPR              { assembler->load(IF_ADDR::IMMEDIATE, $5, REG::R0, $3); }
+  | LD '$' SYMBOL ',' GPR               { assembler->load(IF_ADDR::IMMEDIATE, $5, REG::R0, $3); free($3); }
+  | LD LITERAL ',' GPR                  { assembler->load(IF_ADDR::MEM_DIR, $4, REG::R0, $2); }
+  | LD SYMBOL ',' GPR                   { assembler->load(IF_ADDR::MEM_DIR, $4, REG::R0, $2); free($2); }
+  | LD GPR ',' GPR                      { assembler->load(IF_ADDR::REG_DIR, $4, $2, 0); }
+  | LD '[' GPR ']' ',' GPR              { assembler->load(IF_ADDR::REG_IND, $6, $3, 0); }
+  | LD '[' GPR '+' LITERAL ']' ',' GPR  { assembler->load(IF_ADDR::REG_IND_OFF, $8, $3, $5); }
+  | ST GPR ',' '$' LITERAL              { assembler->store(IF_ADDR::IMMEDIATE, REG::R0, REG::R0, $2, $5); }
+  | ST GPR ',' '$' SYMBOL               { assembler->store(IF_ADDR::IMMEDIATE, REG::R0, REG::R0, $2, $5); free($5); }
+  | ST GPR ',' LITERAL                  { assembler->store(IF_ADDR::MEM_DIR, REG::R0, REG::R0, $2, $4); }
+  | ST GPR ',' SYMBOL                   { assembler->store(IF_ADDR::MEM_DIR, REG::R0, REG::R0, $2, $4); free($4); }
+  | ST GPR ',' GPR                      { assembler->store(IF_ADDR::REG_DIR, $2, $4, REG::R0, 0); }
+  | ST GPR ',' '[' GPR ']'              { assembler->store(IF_ADDR::REG_IND, $5, REG::R0, $2, 0); }
+  | ST GPR ',' '[' GPR '+' LITERAL ']'  { assembler->store(IF_ADDR::REG_IND_OFF, $5, REG::R0, $2, $7); }
   | CSRRD CSR ',' GPR                   { assembler->csr_read($2, $4); }
   | CSRWR GPR ',' CSR                   { assembler->csr_write($2, $4); }
 ;
