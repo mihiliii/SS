@@ -120,9 +120,10 @@ void Linker::map_relocation_table(Elf32File& input_file)
 
             Elf32_Sym sym_entry =
                 input_file.symbol_table.get_symbol(ELF32_R_SYM(rela_entry.r_info));
-            Elf32_Word out_symbol_index = _output_file.symbol_table.get_symbol_index(sym_entry);
+            const std::string& sym_name = input_file.string_table.get_string(sym_entry.st_name);
+            Elf32_Word out_symbol_index = _output_file.symbol_table.get_symbol_index(sym_name);
 
-            rela_entry.r_info = ELF32_R_INFO(ELF32_R_TYPE(rela_entry.r_info), out_symbol_index);
+            rela_entry.r_info = ELF32_R_INFO(out_symbol_index, ELF32_R_TYPE(rela_entry.r_info));
 
             auto it_offset = _data_section_offsets.find({&input_file, &out_section});
             if (it_offset != _data_section_offsets.end()) {

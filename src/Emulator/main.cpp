@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
         emulator->print_end_state();
     }
     catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << "Emulator Error: " << e.what() << std::endl;
 
         delete emulator;
 

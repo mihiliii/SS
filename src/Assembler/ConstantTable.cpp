@@ -38,7 +38,7 @@ void ConstantTable::add_symbol_reference(Elf32_Sym& symbol_entry, Elf32_Addr add
 
         _linked_section.get_rela_table().add_entry(
             _linked_section.get_size() + _constant_pool.size() * sizeof(uint32_t),
-            ELF32_R_INFO(ELF32_R_TYPE_ABS32, symbol_entry_index), 0);
+            ELF32_R_INFO(symbol_entry_index, ELF32_R_TYPE_ABS32), 0);
         _constant_pool.emplace_back(0);
     }
 

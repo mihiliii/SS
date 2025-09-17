@@ -92,7 +92,7 @@ void Assembler::word_dir(const std::vector<Operand>& values)
             Elf32_Word symbol_index = _elf32_file.symbol_table.get_symbol_index(*symbol_entry);
 
             _current_section->get_rela_table().add_entry(
-                _current_section->get_size(), ELF32_R_INFO(ELF32_R_TYPE_ABS32, symbol_index), 0);
+                _current_section->get_size(), ELF32_R_INFO(symbol_index, ELF32_R_TYPE_ABS32), 0);
 
             _current_section->append_data((instruction_format_t) 0);
         }

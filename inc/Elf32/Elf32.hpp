@@ -110,9 +110,9 @@ struct Elf32_Sym {
 
 /* Makros used in r_info in Elf32_Rela (Relocation table entry) */
 
-#define ELF32_R_INFO(t, s) (((t) << 16) + ((s) & 0xffff)) // Symbol table index and relocation type
-#define ELF32_R_TYPE(i)    ((i) >> 16)                    // Relocation type
-#define ELF32_R_SYM(i)     ((i) & 0xffff)                 // Symbol table index
+#define ELF32_R_INFO(sym, type) (((sym) << 16) + ((type) & 0xffff)) // Symbol table index and type
+#define ELF32_R_SYM(i)          ((i) >> 16)                         // Relocation type
+#define ELF32_R_TYPE(i)         ((i) & 0xffff)                      // Symbol table index
 
 #define ELF32_R_TYPE_ABS32 0x0 // Absolute relocation
 

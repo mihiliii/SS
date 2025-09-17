@@ -10,16 +10,17 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::cout << "--- Reading ELF32 file: " << argv[1] << " ---" << std::endl;
-
-    Elf32File elf_file = Elf32File(argv[1]);
-    elf_file.read_elf();
-
     std::fstream input_file(argv[1], std::ios::binary | std::ios::in);
     if (!input_file.is_open()) {
-        std::cerr << "Error: Could not open file: " << argv[1] << std::endl;
+        std::cerr << "ReadElf32 Error: Could not open file: " << argv[1] << std::endl;
         return -1;
     }
+
+    Elf32File elf_file = Elf32File(argv[1]);
+
+    std::cout << "--- Reading ELF32 file: " << argv[1] << " ---" << std::endl;
+
+    elf_file.read_elf();
 
     const size_t BUFFER_SIZE = 1024;
     std::vector<Elf32_Byte> buffer(BUFFER_SIZE);
